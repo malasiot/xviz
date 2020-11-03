@@ -10,7 +10,8 @@ module.exports = {
   },
   plugins: [
 	new CleanWebpackPlugin(),
-  	new HtmlWebpackPlugin(),
+  	new HtmlWebpackPlugin( { template: "./src/index.html",
+      filename: "./index.html" }),
   ],
   module: {
     rules: [
@@ -18,6 +19,10 @@ module.exports = {
         test: /\.(js)$/,
         exclude: /node_modules/,
         use: ['babel-loader']
+      },
+	 {
+        test: /\.css$/i,
+        use: ['style-loader', 'css-loader'],
       }
 	]
   }

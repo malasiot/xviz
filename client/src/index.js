@@ -1,14 +1,18 @@
-import $ from 'jquery';
- function component() {
-    const element = document.createElement('pre');
+import React, { Component } from "react";
+import ReactDOM from "react-dom";
 
-    element.innerHTML = [
-      'Hello webpack!',
-      '5 cubed is equal to '
-    ].join('\n\n');
+import PinchZoomPan from "react-responsive-pinch-zoom-pan";
 
-    return element;
-  }
+const App = () => {
+    return (
+        <div style={{ width: '500px', height: '500px' }}>
+            <PinchZoomPan>
+                <img alt='Test Image' src='http://picsum.photos/750/750' />
+            </PinchZoomPan>
+        </div>
+    );
+};
 
-  document.body.appendChild(component());
+const wrapper = document.getElementById("container");
+wrapper ? ReactDOM.render(<App />, wrapper) : false;
 

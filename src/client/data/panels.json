@@ -1,0 +1,25 @@
+{
+	"type": "vertical_layout",
+	"children": [
+		{
+			"title": "image",
+			"channels": [ "/data/image" ],
+			"type": "image"
+		},
+		{
+			"type": "horizontal_layout",
+			"children": [
+				{
+				"title": "results",
+				"channels": [ "/data/table" ],
+				"type": "table"
+				},
+				{
+				"title": "plot",
+				"channels": [ "/data/plot" ],
+				"type": "plot"
+				}
+           ]
+		}
+	]	
+}

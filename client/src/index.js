@@ -7,7 +7,8 @@ const App = () => {
     return (
         <div style={{ width: '500px', height: '500px' }}>
             <PinchZoomPan>
-                <img alt='Test Image' src='http://picsum.photos/750/750' />
+		<h1>Hello</h1>
+             
             </PinchZoomPan>
         </div>
     );

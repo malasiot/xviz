@@ -2,9 +2,14 @@
 #include <QtCore/QCommandLineParser>
 #include <QtCore/QCommandLineOption>
 #include <QtCore/QFile>
+#include <QtCore/QJsonArray>
 
 #include "client.hpp"
-#include "session_config.hpp"
+#include "panel_config.hpp"
+
+using namespace xviz ;
+using namespace std ;
+
 
 int main(int argc, char *argv[])
 {
@@ -22,6 +27,8 @@ int main(int argc, char *argv[])
     parser.process(a);
 
     bool debug = parser.isSet(dbgOption);
+
+       QVector<QByteArray> channels ;
     if ( parser.isSet(configOption) ) {
         QString configPath = parser.value("config") ;
         QFile loadFile(configPath);
@@ -34,14 +41,21 @@ int main(int argc, char *argv[])
 
         QJsonDocument doc = QJsonDocument::fromJson(saveData) ;
 
-        PanelConfig config ;
-        config.fromJSON(doc.object()) ;
+        auto config = PanelConfig::fromJSON(doc.object()) ;
 
-        qDebug() << "OK";
+        if ( config ) {
+            config->getChannelsRecursive(channels) ;
+        }
+
     }
 
-    EchoClient client(QUrl(QStringLiteral("ws://localhost:9002/test")), debug);
+    EchoClient client(QUrl(QStringLiteral("ws://localhost:9002/test")), channels, debug);
     QObject::connect(&client, &EchoClient::closed, &a, &QCoreApplication::quit);
 
-    return a.exec();
+
+    qDebug() << "OK";
+
+     return a.exec();
+
+
 }

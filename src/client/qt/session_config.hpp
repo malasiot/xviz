@@ -16,7 +16,6 @@ public:
 
     void fromJSON(const QJsonDocument &src) ;
 
-    std::unique_ptr<PanelConfig> root_panel_ ;
 };
 
 #endif // SESSIONCONFIG_HPP

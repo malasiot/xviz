@@ -3,6 +3,6 @@ include_directories(
     ../3rdparty/asio/
 )
 
-add_executable(test_ws test_ws.cpp)
+add_executable(test_ws test_ws.cpp channel.cpp)
 target_link_libraries(test_ws pthread)
 

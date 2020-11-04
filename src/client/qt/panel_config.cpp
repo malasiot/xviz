@@ -2,49 +2,132 @@
 
 #include <QtCore/QJsonArray>
 
-PanelConfig::PanelConfig()
-{
+namespace xviz {
 
+std::unique_ptr<PanelConfig> PanelConfig::fromJSON(const QJsonObject &json) {
+
+    QString type ;
+    if ( json.contains("type") && json["type"].isString() )
+        type = json["type"].toString() ;
+    else return nullptr ;
+
+
+    std::unique_ptr<PanelConfig> cfg ;
+
+    if ( type == "vertical_layout")
+        cfg.reset(new VerticalLayoutConfig()) ;
+    else if ( type == "horizontal_layout" )
+        cfg.reset(new HorizontalLayoutConfig()) ;
+    else if ( type == "image" )
+        cfg.reset(new ImagePanelConfig()) ;
+    else if ( type == "table" )
+        cfg.reset(new TablePanelConfig()) ;
+    else if ( type == "plot" )
+        cfg.reset(new PlotPanelConfig()) ;
+    else return nullptr ;
+
+    if ( !cfg->parseJSON(json) ) return nullptr;
+
+    return cfg ;
 }
 
-bool PanelConfig::fromJSON(const QJsonObject &json)
-{
-    if (json.contains("name") && json["name"].isString())
-        name_ = json["name"].toString() ;
+void PanelConfig::getChannelsRecursive(QVector<QByteArray> &channels) const {
+    auto channels_this = getChannels() ;
+    channels.append(channels_this) ;
 
-    if (json.contains("description") && json["description"].isString())
-        description_ = json["description"].toString() ;
+     for( const auto &c: getChildren() ) {
+         c->getChannelsRecursive(channels) ;
+     }
+}
 
-    if ( json.contains("type") && json["type"].isString() )
-        type_ = json["type"].toString() ;
-    else return false ;
 
-    if ( json.contains("channels") && json["channels"].isArray() ) {
-        QJsonArray channelArray = json["channels"].toArray();
-        channels_.reserve(channelArray.size()) ;
-
-        for ( int i = 0; i < channelArray.size(); ++i ) {
-            QJsonValue val = channelArray[i] ;
-            if ( val.isString() )
-                channels_.append(val.toString()) ;
-        }
-    }
-
+bool PanelConfig::parseChildren(const QJsonObject &json) {
     if ( json.contains("children") && json["children"].isArray() ) {
         QJsonArray childrenArray = json["children"].toArray();
-        children_.reserve(childrenArray.size()) ;
 
         for ( int i = 0; i < childrenArray.size(); ++i ) {
             QJsonValue val = childrenArray[i] ;
             if ( val.isObject() ) {
-                PanelConfig child ;
                 QJsonObject obj = val.toObject() ;
-                if ( child.fromJSON(obj) )
+
+                auto child = PanelConfig::fromJSON(obj);
+                if ( child )
                     children_.push_back(std::move(child)) ;
             }
         }
+
+        return true ;
     }
 
+    return false ;
+}
+
+bool VerticalLayoutConfig::parseJSON(const QJsonObject &json) {
+    return parseChildren(json) ;
+}
+
+bool HorizontalLayoutConfig::parseJSON(const QJsonObject &json) {
+    return parseChildren(json) ;
+}
+
+
+bool ComponentConfig::parseJSON(const QJsonObject &json) {
+    if (json.contains("title") && json["title"].isString())
+        title_ = json["title"].toString() ;
+
+    if (json.contains("description") && json["description"].isString())
+        description_ = json["description"].toString() ;
+
     return true ;
+}
+
+bool ImagePanelConfig::parseJSON(const QJsonObject &json)
+{
+    ComponentConfig::parseJSON(json) ;
+
+    if ( json.contains("channels") && json["channels"].isArray() ) {
+        QJsonArray channelArray = json["channels"].toArray();
+
+        for ( int i = 0; i < channelArray.size(); ++i ) {
+            QJsonValue val = channelArray[i] ;
+            if ( val.isString() )
+                channels_.append(val.toString().toUtf8()) ;
+        }
+    }
+
+    return !channels_.empty() ;
+}
+
+bool TablePanelConfig::parseJSON(const QJsonObject &json)
+{
+     ComponentConfig::parseJSON(json) ;
+
+    if (json.contains("channel") && json["channel"].isString())
+        channel_ = json["channel"].toString().toUtf8() ;
+
+    return !channel_.isEmpty() ;
+
+}
+
+bool PlotPanelConfig::parseJSON(const QJsonObject &json)
+{
+    ComponentConfig::parseJSON(json) ;
+
+    if ( json.contains("y_channels") && json["y_channels"].isArray() ) {
+        QJsonArray channelArray = json["y_channels"].toArray();
+
+        for ( int i = 0; i < channelArray.size(); ++i ) {
+            QJsonValue val = channelArray[i] ;
+            if ( val.isString() )
+                y_channels_.append(val.toString().toUtf8()) ;
+        }
+    }
+
+    if (json.contains("x_channel") && json["x_channel"].isString())
+        x_channel_ = json["x_channel"].toString().toUtf8() ;
+
+    return !x_channel_.isEmpty() && !y_channels_.empty() ;
+
+}
 
 }

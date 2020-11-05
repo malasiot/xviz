@@ -50,6 +50,7 @@ WebSocketServer::~WebSocketServer() {} ;
 
 void WebSocketServer::run(int port) {
 
+    thread t(std::bind(&WebSocketServer::processBroadcastMessages,this));
     // Listen on port 9002
     server_.listen(asio::ip::tcp::v4(), port);
 
@@ -58,12 +59,66 @@ void WebSocketServer::run(int port) {
 
     // Start the ASIO io_service run loop
     server_.run();
+
+    t.join() ;
+}
+
+void WebSocketServer::broadcast(const string &channel, const string &msg) {
+    {
+        lock_guard<mutex> guard(broadcast_mutex_);
+        //std::cout << "on_message" << std::endl;
+        broadcast_messages_.push(BroadcastMessage(channel, msg) );
+    }
+    broadcast_cond_.notify_one();
+}
+
+void WebSocketServer::sendMessageToSubscribers(const string &channel, const string &msg)
+{
+    std::lock_guard<std::mutex> guard(connections_mutex_);
+
+    for( const auto &cp: connections_ ) {
+        const connection_t &con = cp.first ;
+        const Session &session = cp.second ;
+        for ( const string &c: session.channels_ ) {
+            if ( c == channel )
+                send(con, msg) ;
+        }
+    }
+}
+
+void WebSocketServer::processBroadcastMessages()
+{
+    while(1) {
+        unique_lock<mutex> lock(broadcast_mutex_);
+
+        while(broadcast_messages_.empty()) {
+            broadcast_cond_.wait(lock);
+        }
+
+        BroadcastMessage m = broadcast_messages_.front();
+        broadcast_messages_.pop();
+
+        cout << m.channel_ << endl ;
+
+        lock.unlock();
+
+        sendMessageToSubscribers(m.channel_, m.msg_);
+    }
+
+
+}
+
+void WebSocketServer::send(websocketpp::connection_hdl hdl, const string &msg) {
+    server_.send(hdl, msg, websocketpp::frame::opcode::BINARY);
 }
 
 void WebSocketServer::onOpen(websocketpp::connection_hdl hdl) {
     Session data;
 
+    std::lock_guard<std::mutex> guard(connections_mutex_);
+
     data.id_ = next_session_id_ ++;
+    data.connection_ = hdl ;
     connections_[hdl] = data;
 }
 
@@ -109,6 +164,8 @@ void WebSocketServer::onClose(websocketpp::connection_hdl hdl) {
 }
 
 Session &WebSocketServer::getSessionFromConnectionHandle(websocketpp::connection_hdl hdl) {
+    std::lock_guard<std::mutex> guard(connections_mutex_);
+
     auto it = connections_.find(hdl);
 
     if (it == connections_.end()) {
@@ -121,4 +178,4 @@ Session &WebSocketServer::getSessionFromConnectionHandle(websocketpp::connection
 }
 
 } // namespace impl
-} // namespace xviz
+               } // namespace xviz

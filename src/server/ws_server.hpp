@@ -25,27 +25,43 @@ namespace impl {
 class WebSocketServer {
 public:
 
+    using connection_t = websocketpp::connection_hdl  ;
+
     WebSocketServer(Server *controller);
     WebSocketServer() ;
     ~WebSocketServer();
 
     void run(int port);
+    void send(connection_t con, const std::string &msg) ;
+    void broadcast(const std::string &channel, const std::string &msg) ;
 
 private:
 
+    struct BroadcastMessage {
+       BroadcastMessage(const std::string &channel, const std::string &msg): channel_(channel), msg_(msg) {}
 
-    typedef std::map<websocketpp::connection_hdl, Session ,std::owner_less<websocketpp::connection_hdl>> ConnectionList ;
+       std::string channel_ ;
+       std::string msg_ ;
+    };
+
+    typedef std::map<connection_t, Session ,std::owner_less<connection_t>> ConnectionList ;
 
 private:
 
-    void onOpen(websocketpp::connection_hdl hdl);
+    void sendMessageToSubscribers(const std::string &channel, const std::string &msg) ;
+    void onOpen(connection_t hdl);
 
-    void onMessage(websocketpp::connection_hdl hdl, message_ptr msg);
+    void onMessage(connection_t hdl, message_ptr msg);
 
-    void onClose(websocketpp::connection_hdl hdl);
+    void onClose(connection_t hdl);
 
-    Session& getSessionFromConnectionHandle(websocketpp::connection_hdl hdl);
+    void processBroadcastMessages() ;
 
+    Session& getSessionFromConnectionHandle(connection_t hdl);
+
+    std::mutex connections_mutex_, broadcast_mutex_ ;
+    std::condition_variable broadcast_cond_ ;
+    std::queue<BroadcastMessage> broadcast_messages_;
     int next_session_id_ ;
     server server_;
     ConnectionList connections_;

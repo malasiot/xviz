@@ -25,8 +25,14 @@ set( QT_CLIENT_HEADERS
 set(QT_CLIENT_FORMS )
 #SET(QT_CLIENT_RESOURCES mdi.qrc )
 
-add_executable(xviz_qt_client ${QT_CLIENT_SOURCES} ${QT_CLIENT_MOC_SOURCES} ${QT_CLIENT_RC_SOURCES})
 
-target_link_libraries(xviz_qt_client Qt5::Core Qt5::Widgets Qt5::WebSockets)
+include_directories(${PROTOBUF_INCLUDE_DIR})
+protobuf_generate_cpp(PROTO_SRC PROTO_HDR ../../messages/session.proto)
+set_source_files_properties(${PROTO_SRC} ${PROTO_HDR} PROPERTIES GENERATED TRUE)
+
+
+add_executable(xviz_qt_client ${QT_CLIENT_SOURCES} ${QT_CLIENT_MOC_SOURCES} ${QT_CLIENT_RC_SOURCES} ${PROTO_SRC} ${PROTO_HDR})
+
+target_link_libraries(xviz_qt_client Qt5::Core Qt5::Widgets Qt5::WebSockets ${PROTOBUF_LIBRARY})
 
 install(TARGETS xviz_qt_client DESTINATION bin)

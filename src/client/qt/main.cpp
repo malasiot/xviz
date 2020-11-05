@@ -7,6 +7,7 @@
 #include "client.hpp"
 #include "panel_config.hpp"
 
+
 using namespace xviz ;
 using namespace std ;
 

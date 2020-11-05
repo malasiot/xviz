@@ -4,6 +4,9 @@
 #include <QtCore/QJsonArray>
 #include <QtCore/QJsonDocument>
 
+
+#include <session.pb.h>
+
 QT_USE_NAMESPACE
 
 //! [constructor]
@@ -24,21 +27,18 @@ EchoClient::EchoClient(const QUrl &url, const QVector<QByteArray> &channels, boo
 
 static QByteArray makeSessionMessage(const QByteArray &version, const QByteArray &format,
                          const QVector<QByteArray> &channels) {
-    QJsonObject obj ;
 
-    obj["message"] = "session" ;
-    obj["version"] = QString(version) ;
-    obj["format"] = QString(format) ;
+    xviz::msg::Message msg ;
 
-    QJsonArray channelArray ;
+    xviz::msg::SessionStart *ss_msg = new xviz::msg::SessionStart() ;
+
     for( const auto &channel: channels )
-        channelArray.append(QString(channel)) ;
+        ss_msg->add_channels(channel) ;
 
-    obj["channels"] = channelArray ;
+    msg.set_allocated_session_start(ss_msg) ;
 
-    QJsonDocument doc(obj) ;
-
-    return doc.toJson() ;
+    std::string payload = msg.SerializeAsString() ;
+    return QByteArray::fromStdString(payload) ;
 
 }
 //! [onConnected]
@@ -50,7 +50,7 @@ void EchoClient::onConnected()
             this, &EchoClient::onTextMessageReceived);
 
 
-    m_webSocket.sendTextMessage(makeSessionMessage(version_, format_, channels_));
+    m_webSocket.sendBinaryMessage(makeSessionMessage(version_, format_, channels_));
 }
 //! [onConnected]
 

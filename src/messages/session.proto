@@ -1,0 +1,33 @@
+syntax = "proto2";
+
+package xviz.msg ;
+
+message SessionStart {
+  optional string name = 1 ;
+  repeated string channels = 2 ;
+}
+
+message ChannelInfo {
+	enum Type {
+		POINTS = 0 ;
+		IMAGE = 1 ;
+	};
+	required Type type = 1 ;
+	required string name = 2 ;
+	optional string description = 3 ;
+}
+
+message SessionConfig {
+	repeated ChannelInfo channel_info = 1 ;
+}
+
+message Message {
+  optional int32 version = 1 [default = 1] ;
+	
+  oneof msg {
+	SessionStart session_start = 2 ;
+	SessionConfig session_config = 3 ;
+  }
+}
+
+

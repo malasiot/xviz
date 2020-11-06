@@ -15,6 +15,14 @@ set( QT_CLIENT_SOURCES
     session_config.hpp
     panel_config.hpp
     panel_config.cpp
+    panel.cpp
+    panel.hpp
+    image_panel.cpp
+    image_panel.hpp
+    image_widget.cpp
+    image_widget.hpp
+    main_window.hpp
+    main_window.cpp
     main.cpp
 )
 

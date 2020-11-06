@@ -8,27 +8,30 @@
 
 #include <memory>
 
-namespace xviz {
-
 class PanelConfig {
 public:
 
-    static std::unique_ptr<PanelConfig> fromJSON(const QJsonObject &doc) ;
+
+    static PanelConfig * fromJSON(const QString &doc) ;
 
     virtual QVector<QByteArray> getChannels() const {
         return QVector<QByteArray>() ;
     }
 
-    virtual const std::vector<std::unique_ptr<PanelConfig>> &getChildren() const {
+    virtual const std::vector<PanelConfig *> &getChildren() const {
         return children_ ;
     }
 
-    virtual ~PanelConfig() = default ;
+    virtual ~PanelConfig() {
+        for( PanelConfig *child: children_ )
+            delete child ;
+    }
 
     void getChannelsRecursive(QVector<QByteArray> &channels) const ;
 
 protected:
 
+    static PanelConfig *fromJSON(const QJsonObject &json) ;
     virtual bool parseJSON(const QJsonObject &obj) = 0 ;
 
     bool parseChildren(const QJsonObject &obj) ;
@@ -37,7 +40,7 @@ protected:
 
 protected:
 
-    std::vector<std::unique_ptr<PanelConfig>> children_ ;
+    std::vector<PanelConfig *> children_ ;
 };
 
 class ComponentConfig: public PanelConfig {
@@ -64,12 +67,12 @@ public:
          return channels_ ;
      }
 
+
+    QVector<QByteArray> channels_ ;
 protected:
 
     bool parseJSON(const QJsonObject &obj) override;
 
-
-     QVector<QByteArray> channels_ ;
 };
 
 class PlotPanelConfig: public ComponentConfig {
@@ -106,6 +109,5 @@ protected:
 };
 
 
-}
 
 #endif // PANEL_CONFIG_HPP

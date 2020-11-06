@@ -1,11 +1,11 @@
-#include <QtCore/QCoreApplication>
-#include <QtCore/QCommandLineParser>
-#include <QtCore/QCommandLineOption>
-#include <QtCore/QFile>
-#include <QtCore/QJsonArray>
+#include <QApplication>
+#include <QCommandLineParser>
+#include <QCommandLineOption>
+
 
 #include "client.hpp"
 #include "panel_config.hpp"
+#include "main_window.hpp"
 
 #include <thread>
 
@@ -21,51 +21,54 @@ xviz::Channel *imageChannel ;
 
 void onConnected() {
 
-    server.sendImageUri(imageChannel, "http://image2.png");
+    server.sendImageUri(imageChannel, "https://qph.fs.quoracdn.net/main-qimg-7213b23a51c7d8b97a299eaa9fe69849");
 
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+ //   std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    server.sendImageUri(imageChannel, "http://image3.png");
+//    server.sendImageUri(imageChannel, "http://image3.png");
 }
+
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication a(argc, argv);
+    QApplication a(argc, argv);
+
 
     QCommandLineParser parser;
     parser.setApplicationDescription("Qt xviz client");
     parser.addHelpOption();
 
     QCommandLineOption dbgOption(QStringList() << "d" << "debug", "Debug output [default: off].");
-    parser.addOption(dbgOption);
-    QCommandLineOption configOption(QStringList() << "c" << "config", "Configuration file", "xx");
-    parser.addOption(configOption) ;
+    QCommandLineOption urlOption(QStringList() << "u" << "url", "Server url", "url", "ws://localhost:9002/");
 
+    parser.addOption(dbgOption);
+    parser.addOption(urlOption) ;
+    parser.addPositionalArgument("config", "Configuration file.");
     parser.process(a);
 
     bool debug = parser.isSet(dbgOption);
 
-       QVector<QByteArray> channels ;
-    if ( parser.isSet(configOption) ) {
-        QString configPath = parser.value("config") ;
-        QFile loadFile(configPath);
+    const QStringList args = parser.positionalArguments();
 
-        if (!loadFile.open(QIODevice::ReadOnly)) {
-           qWarning("Couldn't open config file.");
-        }
-
-        QByteArray saveData = loadFile.readAll();
-
-        QJsonDocument doc = QJsonDocument::fromJson(saveData) ;
-
-        auto config = PanelConfig::fromJSON(doc.object()) ;
-
-        if ( config ) {
-            config->getChannelsRecursive(channels) ;
-        }
-
+    if ( args.size() == 0 ) {
+        parser.showHelp() ;
+        return 1 ;
     }
 
+    QString configFile = args.at(0) ;
+    QString url = parser.value("url") ;
+
+    auto config = PanelConfig::fromJSON(configFile) ;
+
+
+
+    MainWindow win(config) ;
+
+    QVector<QByteArray> channels ;
+
+    if ( config ) {
+            config->getChannelsRecursive(channels) ;
+    }
 
     imageChannel = server.createChannel("/data/image", xviz::Channel::IMAGE) ;
     server.createChannel("/data/table", xviz::Channel::TENSOR) ;
@@ -73,21 +76,27 @@ int main(int argc, char *argv[])
 
     std::thread t([&] {server.run(9002);});
 
-     std::this_thread::sleep_for(std::chrono::seconds(1));
+    std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    Client client(QUrl(QStringLiteral("ws://localhost:9002/test")), channels, debug);
-    QObject::connect(&client, &Client::closed, &a, &QCoreApplication::quit);
-    QObject::connect(&client, &Client::connected, &a, &onConnected);
 
+    WebSocketClient client(QUrl(url), channels, debug);
+
+    QObject::connect(&client, &WebSocketClient::closed, &a, &QCoreApplication::quit);
+    QObject::connect(&client, &WebSocketClient::connected, &a, &onConnected);
+    QObject::connect(&client, &WebSocketClient::connected, &win, &MainWindow::config);
+    QObject::connect(&client, &WebSocketClient::stateUpdated, &win, &MainWindow::updateState);
+
+
+    client.connect() ;
 
     signal(SIGTERM, [](int sig) { QCoreApplication::quit(); });
-        signal(SIGABRT, [](int sig) { QCoreApplication::quit(); });
-        signal(SIGINT, [](int sig) { QCoreApplication::quit(); });
-        signal(SIGKILL, [](int sig){ QCoreApplication::quit(); });
+    signal(SIGABRT, [](int sig) { QCoreApplication::quit(); });
+    signal(SIGINT, [](int sig) { QCoreApplication::quit(); });
+    signal(SIGKILL, [](int sig){ QCoreApplication::quit(); });
 
-    qDebug() << "OK";
+    win.show() ;
 
-     return a.exec();
+    return a.exec();
 
 
 }

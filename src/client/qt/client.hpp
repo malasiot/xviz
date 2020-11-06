@@ -1,33 +1,41 @@
-#ifndef ECHOCLIENT_H
-#define ECHOCLIENT_H
+#ifndef XVIZ_QT_WEBSOCKET_CLIENT_HPP
+#define XVIZ_QT_WEBSOCKET_CLIENT_HPP
 
 #include <QtCore/QObject>
 #include <QtWebSockets/QWebSocket>
 
-class Client : public QObject
+#include <xviz/channel.hpp>
+
+namespace xviz {
+    namespace msg {
+        class StateUpdate ;
+    }
+}
+
+class WebSocketClient : public QObject
 {
     Q_OBJECT
 public:
-    explicit Client(const QUrl &url, const QVector<QByteArray> &channels, bool debug = false, QObject *parent = nullptr);
-
+    explicit WebSocketClient(const QUrl &url, const QVector<QByteArray> &channels, bool debug = false, QObject *parent = nullptr);
+    void connect() ;
 
 Q_SIGNALS:
     void closed();
-    void connected() ;
+    void connected(const std::vector<xviz::Channel> &) ;
+    void stateUpdated(const xviz::msg::StateUpdate &update) ;
 
 private Q_SLOTS:
     void onConnected();
     void onTextMessageReceived(QString message);
-     void onBinaryMessageReceived(QByteArray message);
+    void onBinaryMessageReceived(QByteArray message);
 
 private:
-    QWebSocket m_webSocket;
-    QUrl m_url;
-    bool m_debug;
-    QByteArray version_ = "1.0", format_ = "JSON" ;
+    QWebSocket socket_;
+    QUrl url_;
+    bool debug_;
     QVector<QByteArray> channels_  ;
 
 };
 
-#endif // ECHOCLIENT_H
+#endif
 

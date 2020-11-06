@@ -5,31 +5,26 @@
 #include <QtCore/QJsonDocument>
 
 #include <session.pb.h>
+#include <xviz/channel.hpp>
 
 
 using namespace std ;
 
 QT_USE_NAMESPACE
 
+WebSocketClient::WebSocketClient(const QUrl &url, const QVector<QByteArray> &channels, bool debug, QObject *parent) :
+    QObject(parent), url_(url), debug_(debug), channels_(channels) {
+    if ( debug_ ) qDebug() << "WebSocket server:" << url;
+    QObject::connect(&socket_, &QWebSocket::connected, this, &WebSocketClient::onConnected);
+    QObject::connect(&socket_, &QWebSocket::disconnected, this, &WebSocketClient::closed);
 
-//! [constructor]
-Client::Client(const QUrl &url, const QVector<QByteArray> &channels, bool debug, QObject *parent) :
-    QObject(parent),
-    m_url(url),
-    m_debug(debug),
-  channels_(channels)
-{
-    if (m_debug)
-        qDebug() << "WebSocket server:" << url;
-    connect(&m_webSocket, &QWebSocket::connected, this, &Client::onConnected);
-    connect(&m_webSocket, &QWebSocket::disconnected, this, &Client::closed);
-    m_webSocket.open(QUrl(url));
 }
-//! [constructor]
 
+void WebSocketClient::connect() {
+     socket_.open(QUrl(url_));
+}
 
-static QByteArray makeSessionMessage(const QByteArray &version, const QByteArray &format,
-                         const QVector<QByteArray> &channels) {
+static QByteArray makeSessionMessage(const QVector<QByteArray> &channels) {
 
     xviz::msg::Message msg ;
 
@@ -42,39 +37,29 @@ static QByteArray makeSessionMessage(const QByteArray &version, const QByteArray
 
     std::string payload = msg.SerializeAsString() ;
     return QByteArray::fromStdString(payload) ;
-
-}
-//! [onConnected]
-void Client::onConnected()
-{
-    if (m_debug)
-        qDebug() << "WebSocket connected";
-    connect(&m_webSocket, &QWebSocket::textMessageReceived,
-            this, &Client::onTextMessageReceived);
-    connect(&m_webSocket, &QWebSocket::binaryMessageReceived,
-            this, &Client::onBinaryMessageReceived);
-
-    m_webSocket.sendBinaryMessage(makeSessionMessage(version_, format_, channels_));
-
-
-}
-//! [onConnected]
-
-//! [onTextMessageReceived]
-void Client::onTextMessageReceived(QString message)
-{
-    if (m_debug)
-        qDebug() << "Message received:" << message;
-    m_webSocket.close();
 }
 
-void Client::onBinaryMessageReceived(QByteArray message)
-{
+void WebSocketClient::onConnected() {
+    if ( debug_ ) qDebug() << "WebSocket connected";
+
+    QObject::connect(&socket_, &QWebSocket::textMessageReceived,  this, &WebSocketClient::onTextMessageReceived);
+    QObject::connect(&socket_, &QWebSocket::binaryMessageReceived, this, &WebSocketClient::onBinaryMessageReceived);
+
+    socket_.sendBinaryMessage(makeSessionMessage(channels_));
+}
+
+void WebSocketClient::onTextMessageReceived(QString message) {
+    if ( debug_ ) qDebug() << "Message received:" << message;
+}
+
+void WebSocketClient::onBinaryMessageReceived(QByteArray message) {
     using namespace xviz::msg ;
     Message msg_body ;
+
     if ( msg_body.ParseFromString(message.toStdString()) ) {
         switch ( msg_body.msg_case() ) {
         case Message::kSessionConfig: {
+            vector<xviz::Channel> channelInfoList ;
             const SessionConfig &session_config_msg = msg_body.session_config() ;
             const auto &channels = session_config_msg.channel_info() ;
             for( const ChannelInfo &channel: channels ) {
@@ -82,14 +67,19 @@ void Client::onBinaryMessageReceived(QByteArray message)
                 string desc = channel.description() ;
                 int type = channel.type() ;
 
+                channelInfoList.emplace_back(name, type, desc) ;
+
                 qDebug() << name.c_str() << desc.c_str() << type ;
             }
 
-             emit connected() ;
+             emit connected(channelInfoList) ;
         }
             break ;
         case Message::kStateUpdate: {
             const StateUpdate &state_update = msg_body.state_update() ;
+            emit stateUpdated(state_update) ;
+            break ;
+            /*
             string channel_id = state_update.channel_id();
             string object_id = state_update.object_id() ;
 
@@ -109,12 +99,13 @@ void Client::onBinaryMessageReceived(QByteArray message)
 
 
             }
+            */
         }
         break ;
         }
 
     }
-    if (m_debug)
+    if (debug_)
         qDebug() << "Message received:" << message;
     //m_webSocket.close();
 }

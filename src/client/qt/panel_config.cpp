@@ -1,29 +1,46 @@
 #include "panel_config.hpp"
 
+#include <QtCore/QDebug>
+#include <QtCore/QJsonArray>
+#include <QtCore/QFile>
 #include <QtCore/QJsonArray>
 
-namespace xviz {
+PanelConfig * PanelConfig::fromJSON(const QString &src) {
 
-std::unique_ptr<PanelConfig> PanelConfig::fromJSON(const QJsonObject &json) {
+    QFile loadFile(src);
 
+    if (!loadFile.open(QIODevice::ReadOnly)) {
+       qWarning("Couldn't open config file.");
+       return nullptr ;
+    }
+
+    QByteArray data = loadFile.readAll();
+
+    QJsonDocument doc = QJsonDocument::fromJson(data) ;
+
+    QJsonObject json = doc.object() ;
+
+    return fromJSON(json) ;
+}
+
+PanelConfig * PanelConfig::fromJSON(const QJsonObject &json) {
     QString type ;
     if ( json.contains("type") && json["type"].isString() )
         type = json["type"].toString() ;
     else return nullptr ;
 
-
-    std::unique_ptr<PanelConfig> cfg ;
+    PanelConfig *cfg = nullptr ;
 
     if ( type == "vertical_layout")
-        cfg.reset(new VerticalLayoutConfig()) ;
+        cfg = new VerticalLayoutConfig() ;
     else if ( type == "horizontal_layout" )
-        cfg.reset(new HorizontalLayoutConfig()) ;
+        cfg = new HorizontalLayoutConfig() ;
     else if ( type == "image" )
-        cfg.reset(new ImagePanelConfig()) ;
+        cfg = new ImagePanelConfig() ;
     else if ( type == "table" )
-        cfg.reset(new TablePanelConfig()) ;
+        cfg = new TablePanelConfig() ;
     else if ( type == "plot" )
-        cfg.reset(new PlotPanelConfig()) ;
+        cfg = new PlotPanelConfig() ;
     else return nullptr ;
 
     if ( !cfg->parseJSON(json) ) return nullptr;
@@ -127,7 +144,5 @@ bool PlotPanelConfig::parseJSON(const QJsonObject &json)
         x_channel_ = json["x_channel"].toString().toUtf8() ;
 
     return !x_channel_.isEmpty() && !y_channels_.empty() ;
-
-}
 
 }

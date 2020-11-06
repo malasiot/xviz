@@ -27,7 +27,7 @@ public:
 
     using connection_t = websocketpp::connection_hdl  ;
 
-    WebSocketServer(Server *controller);
+    WebSocketServer(Server *controller, const std::string &doc_root);
     WebSocketServer() ;
     ~WebSocketServer();
 
@@ -55,6 +55,8 @@ private:
 
     void onClose(connection_t hdl);
 
+    void onHttp(connection_t hdl);
+
     void processBroadcastMessages() ;
 
     Session& getSessionFromConnectionHandle(connection_t hdl);
@@ -66,6 +68,7 @@ private:
     server server_;
     ConnectionList connections_;
     Server *controller_ = nullptr ;
+    std::string doc_root_ ;
 };
 
 

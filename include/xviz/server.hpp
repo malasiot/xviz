@@ -17,7 +17,7 @@ class WebSocketServer ;
 
 class Server {
 public:
-    Server() ;
+    Server(const std::string &doc_root = std::string()) ;
     ~Server() ;
 
     // blocking call to start accepting connections

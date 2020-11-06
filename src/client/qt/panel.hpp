@@ -13,9 +13,15 @@ public:
 
     virtual void config(const std::vector<xviz::Channel> &channels) = 0 ;
     virtual void updateState(const xviz::msg::StateUpdate &) = 0;
+};
 
-private:
+class MockPanel : public Panel {
+    Q_OBJECT
+public:
+    MockPanel(QWidget *parent = nullptr);
 
+    void config(const std::vector<xviz::Channel> &channels) override {}
+    void updateState(const xviz::msg::StateUpdate &) override {}
 };
 
 #endif

@@ -15,6 +15,10 @@ public slots:
     void updateState(const xviz::msg::StateUpdate &state);
 
 private:
+
+    QWidget *makeLayout(PanelConfig *config, QWidget *parent) ;
+
+private:
     ImagePanel *panel_ ;
     QVector<Panel *> panels_ ;
 };

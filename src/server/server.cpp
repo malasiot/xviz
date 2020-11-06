@@ -7,7 +7,7 @@ using namespace std ;
 
 namespace xviz {
 
-Server::Server(): ws_server_(new impl::WebSocketServer(this)) {
+Server::Server(const string &doc_root): ws_server_(new impl::WebSocketServer(this, doc_root)) {
 
 }
 

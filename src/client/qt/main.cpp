@@ -16,12 +16,14 @@
 using namespace xviz ;
 using namespace std ;
 
-xviz::Server server ;
+xviz::Server server("/home/malasiot/tmp") ;
 xviz::Channel *imageChannel ;
 
 void onConnected() {
 
-    server.sendImageUri(imageChannel, "https://qph.fs.quoracdn.net/main-qimg-7213b23a51c7d8b97a299eaa9fe69849");
+  //  server.sendImageUri(imageChannel, "https://qph.fs.quoracdn.net/main-qimg-7213b23a51c7d8b97a299eaa9fe69849");
+
+    server.sendImageUri(imageChannel, "http://localhost:9002/image.png");
 
  //   std::this_thread::sleep_for(std::chrono::seconds(1));
 

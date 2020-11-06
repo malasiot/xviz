@@ -2,6 +2,7 @@
 
 #include <xviz/server.hpp>
 
+#include <fstream>
 #include <session.pb.h>
 
 using namespace std ;
@@ -9,7 +10,7 @@ using namespace std ;
 namespace xviz { namespace impl {
 
 
-WebSocketServer::WebSocketServer(Server *ctrl): controller_(ctrl) {
+WebSocketServer::WebSocketServer(Server *ctrl, const string &doc_root): controller_(ctrl), doc_root_(doc_root) {
 
     try {
         // Set logging settings
@@ -22,13 +23,7 @@ WebSocketServer::WebSocketServer(Server *ctrl): controller_(ctrl) {
         // Register our message handler
         //  echo_server.set_message_handler(bind(&on_message,&echo_server,::_1,::_2));
         server_.set_message_handler(std::bind(&WebSocketServer::onMessage, this, ::_1, ::_2)) ;
-        server_.set_http_handler([&](websocketpp::connection_hdl hdl){
-            server::connection_ptr con = server_.get_con_from_hdl(hdl);
-            std::string path = con->get_resource();
-            cout << path << endl ;
-
-        });
-
+        server_.set_http_handler(std::bind(&WebSocketServer::onHttp, this, ::_1)) ;
         server_.set_open_handler(std::bind(&WebSocketServer::onOpen, this, ::_1)) ;
         server_.set_close_handler(std::bind(&WebSocketServer::onClose, this, ::_1)) ;
 
@@ -120,6 +115,41 @@ void WebSocketServer::onOpen(websocketpp::connection_hdl hdl) {
     data.id_ = next_session_id_ ++;
     data.connection_ = hdl ;
     connections_[hdl] = data;
+}
+
+void WebSocketServer::onHttp(connection_t hdl) {
+    server::connection_ptr con = server_.get_con_from_hdl(hdl);
+
+    std::string filename = doc_root_ + con->get_resource();
+    std::string response;
+
+    std::ifstream file;
+    file.open(filename.c_str(), std::ios::in);
+
+    if ( !file ) {
+      // 404 error
+      std::stringstream ss;
+
+      ss << "<!doctype html><html><head>"
+         << "<title>Error 404 (Resource not found)</title><body>"
+         << "<h1>Error 404</h1>"
+         << "<p>The requested URL " << filename << " was not found on this server.</p>"
+         << "</body></head></html>";
+
+      con->set_body(ss.str());
+      con->set_status(websocketpp::http::status_code::not_found);
+      return;
+    }
+
+    file.seekg(0, std::ios::end);
+    response.reserve(file.tellg());
+    file.seekg(0, std::ios::beg);
+
+    response.assign((std::istreambuf_iterator<char>(file)),
+                     std::istreambuf_iterator<char>());
+
+    con->set_body(response);
+    con->set_status(websocketpp::http::status_code::ok);
 }
 
 void WebSocketServer::onMessage(websocketpp::connection_hdl hdl, message_ptr msg) {

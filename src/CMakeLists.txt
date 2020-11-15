@@ -24,6 +24,7 @@ set(XVIZ_LIB_SOURCES
     types/marker.cpp
     types/drawable.cpp
     types/path.cpp
+    types/gradient.cpp
 
     ${XVIZ_INCLUDE_DIR}/server.hpp
     ${XVIZ_INCLUDE_DIR}/channel.hpp
@@ -33,6 +34,7 @@ set(XVIZ_LIB_SOURCES
     ${XVIZ_INCLUDE_DIR}/image.hpp
     ${XVIZ_INCLUDE_DIR}/drawable.hpp
     ${XVIZ_INCLUDE_DIR}/path.hpp
+    ${XVIZ_INCLUDE_DIR}/gradient.hpp
 )
 
 protobuf_generate_cpp(PROTO_SRC PROTO_HDR messages/session.proto messages/style.proto messages/drawable.proto)

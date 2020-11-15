@@ -1,0 +1,156 @@
+
+package xviz.msg ;
+
+message Color {
+    required float r = 1;
+    required float g = 2;
+    required float b = 3;
+    required float a = 4;
+}
+message EmptyPen {
+}
+
+message SolidPen {
+    enum StrokeType {
+        SOLID = 0 ;
+        DASHED = 1 ;
+        DOTTED = 2 ;
+        DASH_DOT = 3 ;
+        CUSTOM = 4 ;
+    }
+
+    enum LineJoin {
+        MITER_JOIN = 0 ;
+        ROUND_JOIN = 1 ;
+        BEVEL_JOIN = 2 ;
+    }
+
+    enum LineCap {
+        BUTT_CAP = 0 ;
+        ROUND_CAP = 1 ;
+        SQUARE_CAP = 2 ;
+    }
+
+    optional float line_width = 1 [default = 1];
+    optional StrokeType stroke_type = 2 [default = SOLID];
+    optional LineJoin line_join = 3 [default = MITER_JOIN];
+    optional LineCap line_cap = 4 [default = BUTT_CAP];
+    optional float dash_offset = 5 [default = 0.0];
+    repeated float dash_array = 6;
+    required Color line_color = 7;
+}
+
+message Pen {
+    oneof pen {
+        EmptyPen empty_pen = 1;
+        SolidPen solid_pen = 2;
+    }
+}
+
+message Stop {
+    required double pos = 1 ;
+    required Color color = 2 ;
+}
+
+message Gradient {
+    enum SpreadMethod {
+        PAD_SPREAD = 0 ;
+        REFLECT_SPREAD = 1 ;
+        REPEAT_SPREAD = 2 ;
+    }
+
+    optional SpreadMethod spread = 1 [default = PAD_SPREAD] ;
+    repeated Stop stops = 2 ;
+}
+
+message LinearGradient {
+    required Gradient common = 1;
+    required double x1 = 2 ;
+    required double y1 = 3 ;
+    required double x2 = 4 ;
+    required double y2 = 5 ;
+}
+
+message RadialGradient {
+    required Gradient common = 1;
+    required double cx = 2 ;
+    required double cy = 3 ;
+    required double fx = 4 ;
+    required double fy = 5 ;
+    required double r = 6 ;
+}
+
+message PatternBrush {
+}
+
+message SolidBrush {
+    required Color color = 1 ;
+}
+
+message Font {
+    enum Style {
+        FONT_STYLE_NORMAL = 0 ;
+        FONT_STYLE_OBLIQUE = 1 ;
+        FONT_STYLE_ITALIC = 2 ;
+    }
+
+    enum Weight {
+        FONT_WEIGHT_NORMAL = 0 ;
+        FONT_WEIGHT_BOLD = 1 ;
+    }
+
+    repeated string family = 1;
+    optional float sz = 2;
+    optional Style style = 3;
+    optional Weight weight = 4;
+}
+
+message Brush {
+    enum FillRule {
+        EVEN_ODD = 0 ;
+        NON_ZERO = 1 ;
+    }
+
+    optional FillRule fill_rule = 1 [ default=EVEN_ODD ] ;
+
+    oneof brush {
+        SolidBrush solid_brush = 2 ;
+        LinearGradient linear_gradient_brush = 3 ;
+        RadialGradient radial_gradient_brush = 4 ;
+        PatternBrush patern_brush = 5 ;
+    }
+}
+
+message Shape {
+    required int32 type = 1 ;
+}
+
+message StockShape {
+    enum Geometry {
+        POINT_MARKER = 0 ;
+        SQUARE_MARKER = 1 ;
+        CIRCLE_MARKER = 2 ;
+        DIAMOND_MARKER = 3 ;
+        PLUS_MARKER = 4 ;
+        X_MARKER = 5 ;
+        STAR_MARKER = 6 ;
+        TRIANGLE_DOWN_MARKER = 7 ;
+        TRIANGLE_UP_MARKER = 8 ;
+        TRIANGLE_LEFT_MARKER = 9 ;
+        TRIANGLE_RIGHT_MARKER = 10 ;
+    }
+
+    optional Pen pen = 1 ;
+    optional Brush brush = 2 ;
+    required Geometry geometry = 3 ;
+}
+
+message Marker {
+    required float size = 1 ;
+
+    oneof shape {
+        Shape custom_shape = 2;
+        StockShape stock_shape = 3 ;
+    }
+}
+

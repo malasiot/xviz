@@ -49,7 +49,7 @@ void onConnected() {
 
     BarSeries bs ;
     bs.setTitle("chart 1") ;
-    bs.setBrush(BrushHandle(new SolidBrush(Color::red()))) ;
+    bs.setBrush(Brush(LinearGradient(-10.0, -10.0, 100.0, 100.0, {{0.0, Color::blue()}, {1.0, Color::green()}}))) ;
     bs.setWidth(0.3) ;
     bs.x() = { 0.0, 1.0, 2.0, 3.0 } ;
     bs.height() = { 3.0, 4.1, 1.0, 2.5 } ;
@@ -58,11 +58,12 @@ void onConnected() {
     bc.setLabelY("Y") ;
 
     Path p ;
-    p.addRect(0.5, 1.5, 1.2, 0.8) ;
-    p.addEllipse(1.6, 1.4, 0.5, 0.5) ;
+    p.builder().addRect(0.5, 1.5, 1.2, 0.8)
+            .addEllipse(1.6, 1.4, 0.5, 0.5) ;
+
     DrawableHandle d(new ShapeDrawable(p));
-    d->setPen(PenHandle(new SolidPen(Color::red(), 2.5)));
-    d->setBrush(BrushHandle(new SolidBrush(Color::green())));
+    d->setPen({Color::red(), 2.5});
+    d->setBrush(Brush(LinearGradient(-10.0, -10.0, 500.0, 500.0, {{0.0, Color::blue()}, {1.0, Color::green()}})));
 
     bc.addAnnotation(d);
 

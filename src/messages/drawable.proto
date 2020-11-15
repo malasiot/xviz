@@ -1,0 +1,59 @@
+import public "style.proto";
+
+package xviz.msg ;
+
+message PathCommand {
+    enum Command {
+        CMD_MOVE_TO = 0 ;
+        CMD_LINE_TO = 1 ;
+        CMD_CURVE_TO = 2 ;
+        CMD_CLOSE = 3 ;
+    }
+    required Command command = 1 ;
+    optional double arg0 = 2 ;
+    optional double arg1 = 3 ;
+    optional double arg2 = 4 ;
+    optional double arg3 = 5 ;
+    optional double arg4 = 6 ;
+    optional double arg5 = 7 ;
+}
+
+message Path {
+    repeated PathCommand commands = 1;
+}
+
+message ShapeDrawable {
+    required Path path = 1;
+}
+
+message GroupDrawable {
+}
+
+message TextDrawable {
+    enum TextDecoration {
+        TEXT_DECORATION_NONE = 0 ;
+        TEXT_DECORATION_UNDERLINE = 1 ;
+        TEXT_DECORATION_STRIKE_THROUGH = 2 ;
+    }
+
+    required string text = 1 ;
+    required double x = 2 ;
+    required double y = 3 ;
+    optional double w = 4 ;
+    optional double h = 5 ;
+    required int32 flags = 6;
+    optional TextDecoration decoration = 7 [default = TEXT_DECORATION_NONE] ;
+}
+
+message Drawable {
+    repeated Drawable children = 1;
+
+    optional Pen pen = 2;
+    optional Brush brush = 3;
+
+    oneof shape {
+        GroupDrawable group_drawable = 4;
+        ShapeDrawable shape_drawable = 5;
+        TextDrawable  text_drawable = 6 ;
+    }
+}

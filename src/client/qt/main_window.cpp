@@ -1,4 +1,6 @@
 #include "main_window.hpp"
+#include "chart_panel.hpp"
+
 #include <QHBoxLayout>
 #include <QSplitter>
 
@@ -43,6 +45,10 @@ QWidget *MainWindow::makeLayout(PanelConfig *config, QWidget *parent) {
         return splitter ;
     } else if ( ImagePanelConfig *ip = dynamic_cast<ImagePanelConfig *>(config) ) {
         ImagePanel *panel = new ImagePanel(*ip, parent) ;
+        panels_.append(panel) ;
+        return panel ;
+    } else if ( ChartPanelConfig *cp = dynamic_cast<ChartPanelConfig *>(config) ) {
+        ChartPanel *panel = new ChartPanel(*cp, parent) ;
         panels_.append(panel) ;
         return panel ;
     } else {

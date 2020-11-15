@@ -1,5 +1,8 @@
 syntax = "proto2";
 
+import public "style.proto";
+import public "drawable.proto";
+
 package xviz.msg ;
 
 message SessionStart {
@@ -13,6 +16,7 @@ message ChannelInfo {
 	optional string description = 3 ;
 }
 
+
 message SessionConfig {
 	repeated ChannelInfo channel_info = 1 ;
 }
@@ -25,21 +29,52 @@ message ImageRaw {
     required bytes pixels = 5 ;
 }
 
-message ImageData {
-    oneof data {
-        ImageRaw raw = 1;
-        string url = 2;
+message Image {
+    oneof image {
+        ImageRaw raw_image = 1;
+        string image_uri = 2;
     }
+}
+
+message LineSeries {
+    repeated double x = 1 ;
+    repeated double y = 2 ;
+    repeated double e = 3 ;
+    optional Pen pen = 4;
+    optional Brush brush = 5;
+    optional Marker marker = 6 ;
+    optional string title = 7 ;
+}
+
+message BarSeries {
+    repeated double x = 1 ;
+    repeated double y = 2 ;
+    repeated double y0 = 3 ;
+    required double width = 4 ;
+    optional Pen pen = 5;
+    optional Brush brush = 6;
+    optional string title = 7 ;
+}
+
+message Chart {
+    optional string title = 1 ;
+    optional string labelX = 2 ;
+    optional string labelY = 3 ;
+    repeated double ticsX = 4 ;
+    repeated double ticsY = 5 ;
+    repeated string ticLabelsX = 6 ;
+    repeated string ticLabelsY = 7 ;
+
+    repeated LineSeries line_series = 8;
+    repeated BarSeries bar_series = 9;
+    repeated Drawable annotations = 10;
 }
 
 message StateUpdate {
     required double ts = 1;
     required string channel_id = 2 ;
     optional string object_id = 3;
-
-    oneof data {
-        ImageData image_data = 4 ;
-    }
+    required bytes data = 4 ;
 }
 
 message Message {

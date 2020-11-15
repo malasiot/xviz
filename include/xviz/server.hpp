@@ -6,9 +6,12 @@
 #include <string>
 
 #include <xviz/channel.hpp>
+#include <xviz/line_chart.hpp>
+#include <xviz/bar_chart.hpp>
 
 namespace xviz {
 
+class Image ;
 
 namespace impl {
 class Session ;
@@ -26,18 +29,18 @@ public:
     Channel *createChannel(const std::string &name, const Channel::Type ctype) ;
     Channel *findChannel(const std::string &name) ;
 
-    void sendRawImageData(Channel *channel, uint32_t width, uint32_t height, uint32_t stride, int pixel_type, char *bytes);
-    void sendImageUri(Channel *channel, const std::string &uri) ;
+    void sendImage(Channel *channel, const xviz::Image &im) ;
+    void sendChart(Channel *channel, const Chart &chart) ;
 
 private:
 
     friend class impl::WebSocketServer ;
 
     void onSessionStarted(impl::Session &session) ;
+    void sendUpdateMessage(Channel *channel, const std::string &msg_data) ;
     void dispatchUpdateMessage(Channel *c, const std::string &msg) ;
 
     std::map<std::string, Channel> channels_ ;
-
     std::unique_ptr<impl::WebSocketServer> ws_server_ ;
 };
 

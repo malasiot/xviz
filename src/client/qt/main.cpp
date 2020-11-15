@@ -10,6 +10,8 @@
 #include <thread>
 
 #include <xviz/server.hpp>
+#include <xviz/image.hpp>
+#include <xviz/bar_chart.hpp>
 
 #include <csignal>
 
@@ -17,13 +19,58 @@ using namespace xviz ;
 using namespace std ;
 
 xviz::Server server("/home/malasiot/tmp") ;
-xviz::Channel *imageChannel ;
+xviz::Channel *imageChannel, *chartChannel ;
 
 void onConnected() {
 
   //  server.sendImageUri(imageChannel, "https://qph.fs.quoracdn.net/main-qimg-7213b23a51c7d8b97a299eaa9fe69849");
 
-    server.sendImageUri(imageChannel, "http://localhost:9002/image.png");
+    server.sendImage(imageChannel, xviz::ImageUri("http://localhost:9002/image.png"));
+/*
+    LineChart lc ;
+
+    LineSeries ls ;
+    ls.setTitle("chart 1") ;
+    ls.setMarker(MarkerHandle(new SimpleShapeMarker(SimpleShapeMarker::Square, 8, PenHandle(new SolidPen(Color::black())), BrushHandle(new SolidBrush(Color::red())))));
+    ls.x() = { 0.0, 1.0, 2.0, 3.0 } ;
+    ls.y() = { 0.0, -2.0, 4.0, 3.0 } ;
+    ls.parseParamString("r--");
+    lc.addSeries(ls) ;
+    lc.setLabelX("X\ntriangles") ;
+    lc.setLabelY("Y\n(num)") ;
+
+ //   lc.setTicksX({0, 1.5, 2, 3}, {"zero", "one", "two", "three"}) ;
+
+
+    server.sendLineChart(chartChannel, lc) ;
+*/
+
+    BarChart bc ;
+
+    BarSeries bs ;
+    bs.setTitle("chart 1") ;
+    bs.setBrush(BrushHandle(new SolidBrush(Color::red()))) ;
+    bs.setWidth(0.3) ;
+    bs.x() = { 0.0, 1.0, 2.0, 3.0 } ;
+    bs.height() = { 3.0, 4.1, 1.0, 2.5 } ;
+    bc.addSeries(bs) ;
+    bc.setLabelX("X") ;
+    bc.setLabelY("Y") ;
+
+    Path p ;
+    p.addRect(0.5, 1.5, 1.2, 0.8) ;
+    p.addEllipse(1.6, 1.4, 0.5, 0.5) ;
+    DrawableHandle d(new ShapeDrawable(p));
+    d->setPen(PenHandle(new SolidPen(Color::red(), 2.5)));
+    d->setBrush(BrushHandle(new SolidBrush(Color::green())));
+
+    bc.addAnnotation(d);
+
+    server.sendChart(chartChannel, bc) ;
+
+ //   lc.setTicksX({0, 1.5, 2, 3}, {"zero", "one", "two", "three"}) ;
+
+
 
  //   std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -73,8 +120,7 @@ int main(int argc, char *argv[])
     }
 
     imageChannel = server.createChannel("/data/image", xviz::Channel::IMAGE) ;
-    server.createChannel("/data/table", xviz::Channel::TENSOR) ;
-    server.createChannel("/data/plot_x", xviz::Channel::TENSOR) ;
+    chartChannel = server.createChannel("/data/chart", xviz::Channel::CHART) ;
 
     std::thread t([&] {server.run(9002);});
 

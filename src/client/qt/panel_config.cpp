@@ -39,8 +39,8 @@ PanelConfig * PanelConfig::fromJSON(const QJsonObject &json) {
         cfg = new ImagePanelConfig() ;
     else if ( type == "table" )
         cfg = new TablePanelConfig() ;
-    else if ( type == "plot" )
-        cfg = new PlotPanelConfig() ;
+    else if ( type == "chart" )
+        cfg = new ChartPanelConfig() ;
     else return nullptr ;
 
     if ( !cfg->parseJSON(json) ) return nullptr;
@@ -126,23 +126,20 @@ bool TablePanelConfig::parseJSON(const QJsonObject &json)
 
 }
 
-bool PlotPanelConfig::parseJSON(const QJsonObject &json)
+bool ChartPanelConfig::parseJSON(const QJsonObject &json)
 {
     ComponentConfig::parseJSON(json) ;
 
-    if ( json.contains("y_channels") && json["y_channels"].isArray() ) {
-        QJsonArray channelArray = json["y_channels"].toArray();
+    if ( json.contains("channels") && json["channels"].isArray() ) {
+        QJsonArray channelArray = json["channels"].toArray();
 
         for ( int i = 0; i < channelArray.size(); ++i ) {
             QJsonValue val = channelArray[i] ;
             if ( val.isString() )
-                y_channels_.append(val.toString().toUtf8()) ;
+                channels_.append(val.toString().toUtf8()) ;
         }
     }
 
-    if (json.contains("x_channel") && json["x_channel"].isString())
-        x_channel_ = json["x_channel"].toString().toUtf8() ;
-
-    return !x_channel_.isEmpty() && !y_channels_.empty() ;
+    return !channels_.empty() ;
 
 }

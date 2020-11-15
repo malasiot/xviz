@@ -19,6 +19,7 @@ WebSocketServer::WebSocketServer(Server *ctrl, const string &doc_root): controll
 
         // Initialize Asio
         server_.init_asio();
+        server_.set_reuse_addr(true) ;
 
         // Register our message handler
         //  echo_server.set_message_handler(bind(&on_message,&echo_server,::_1,::_2));

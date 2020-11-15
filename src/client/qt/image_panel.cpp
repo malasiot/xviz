@@ -1,5 +1,7 @@
 #include "image_panel.hpp"
+#include <xviz/image.hpp>
 
+#include <session.pb.h>
 using namespace std ;
 
 ImagePanel::ImagePanel(const ImagePanelConfig &config, QWidget *parent): config_(config), Panel(parent) {
@@ -33,18 +35,18 @@ void ImagePanel::updateState(const xviz::msg::StateUpdate &state_update) {
     string channel_id = state_update.channel_id();
     //string object_id = state_update.object_id() ;
     if ( !config_.channels_.contains(QByteArray::fromStdString(channel_id))) return ;
-    if ( !state_update.has_image_data() ) return ;
+    string data = state_update.data() ;
 
-    const xviz::msg::ImageData &image_data = state_update.image_data();
+    xviz::msg::Image im ;
+    if ( !im.ParseFromString(data) ) return ;
 
-    switch ( image_data.data_case() ) {
-       case xviz::msg::ImageData::kRaw:
-            break ;
-       case xviz::msg::ImageData::kUrl:
-            string url = image_data.url() ;
-            QUrl imageUrl(QByteArray::fromStdString(url)) ;
-            loadImageFromUrl(imageUrl) ;
-        break ;
+    std::unique_ptr<xviz::Image> image(xviz::Image::read(im)) ;
+
+    if ( xviz::ImageUri *im = dynamic_cast<xviz::ImageUri *>(image.get()) ) {
+        QUrl imageUrl(QByteArray::fromStdString(im->uri_)) ;
+        loadImageFromUrl(imageUrl) ;
+    } else if ( xviz::RawImage *im = dynamic_cast<xviz::RawImage *>(image.get()) ) {
+
     }
 
 }

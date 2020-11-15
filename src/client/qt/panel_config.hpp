@@ -75,21 +75,19 @@ protected:
 
 };
 
-class PlotPanelConfig: public ComponentConfig {
+class ChartPanelConfig: public ComponentConfig {
 public:
 
      virtual QVector<QByteArray> getChannels() const override {
-         QVector<QByteArray> clist ;
-         clist << x_channel_ << y_channels_ ;
-         return clist ;
+        return channels_ ;
      }
 
+
+    QVector<QByteArray> channels_;
 protected:
 
     bool parseJSON(const QJsonObject &obj) override;
 
-    QByteArray x_channel_ ;
-    QVector<QByteArray> y_channels_;
 };
 
 class TablePanelConfig: public ComponentConfig {

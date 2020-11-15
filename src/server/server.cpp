@@ -2,6 +2,7 @@
 #include "ws_server.hpp"
 #include "session.hpp"
 #include "session.pb.h"
+#include <xviz/image.hpp>
 
 using namespace std ;
 
@@ -29,25 +30,30 @@ Channel *Server::findChannel(const string &name) {
     else return nullptr ;
 }
 
-void Server::sendImageUri(Channel *channel, const string &uri)
-{
-    assert(channel->type() == Channel::IMAGE ) ;
-
+void Server::sendUpdateMessage(Channel *channel, const string &data) {
     msg::StateUpdate *update = new msg::StateUpdate() ;
     update->set_ts(0.0);
     update->set_channel_id(channel->name()) ;
-
-    msg::ImageData *img_data = new msg::ImageData() ;
-    img_data->set_url(uri);
-
-    update->set_allocated_image_data(img_data);
+    update->set_data(data) ;
 
     msg::Message msg ;
-
     msg.set_allocated_state_update(update);
-
     dispatchUpdateMessage(channel, msg.SerializeAsString());
+}
 
+void Server::sendImage(Channel *channel, const Image &im) {
+    assert(channel->type() == Channel::IMAGE ) ;
+
+    std::unique_ptr<msg::Image> im_msg(Image::write(&im)) ;
+
+    sendUpdateMessage(channel, im_msg->SerializeAsString());
+}
+
+void Server::sendChart(Channel *channel, const Chart &chart)
+{
+    assert(channel->type() == Channel::CHART ) ;
+
+    sendUpdateMessage(channel, Chart::write(&chart)) ;
 }
 
 

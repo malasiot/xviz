@@ -10,7 +10,7 @@ namespace xviz {
 class Channel {
 public:
     enum Type {
-        POINTS, IMAGE, TENSOR
+        POINTS, IMAGE, CHART, TABLE
     };
 
     Channel(const std::string &name, int type, const std::string &desc = std::string()): name_(name), type_(type), description_(desc) {
@@ -25,10 +25,6 @@ private:
     std::string name_, description_ ;
     int type_ ;
 };
-
-
-
-
 
 
 }

@@ -40,12 +40,12 @@ void ImagePanel::updateState(const xviz::msg::StateUpdate &state_update) {
     xviz::msg::Image im ;
     if ( !im.ParseFromString(data) ) return ;
 
-    std::unique_ptr<xviz::Image> image(xviz::Image::read(im)) ;
+    xviz::Image image = xviz::Image::read(im) ;
 
-    if ( xviz::ImageUri *im = dynamic_cast<xviz::ImageUri *>(image.get()) ) {
-        QUrl imageUrl(QByteArray::fromStdString(im->uri_)) ;
+    if ( image.type() == xviz::ImageType::Uri )  {
+        QUrl imageUrl(QByteArray::fromStdString(image.uri())) ;
         loadImageFromUrl(imageUrl) ;
-    } else if ( xviz::RawImage *im = dynamic_cast<xviz::RawImage *>(image.get()) ) {
+    } else if ( image.type() == xviz::ImageType::Raw ) {
 
     }
 

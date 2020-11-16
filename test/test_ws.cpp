@@ -16,7 +16,7 @@ int main() {
 
     this_thread::sleep_for(std::chrono::seconds(2));
 
-    xviz::ImageUri im("http://image.png") ;
+    xviz::Image im("http://image.png") ;
     server.sendImage(imageChannel, im);
 
     t.join() ;

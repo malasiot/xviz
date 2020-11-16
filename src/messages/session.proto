@@ -22,11 +22,15 @@ message SessionConfig {
 }
 
 message ImageRaw {
+    enum PixelType {
+        RGB24 = 0 ;
+        RGBA32 = 1 ;
+        GRAY8 = 2 ;
+    }
     required int32 width = 1 ;
     required int32 height = 2 ;
-    required int32 pixel_type = 3 ;
-    required int32 stride = 4 ;
-    required bytes pixels = 5 ;
+    required PixelType pixel_type = 3 ;
+    required bytes pixels = 4 ;
 }
 
 message Image {

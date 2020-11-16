@@ -44,7 +44,7 @@ void Server::sendUpdateMessage(Channel *channel, const string &data) {
 void Server::sendImage(Channel *channel, const Image &im) {
     assert(channel->type() == Channel::IMAGE ) ;
 
-    std::unique_ptr<msg::Image> im_msg(Image::write(&im)) ;
+    std::unique_ptr<msg::Image> im_msg(Image::write(im)) ;
 
     sendUpdateMessage(channel, im_msg->SerializeAsString());
 }

@@ -25,7 +25,7 @@ void onConnected() {
 
   //  server.sendImageUri(imageChannel, "https://qph.fs.quoracdn.net/main-qimg-7213b23a51c7d8b97a299eaa9fe69849");
 
-    server.sendImage(imageChannel, xviz::ImageUri("http://localhost:9002/image.png"));
+    server.sendImage(imageChannel, Image("http://localhost:9002/image.png"));
 /*
     LineChart lc ;
 

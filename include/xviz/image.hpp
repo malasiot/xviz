@@ -13,31 +13,43 @@ namespace msg {
     class Image ;
 }
 
+enum class ImageType { Raw, Uri, NoImage } ;
+enum class ImageFormat { rgb24, rgba32, gray8 };
+
+class ImageData ;
 
 class Image {
 public:
-    virtual ~Image() = default ;
 
-    static Image *read(const msg::Image &) ;
-    static msg::Image *write(const Image *) ;
-};
+    // Null image
+    Image() ;
 
-class RawImage: public Image {
-public:
-    enum PixelType {
-        RGB, RGBA
-    };
+    // Image from uri
+    Image(const std::string &uri) ;
 
-    PixelType type_ ;
-    uint32_t width_, height_, stride_ ;
-    std::unique_ptr<char []> bytes_ ;
-};
+    // Image from raw bytes
+    Image(const unsigned char *bytes, ImageFormat fmt, uint32_t w, uint32_t h) ;
 
-class ImageUri: public Image {
-public:
-    ImageUri(const std::string &uri): uri_(uri) {}
+    ImageType type() const { return type_ ; }
 
-    std::string uri_ ;
+    // get image location if it is of type Uri
+    std::string uri() const ;
+
+    // getters for raw images
+    uint32_t width() const ;
+    uint32_t height() const ;
+    ImageFormat format() const ;
+    const unsigned char *data() const ;
+    uint32_t dataSize() const ;
+
+    // i/o
+    static Image read(const msg::Image &) ;
+    static msg::Image *write(const Image &) ;
+
+private:
+
+    ImageType type_ ;
+    std::shared_ptr<ImageData> data_ ;
 };
 
 

@@ -3,13 +3,15 @@
 
 #include <xviz/color.hpp>
 #include <xviz/vector.hpp>
+#include <xviz/xform.hpp>
 
 #include <vector>
 
 
 namespace xviz {
 
-enum SpreadMethod { PadSpread, RepeatSpread, ReflectSpread } ;
+enum class SpreadMethod { Pad, Repeat, Reflect } ;
+enum class GradientUnits { UserSpaceOnUse, ObjectBoundingBox } ;
 
 class GradientStop {
 public:
@@ -25,18 +27,24 @@ protected:
 
 class Gradient {
 protected:
-    Gradient(const std::vector<GradientStop> &stops): stops_(stops), spread_(PadSpread) {}
+    Gradient(const std::vector<GradientStop> &stops): stops_(stops), spread_(SpreadMethod::Pad), units_(GradientUnits::ObjectBoundingBox) {}
 
 public:
     void setSpread(SpreadMethod sp){ spread_ = sp ; }
+    void setUnits(GradientUnits units) { units_ = units ; }
     void setStops(const std::vector<GradientStop> &stops) { stops_ = stops ; }
+    void setTransform(const Matrix2d &mat) { transform_ = mat ; }
 
     const std::vector<GradientStop> &stops() const { return stops_ ; }
     SpreadMethod spread() const { return spread_ ; }
+    GradientUnits units() const { return units_ ; }
+    const Matrix2d &transform() const { return transform_ ; }
 
 protected:
     SpreadMethod spread_ ;
+    GradientUnits units_ ;
     std::vector<GradientStop> stops_ ;
+    Matrix2d transform_ ;
 };
 
 class LinearGradient: public Gradient {

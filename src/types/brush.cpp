@@ -1,5 +1,6 @@
 #include <xviz/brush.hpp>
 
+#include <style.pb.h>
 #include <session.pb.h>
 
 namespace xviz {
@@ -28,7 +29,10 @@ public:
 };
 
 class GradientBrushData: public BrushData {
+public:
+    void setTransform(const Matrix2d &mat) { mat_ = mat ; }
 
+    Matrix2d mat_ ;
 };
 
 class LinearGradientBrushData: public GradientBrushData {
@@ -59,18 +63,16 @@ Brush::Brush(): type_(BrushType::NoBrush) {
 }
 
 Brush::Brush(const Color &clr): type_(BrushType::SolidBrush) {
-    SolidBrushData *data = new SolidBrushData(clr) ;
-    data_.reset(data, BrushDataDeleter<SolidBrushData>()) ;
+    data_.reset(new SolidBrushData(clr)) ;
 }
 
 Brush::Brush(const LinearGradient &lg): type_(BrushType::LinearGradientBrush) {
-    LinearGradientBrushData *data = new LinearGradientBrushData(lg) ;
-    data_.reset(data, BrushDataDeleter<LinearGradientBrushData>()) ;
+    new LinearGradientBrushData(lg) ;
+    data_.reset(new LinearGradientBrushData(lg)) ;
 }
 
 Brush::Brush(const RadialGradient &lg): type_(BrushType::RadialGradientBrush) {
-    RadialGradientBrushData *data = new RadialGradientBrushData(lg) ;
-    data_.reset(data, BrushDataDeleter<RadialGradientBrushData>()) ;
+    data_.reset(new RadialGradientBrushData(lg)) ;
 }
 
 BrushType Brush::type() const {
@@ -99,6 +101,7 @@ FillRule Brush::fillRule() const {
     }
 }
 
+
 const LinearGradient &Brush::linearGradient() const {
     assert( type_ == BrushType::LinearGradientBrush ) ;
     return static_cast<const LinearGradientBrushData *>(data_.get())->lg_ ;
@@ -114,16 +117,36 @@ static msg::Gradient *write_gradient(const Gradient &g) {
     msg::Gradient *msg_g = new msg::Gradient() ;
 
     switch ( g.spread() ) {
-    case PadSpread:
+    case SpreadMethod::Pad:
         msg_g->set_spread(msg::Gradient_SpreadMethod_PAD_SPREAD);
         break ;
-    case RepeatSpread:
+    case SpreadMethod::Repeat:
         msg_g->set_spread(msg::Gradient_SpreadMethod_REPEAT_SPREAD);
         break ;
-    case ReflectSpread:
+    case SpreadMethod::Reflect:
         msg_g->set_spread(msg::Gradient_SpreadMethod_REFLECT_SPREAD);
         break ;
     }
+
+    switch ( g.units() ) {
+    case GradientUnits::ObjectBoundingBox:
+        msg_g->set_units(msg::Gradient_GradientUnits_OBJECT_BOUNDING_BOX);
+        break ;
+    case GradientUnits::UserSpaceOnUse:
+        msg_g->set_units(msg::Gradient_GradientUnits_USER_SPACE_ON_USE);
+        break ;
+    }
+
+    const auto &tr = g.transform() ;
+
+    msg::Matrix2d *mat = new msg::Matrix2d ;
+    mat->set_m1(tr.m1()) ;
+    mat->set_m2(tr.m2()) ;
+    mat->set_m3(tr.m3()) ;
+    mat->set_m4(tr.m4()) ;
+    mat->set_m5(tr.m5()) ;
+    mat->set_m6(tr.m6()) ;
+    msg_g->set_allocated_transform(mat) ;
 
     for( auto &stop: g.stops() ) {
         msg::Stop *msg_stop = msg_g->add_stops() ;
@@ -203,15 +226,28 @@ static void read_gradient(Gradient &g, const msg::Gradient &msg) {
 
     switch ( msg.spread() ) {
     case msg::Gradient_SpreadMethod_PAD_SPREAD:
-        g.setSpread(PadSpread);
+        g.setSpread(SpreadMethod::Pad);
         break ;
     case msg::Gradient_SpreadMethod_REPEAT_SPREAD:
-        g.setSpread(RepeatSpread);
+        g.setSpread(SpreadMethod::Repeat);
         break ;
     case msg::Gradient_SpreadMethod_REFLECT_SPREAD:
-        g.setSpread(ReflectSpread);
+        g.setSpread(SpreadMethod::Reflect);
         break ;
     }
+
+    switch ( msg.units() ) {
+    case msg::Gradient_GradientUnits_OBJECT_BOUNDING_BOX:
+        g.setUnits(GradientUnits::ObjectBoundingBox);
+        break ;
+    case msg::Gradient_GradientUnits_USER_SPACE_ON_USE:
+        g.setUnits(GradientUnits::UserSpaceOnUse);
+        break ;
+    }
+
+    const msg::Matrix2d &mat = msg.transform() ;
+    Matrix2d tr(mat.m1(), mat.m2(), mat.m3(), mat.m4(), mat.m5(), mat.m6());
+    g.setTransform(tr);
 
     std::vector<GradientStop> stops ;
 

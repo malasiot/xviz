@@ -69,6 +69,10 @@ QPen qPenFromSolidPen(const xviz::Pen &pen) {
     }
 }
 
+QTransform qTransformFromMatrix(const xviz::Matrix2d &mat) {
+    return QTransform(mat.m1(), mat.m2(), mat.m3(), mat.m4(), mat.m5(), mat.m6()) ;
+}
+
 QBrush qBrushFromSolidBrush(const xviz::Brush &brush) {
     switch ( brush.type() ) {
     case xviz::BrushType::NoBrush:
@@ -87,21 +91,68 @@ QBrush qBrushFromSolidBrush(const xviz::Brush &brush) {
         qlg.setStart(QPointF(lg.startPoint().x(), lg.startPoint().y()));
         qlg.setFinalStop(QPointF(lg.finishPoint().x(), lg.finishPoint().y()));
         switch ( lg.spread() ) {
-        case xviz::PadSpread:
+        case xviz::SpreadMethod::Pad:
             qlg.setSpread(QLinearGradient::PadSpread);
             break ;
-        case xviz::RepeatSpread:
+        case xviz::SpreadMethod::Repeat:
             qlg.setSpread(QLinearGradient::RepeatSpread);
             break ;
-        case xviz::ReflectSpread:
+        case xviz::SpreadMethod::Reflect:
             qlg.setSpread(QLinearGradient::ReflectSpread);
             break ;
         }
+
+        switch ( lg.units() ) {
+        case xviz::GradientUnits::ObjectBoundingBox:
+            qlg.setCoordinateMode(QGradient::CoordinateMode::ObjectBoundingMode);
+            break ;
+        case xviz::GradientUnits::UserSpaceOnUse:
+            qlg.setCoordinateMode(QGradient::CoordinateMode::LogicalMode);
+            break ;
+        }
+
         for( const auto &stop: lg.stops() ) {
             qlg.setColorAt(stop.position(), QColor(stop.color().r() * 255, stop.color().g() * 255, stop.color().b() * 255, stop.color().a()*255));
         }
 
         QBrush qbrush(qlg) ;
+        qbrush.setTransform(qTransformFromMatrix(lg.transform())) ;
+        return qbrush ;
+    }
+    case xviz::BrushType::RadialGradientBrush: {
+        QRadialGradient qrg ;
+
+        const xviz::RadialGradient &rg = brush.radialGradient();
+        qrg.setCenter(QPointF(rg.center().x(), rg.center().y()));
+        qrg.setFocalPoint(QPointF(rg.focal().x(), rg.focal().y()));
+        qrg.setCenterRadius(rg.radius()) ;
+        switch ( rg.spread() ) {
+        case xviz::SpreadMethod::Pad:
+            qrg.setSpread(QLinearGradient::PadSpread);
+            break ;
+        case xviz::SpreadMethod::Repeat:
+            qrg.setSpread(QLinearGradient::RepeatSpread);
+            break ;
+        case xviz::SpreadMethod::Reflect:
+            qrg.setSpread(QLinearGradient::ReflectSpread);
+            break ;
+        }
+
+        switch ( rg.units() ) {
+        case xviz::GradientUnits::ObjectBoundingBox:
+            qrg.setCoordinateMode(QGradient::CoordinateMode::ObjectBoundingMode);
+            break ;
+        case xviz::GradientUnits::UserSpaceOnUse:
+            qrg.setCoordinateMode(QGradient::CoordinateMode::LogicalMode);
+            break ;
+        }
+
+        for( const auto &stop: rg.stops() ) {
+            qrg.setColorAt(stop.position(), QColor(stop.color().r() * 255, stop.color().g() * 255, stop.color().b() * 255, stop.color().a()*255));
+        }
+
+        QBrush qbrush(qrg) ;
+        qbrush.setTransform(qTransformFromMatrix(rg.transform())) ;
         return qbrush ;
     }
 

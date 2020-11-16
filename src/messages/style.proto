@@ -7,6 +7,16 @@ message Color {
     required float b = 3;
     required float a = 4;
 }
+
+message Matrix2d {
+    required double m1 = 1 ;
+    required double m2 = 2 ;
+    required double m3 = 3 ;
+    required double m4 = 4 ;
+    required double m5 = 5 ;
+    required double m6 = 6 ;
+}
+
 message EmptyPen {
 }
 
@@ -59,8 +69,15 @@ message Gradient {
         REPEAT_SPREAD = 2 ;
     }
 
+    enum GradientUnits {
+       USER_SPACE_ON_USE = 0 ;
+       OBJECT_BOUNDING_BOX = 1 ;
+    }
+
     optional SpreadMethod spread = 1 [default = PAD_SPREAD] ;
-    repeated Stop stops = 2 ;
+    optional GradientUnits units = 2 [default = OBJECT_BOUNDING_BOX] ;
+    optional Matrix2d transform = 3 ;
+    repeated Stop stops = 4 ;
 }
 
 message LinearGradient {

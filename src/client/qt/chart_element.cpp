@@ -1,4 +1,4 @@
-#include "chart_panel.hpp"
+#include "chart_element.hpp"
 #include "qt_graphics_helpers.hpp"
 #include "chart/line_chart.hpp"
 #include "chart/bar_chart.hpp"
@@ -7,26 +7,31 @@
 #include <xviz/line_chart.hpp>
 #include <xviz/bar_chart.hpp>
 
+#include "session.pb.h"
+
 using namespace std ;
 
-ChartPanel::ChartPanel(const ChartPanelConfig &config, QWidget *parent): config_(config) {
-    widget_ = new ChartWidget(this) ;
-    layout_ = new QVBoxLayout(this) ;
-    layout_->addWidget(widget_) ;
-    widget_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    setLayout(layout_) ;
+ChartElement::ChartElement() {
+
 }
 
-void ChartPanel::config(const std::vector<xviz::Channel> &channels)
+void ChartElement::buildWidget(const UIElementFactory &fac, const QDomElement &ele, QWidget *parent)
+{
+    widget_ = new ChartWidget(parent) ;
+    widget_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    parseChannels(ele, channels_) ;
+}
+
+void ChartElement::config(const std::vector<xviz::Channel> &channels)
 {
 
 }
 
-void ChartPanel::updateState(const xviz::msg::StateUpdate &state_update)
+void ChartElement::updateState(const xviz::msg::StateUpdate &state_update)
 {
     string channel_id = state_update.channel_id();
     //string object_id = state_update.object_id() ;
-    if ( !config_.channels_.contains(QByteArray::fromStdString(channel_id))) return ;
+    if ( !channels_.contains(QByteArray::fromStdString(channel_id))) return ;
     string data = state_update.data() ;
 
     auto chart = xviz::Chart::read(data) ;

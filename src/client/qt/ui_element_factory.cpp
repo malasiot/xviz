@@ -1,5 +1,6 @@
 #include "ui_element_factory.hpp"
-
+#include "image_element.hpp"
+#include "chart_element.hpp"
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -18,6 +19,43 @@ static void parse_container_children(const UIElementFactory &fac, const QDomElem
     }
 }
 
+
+
+void UIElement::parseChannels(const QDomElement &e, QVector<QByteArray> &channels) {
+    QDomElement node = e.firstChildElement("channel") ;
+
+    while ( !node.isNull() ) {
+        QByteArray a = node.attribute("id").toUtf8() ;
+        if ( !a.isEmpty() )
+            channels.append(a) ;
+        node = node.nextSiblingElement("channel");
+    }
+
+}
+void UIElement::setup_flex(const QDomElement &ele, QWidget *widget) {
+    int flex = ele.attribute("flex", "0").toInt() ;
+
+    QSizePolicy sz(QSizePolicy::Expanding, QSizePolicy::Expanding) ;
+    sz.setHorizontalStretch(flex);
+    sz.setVerticalStretch(flex);
+
+    widget->setSizePolicy(sz) ;
+}
+
+class Spacer: public UIElement {
+public:
+    void buildWidget(const UIElementFactory &fac, const QDomElement &ele, QWidget *parent) override {
+       stretch_ =  ele.attribute("flex", "0").toInt() ;
+    }
+
+    int stretch() const { return stretch_ ; }
+
+    QWidget *widget() const override { return nullptr ; }
+
+private:
+    int stretch_ ;
+};
+
 enum class Orientation { Horizontal, Vertical, Explicit } ;
 
 class Box: public UIElement {
@@ -25,13 +63,23 @@ public:
 
     Box( Orientation orient = Orientation::Explicit): orient_(orient) {}
 
-    QWidget *buildWidget(const UIElementFactory &fac, const QDomElement &ele, QWidget *parent) override {
+    void getChannels(QVector<QByteArray> &channels) const {
+        for( UIElement *child: children_ )
+            child->getChannels(channels);
+    }
+
+    void updateState(const xviz::msg::StateUpdate &su) {
+        for( UIElement *child: children_ )
+            child->updateState(su);
+    }
+
+    void buildWidget(const UIElementFactory &fac, const QDomElement &ele, QWidget *parent) override {
         widget_ = new QWidget(parent) ;
-        widget_->setStyleSheet("border:1px solid rgb(0, 255, 0); ");
+      //  widget_->setStyleSheet("border:1px solid rgb(0, 255, 0); ");
 
         QString orient = ele.attribute("orient", "horizontal") ;
         QString align = ele.attribute("align", "stretch") ;
-        int flex = ele.attribute("flex", "0").toInt() ;
+        QString pack = ele.attribute("pack", "none");
 
         QBoxLayout *layout ;
 
@@ -56,36 +104,60 @@ public:
 
         parse_container_children(fac, ele, this) ;
 
+        int i = 0 ;
         for ( UIElement *child: children_ ) {
+            QWidget *w = child->widget();
+
+            if ( w == nullptr ) {
+                if ( Spacer *sp = dynamic_cast<Spacer *>(child) ) {
+                    layout->insertStretch(i++, sp->stretch());
+                    continue ;
+                }
+            }
             layout->addWidget(child->widget()) ;
+
+            Qt::Alignment alignment = 0 ;
 
             if ( o == Orientation::Vertical ) {
                 if ( align == "start" )
-                    layout->setAlignment(child->widget(), Qt::AlignLeft ) ;
+                    alignment |= Qt::AlignLeft ;
                 else if ( align == "center" )
-                    layout->setAlignment(child->widget(), Qt::AlignHCenter ) ;
+                    alignment |= Qt::AlignHCenter ;
                 else if ( align == "end" )
-                    layout->setAlignment(child->widget(), Qt::AlignRight ) ;
-            } else {
+                    alignment |= Qt::AlignRight ;
+             } else {
                 if ( align == "start" )
-                    layout->setAlignment(child->widget(), Qt::AlignTop ) ;
+                    alignment |= Qt::AlignTop ;
                 else if ( align == "center" )
-                    layout->setAlignment(child->widget(), Qt::AlignVCenter ) ;
+                    alignment != Qt::AlignVCenter  ;
                 else if ( align == "end" )
-                    layout->setAlignment(child->widget(), Qt::AlignBottom ) ;
+                    alignment |= Qt::AlignBottom ;
             }
+
+            if ( alignment != 0 )
+                layout->setAlignment(child->widget(), alignment ) ;
+
+            ++i ;
         }
 
+        if ( pack == "end" )
+            layout->insertStretch(0) ;
+        else if ( pack == "center" ) {
+            layout->addStretch(1) ;
+            layout->insertStretch(0, 1) ;
+        }
+        else if ( pack == "start" )
+            layout->addStretch() ;
 
-        QSizePolicy pc(QSizePolicy::Preferred, QSizePolicy::Preferred) ;
-        pc.setHorizontalStretch(flex) ;
-        widget_->setSizePolicy(pc) ;
 
-        return widget_ ;
+        setup_flex(ele, widget_) ;
     }
+
+    QWidget *widget() const override { return widget_ ; }
 
 private:
 
+    QWidget *widget_ ;
     Orientation orient_ ;
 };
 
@@ -102,30 +174,30 @@ public:
 
 class Label: public UIElement {
 public:
-    QWidget *buildWidget(const UIElementFactory &fac, const QDomElement &ele, QWidget *parent) override {
-        QLabel *label = new QLabel(parent) ;
-        label->setText(ele.attribute("value")) ;
-        int flex = ele.attribute("flex", "0").toInt() ;
-
-        QSizePolicy policy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        policy.setHorizontalStretch(flex) ;
-        policy.setVerticalStretch(flex) ;
-        label->setSizePolicy(policy) ;
-
-        return widget_ = label ;
+    void buildWidget(const UIElementFactory &fac, const QDomElement &ele, QWidget *parent) override {
+        label_ = new QLabel(parent) ;
+        label_->setText(ele.attribute("value")) ;
+        label_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+        setup_flex(ele, label_) ;
     }
 
+    QWidget *widget() const override { return label_; }
+
+private:
+    QLabel *label_ ;
 };
 
 class Button: public UIElement {
 public:
-    QWidget *buildWidget(const UIElementFactory &, const QDomElement &ele, QWidget *parent) override {
-        QPushButton *button = new QPushButton(parent) ;
-        button->setText(ele.attribute("label")) ;
-
-        return widget_ = button ;
+    void buildWidget(const UIElementFactory &, const QDomElement &ele, QWidget *parent) override {
+        button_ = new QPushButton(ele.attribute("label"), parent) ;
+        setup_flex(ele, button_) ;
     }
 
+    QWidget *widget() const { return button_ ; }
+
+private:
+    QPushButton *button_ ;
 };
 
 UIElement *UIElementFactory::build(const QDomElement &e, QWidget *parent) const {
@@ -143,8 +215,15 @@ UIElement *UIElementFactory::build(const QDomElement &e, QWidget *parent) const 
         ele = new Button() ;
     else if ( name == "window" )
         ele = new Box() ;
+    else if ( name == "spacer" )
+        ele = new Spacer() ;
+    else if ( name == "image" )
+        ele = new ImageElement() ;
+    else if ( name == "chart" )
+        ele = new ChartElement() ;
 
-    ele->buildWidget(*this, e, parent) ;
+    if ( ele )
+        ele->buildWidget(*this, e, parent) ;
 
     return ele ;
 }

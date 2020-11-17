@@ -6,16 +6,12 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QFile>
+#include <QSettings>
 
-/*
-QVector<QWidget *> parseContainerChildren(const QDomElement &ele, QWidget *parent);
-QWidget *makeVBox(const QDomElement &ele, QWidget *parent) ;
-QWidget *makeHBox(const QDomElement &ele, QWidget *parent) ;
-QWidget *makeButton(const QDomElement &ele, QWidget *parent) ;
-QWidget *makeLabel(const QDomElement &ele, QWidget *parent) ;
-*/
 
 MainWindow::MainWindow(const QString &config, QWidget *parent): QMainWindow(parent) {
+
+    readSettings() ;
 
     QFile loadFile(config);
 
@@ -42,6 +38,39 @@ MainWindow::MainWindow(const QString &config, QWidget *parent): QMainWindow(pare
 MainWindow::~MainWindow()
 {
     delete root_element_ ;
+}
+
+void MainWindow::writeSettings()
+{
+    QSettings settings;
+
+    settings.beginGroup("MainWindow");
+    settings.setValue("size", size());
+    settings.setValue("pos", pos());
+    settings.endGroup();
+}
+
+void MainWindow::readSettings()
+{
+    QSettings settings;
+
+    settings.beginGroup("MainWindow");
+    resize(settings.value("size", QSize(400, 400)).toSize());
+    move(settings.value("pos", QPoint(200, 200)).toPoint());
+    settings.endGroup();
+}
+
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    //optional check if the user really want to quit
+    // and/or if the user want to save settings
+    writeSettings();
+    event->accept();
+}
+
+void MainWindow::getChannelsRecursive(QVector<QByteArray> &channels) {
+    root_element_->getChannels(channels) ;
 }
 
 void MainWindow::config(const std::vector<xviz::Channel> &channelInfo) {

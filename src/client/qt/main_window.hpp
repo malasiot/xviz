@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QDomElement>
 #include <QBoxLayout>
+#include <QCloseEvent>
 
 #include <xviz/channel.hpp>
 #include "panel.hpp"
@@ -22,6 +23,8 @@ public:
     explicit MainWindow(const QString &configFile, QWidget *parent = nullptr);
     ~MainWindow() ;
 
+    void getChannelsRecursive(QVector<QByteArray> &channels);
+
 public slots:
     void config(const std::vector<xviz::Channel> &channelInfo) ;
     void updateState(const xviz::msg::StateUpdate &state);
@@ -32,6 +35,10 @@ private:
 
 private:
     UIElement *root_element_ ;
+
+    void readSettings();
+    void writeSettings();
+    void closeEvent(QCloseEvent *event);
 };
 
 

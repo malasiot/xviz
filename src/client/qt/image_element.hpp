@@ -2,7 +2,7 @@
 #define XVIZ_QT_IMAGE_PANEL_HPP
 
 #include "panel.hpp"
-#include "panel_config.hpp"
+#include "ui_element_factory.hpp"
 #include "image_widget.hpp"
 
 #include <QUrl>
@@ -10,22 +10,32 @@
 #include <QNetworkReply>
 #include <QVBoxLayout>
 
-class ImagePanel: public Panel {
+class ImageElement: public UIElement {
     Q_OBJECT
 public:
-    ImagePanel(const ImagePanelConfig &config, QWidget *parent) ;
+    ImageElement() ;
+
+    void buildWidget(const UIElementFactory &fac, const QDomElement &ele, QWidget *parent) override ;
 
     void loadImageFromUrl(const QUrl &url) ;
     void displayImage(const QImage &im) ;
 
+
+    void getChannels(QVector<QByteArray> &channels) const override {
+        channels.append(channels_) ;
+    }
+
     void config(const std::vector<xviz::Channel> &channels) override ;
     void updateState(const xviz::msg::StateUpdate &) override ;
+
+    QWidget *widget() const override { return image_widget_ ; }
+
 private:
 
-    ImagePanelConfig config_ ;
+
     QNetworkAccessManager *manager_;
-    ImageWidget *widget_ ;
-    QVBoxLayout *layout_ ;
+    ImageWidget *image_widget_ ;
+    QVector<QByteArray> channels_ ;
 
 private slots:
     void replyFinished(QNetworkReply* reply);

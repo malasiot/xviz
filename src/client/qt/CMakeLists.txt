@@ -15,8 +15,8 @@ set( QT_CLIENT_SOURCES
     session_config.hpp
     ui_element_factory.hpp
     ui_element_factory.cpp
-#    chart_panel.cpp
-#    chart_panel.hpp
+    chart_element.cpp
+    chart_element.hpp
 #    panel_config.hpp
 #    panel_config.cpp
     qt_graphics_helpers.cpp
@@ -37,8 +37,8 @@ set( QT_CLIENT_SOURCES
 
 #    panel.cpp
 #    panel.hpp
-#    image_panel.cpp
-#    image_panel.hpp
+    image_element.cpp
+    image_element.hpp
     image_widget.cpp
     image_widget.hpp
     main_window.hpp

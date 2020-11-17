@@ -83,6 +83,9 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
+    QCoreApplication::setOrganizationName("ITI");
+    QCoreApplication::setApplicationName("xviz-qt-client");
+
 
     QCommandLineParser parser;
     parser.setApplicationDescription("Qt xviz client");
@@ -112,11 +115,11 @@ int main(int argc, char *argv[])
     MainWindow win(configFile) ;
 
     QVector<QByteArray> channels ;
-/*
-    if ( config ) {
-            config->getChannelsRecursive(channels) ;
-    }
-*/
+
+
+    win.getChannelsRecursive(channels) ;
+
+
     imageChannel = server.createChannel("/data/image", xviz::Channel::IMAGE) ;
     chartChannel = server.createChannel("/data/chart", xviz::Channel::CHART) ;
 

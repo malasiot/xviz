@@ -1,29 +1,28 @@
 #ifndef PANEL_CONFIG_HPP
 #define PANEL_CONFIG_HPP
 
-#include <QtCore/QJsonObject>
-#include <QtCore/QJsonDocument>
-#include <QtCore/QStringList>
-#include <QtCore/QVector>
+#include <QDomElement>
+#include <QVector>
+#include <QByteArray>
 
 #include <memory>
+#include <vector>
 
-class PanelConfig {
+class UIConfig {
 public:
 
-
-    static PanelConfig * fromJSON(const QString &doc) ;
+    static UIConfig * fromXMLFile(const QString &doc) ;
 
     virtual QVector<QByteArray> getChannels() const {
         return QVector<QByteArray>() ;
     }
 
-    virtual const std::vector<PanelConfig *> &getChildren() const {
+    virtual const std::vector<UIConfig *> &getChildren() const {
         return children_ ;
     }
 
-    virtual ~PanelConfig() {
-        for( PanelConfig *child: children_ )
+    virtual ~UIConfig() {
+        for( UIConfig *child: children_ )
             delete child ;
     }
 
@@ -31,33 +30,33 @@ public:
 
 protected:
 
-    static PanelConfig *fromJSON(const QJsonObject &json) ;
-    virtual bool parseJSON(const QJsonObject &obj) = 0 ;
+    static UIConfig *fromXML(const QDomElement &root) ;
+    virtual bool parseXML(const QDomElement &obj) = 0 ;
 
-    bool parseChildren(const QJsonObject &obj) ;
+    bool parseChildren(const QDomElement &obj) ;
 
-    PanelConfig() = default ;
+    UIConfig() = default ;
 
 protected:
 
-    std::vector<PanelConfig *> children_ ;
+    std::vector<UIConfig *> children_ ;
 };
 
-class ComponentConfig: public PanelConfig {
+class ComponentConfig: public UIConfig {
 protected:
-    bool parseJSON(const QJsonObject &obj) ;
+    bool parseXML(const QDomElement &obj) ;
 
-     QString title_, description_ ;
+    QString title_, description_ ;
 };
 
-class VerticalLayoutConfig: public PanelConfig {
+class VerticalLayoutConfig: public UIConfig {
 protected:
-    bool parseJSON(const QJsonObject &obj) override;
+    bool parseXML(const QDomElement &obj) override;
 };
 
-class HorizontalLayoutConfig: public PanelConfig {
+class HorizontalLayoutConfig: public UIConfig {
 protected:
-    bool parseJSON(const QJsonObject &obj) override;
+    bool parseXML(const QDomElement &obj) override;
 };
 
 class ImagePanelConfig: public ComponentConfig {
@@ -71,7 +70,7 @@ public:
     QVector<QByteArray> channels_ ;
 protected:
 
-    bool parseJSON(const QJsonObject &obj) override;
+    bool parseXML(const QDomElement &obj) override;
 
 };
 
@@ -86,7 +85,7 @@ public:
     QVector<QByteArray> channels_;
 protected:
 
-    bool parseJSON(const QJsonObject &obj) override;
+    bool parseXML(const QDomElement &obj) override;
 
 };
 
@@ -101,7 +100,7 @@ public:
 
 protected:
 
-    bool parseJSON(const QJsonObject &obj) override;
+    bool parseXML(const QDomElement &obj) override;
 
     QByteArray channel_ ;
 };

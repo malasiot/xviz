@@ -4,7 +4,7 @@
 
 
 #include "client.hpp"
-#include "panel_config.hpp"
+//#include "panel_config.hpp"
 #include "main_window.hpp"
 
 #include <thread>
@@ -108,18 +108,15 @@ int main(int argc, char *argv[])
     QString configFile = args.at(0) ;
     QString url = parser.value("url") ;
 
-    auto config = PanelConfig::fromJSON(configFile) ;
 
-
-
-    MainWindow win(config) ;
+    MainWindow win(configFile) ;
 
     QVector<QByteArray> channels ;
-
+/*
     if ( config ) {
             config->getChannelsRecursive(channels) ;
     }
-
+*/
     imageChannel = server.createChannel("/data/image", xviz::Channel::IMAGE) ;
     chartChannel = server.createChannel("/data/chart", xviz::Channel::CHART) ;
 

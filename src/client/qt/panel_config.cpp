@@ -1,11 +1,8 @@
 #include "panel_config.hpp"
 
-#include <QtCore/QDebug>
-#include <QtCore/QJsonArray>
-#include <QtCore/QFile>
-#include <QtCore/QJsonArray>
+#include <QFile>
 
-PanelConfig * PanelConfig::fromJSON(const QString &src) {
+UIConfig * UIConfig::fromXMLFile(const QString &src) {
 
     QFile loadFile(src);
 
@@ -16,20 +13,22 @@ PanelConfig * PanelConfig::fromJSON(const QString &src) {
 
     QByteArray data = loadFile.readAll();
 
-    QJsonDocument doc = QJsonDocument::fromJson(data) ;
+    QDomDocument doc ;
+    doc.setContent(data) ;
 
-    QJsonObject json = doc.object() ;
+    QDomElement root = doc.documentElement();
 
-    return fromJSON(json) ;
+
+    return fromXML(root) ;
 }
-
-PanelConfig * PanelConfig::fromJSON(const QJsonObject &json) {
+#if 0
+UIConfig * UIConfig::fromXML(const QDomElement &json) {
     QString type ;
     if ( json.contains("type") && json["type"].isString() )
         type = json["type"].toString() ;
     else return nullptr ;
 
-    PanelConfig *cfg = nullptr ;
+    UIConfig *cfg = nullptr ;
 
     if ( type == "vertical_layout")
         cfg = new VerticalLayoutConfig() ;
@@ -48,7 +47,7 @@ PanelConfig * PanelConfig::fromJSON(const QJsonObject &json) {
     return cfg ;
 }
 
-void PanelConfig::getChannelsRecursive(QVector<QByteArray> &channels) const {
+void UIConfig::getChannelsRecursive(QVector<QByteArray> &channels) const {
     auto channels_this = getChannels() ;
     channels.append(channels_this) ;
 
@@ -58,7 +57,7 @@ void PanelConfig::getChannelsRecursive(QVector<QByteArray> &channels) const {
 }
 
 
-bool PanelConfig::parseChildren(const QJsonObject &json) {
+bool UIConfig::parseChildren(const QJsonObject &json) {
     if ( json.contains("children") && json["children"].isArray() ) {
         QJsonArray childrenArray = json["children"].toArray();
 
@@ -67,7 +66,7 @@ bool PanelConfig::parseChildren(const QJsonObject &json) {
             if ( val.isObject() ) {
                 QJsonObject obj = val.toObject() ;
 
-                auto child = PanelConfig::fromJSON(obj);
+                auto child = UIConfig::fromJSON(obj);
                 if ( child )
                     children_.push_back(std::move(child)) ;
             }
@@ -143,3 +142,4 @@ bool ChartPanelConfig::parseJSON(const QJsonObject &json)
     return !channels_.empty() ;
 
 }
+#endif

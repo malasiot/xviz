@@ -2,13 +2,25 @@
 #define XVIZ_QT_MAIN_WINDOW_HPP
 
 #include <QMainWindow>
+#include <QDomElement>
+#include <QBoxLayout>
 
-#include "image_panel.hpp"
+#include <xviz/channel.hpp>
+#include "panel.hpp"
+
+namespace xviz {
+namespace msg {
+    class StateUpdate ;
+}
+}
+
+class UIElement ;
 
 class MainWindow: public QMainWindow {
     Q_OBJECT
 public:
-    explicit MainWindow(PanelConfig *config, QWidget *parent = nullptr);
+    explicit MainWindow(const QString &configFile, QWidget *parent = nullptr);
+    ~MainWindow() ;
 
 public slots:
     void config(const std::vector<xviz::Channel> &channelInfo) ;
@@ -16,11 +28,10 @@ public slots:
 
 private:
 
-    QWidget *makeLayout(PanelConfig *config, QWidget *parent) ;
+    QWidget *makeLayout(const QDomElement &r, QWidget *parent) ;
 
 private:
-    ImagePanel *panel_ ;
-    QVector<Panel *> panels_ ;
+    UIElement *root_element_ ;
 };
 
 

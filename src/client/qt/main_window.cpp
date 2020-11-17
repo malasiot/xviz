@@ -1,59 +1,54 @@
 #include "main_window.hpp"
-#include "chart_panel.hpp"
+#include "ui_element_factory.hpp"
 
 #include <QHBoxLayout>
 #include <QSplitter>
+#include <QPushButton>
+#include <QLabel>
+#include <QFile>
 
-MainWindow::MainWindow(PanelConfig *pc, QWidget *parent): QMainWindow(parent) {
-
-    QWidget *cw = makeLayout(pc, this) ;
-    /*
-    ImagePanelConfig config ;
-    config.channels_.append("/data/image") ;
-    panel_ = new ImagePanel(config, this) ;
-    panels_.append(panel_) ;
+/*
+QVector<QWidget *> parseContainerChildren(const QDomElement &ele, QWidget *parent);
+QWidget *makeVBox(const QDomElement &ele, QWidget *parent) ;
+QWidget *makeHBox(const QDomElement &ele, QWidget *parent) ;
+QWidget *makeButton(const QDomElement &ele, QWidget *parent) ;
+QWidget *makeLabel(const QDomElement &ele, QWidget *parent) ;
 */
-    setCentralWidget(cw);
+
+MainWindow::MainWindow(const QString &config, QWidget *parent): QMainWindow(parent) {
+
+    QFile loadFile(config);
+
+    if (!loadFile.open(QIODevice::ReadOnly)) {
+       qWarning("Couldn't open config file.");
+       return ;
+    }
+
+    QByteArray data = loadFile.readAll();
+
+    QDomDocument doc ;
+    doc.setContent(data) ;
+
+    QDomElement root = doc.documentElement();
+
+    UIElementFactory factory ;
+
+    if ( root.tagName() == "window" ) {
+        root_element_ = factory.build(root, parent) ;
+        setCentralWidget(root_element_->widget()) ;
+    }
+}
+
+MainWindow::~MainWindow()
+{
+    delete root_element_ ;
 }
 
 void MainWindow::config(const std::vector<xviz::Channel> &channelInfo) {
-    for( Panel *panel: panels_ ) {
-        panel->config(channelInfo) ;
-    }
+    root_element_->config(channelInfo) ;
 }
 
 void MainWindow::updateState(const xviz::msg::StateUpdate &su) {
-    for( Panel *panel: panels_ ) {
-        panel->updateState(su) ;
-    }
-}
-
-QWidget *MainWindow::makeLayout(PanelConfig *config, QWidget *parent) {
-    if ( VerticalLayoutConfig *vl = dynamic_cast<VerticalLayoutConfig *>(config) ) {
-        QSplitter *splitter = new QSplitter(parent) ;
-        splitter->setOrientation(Qt::Vertical);
-        for( PanelConfig *child: vl->getChildren() ) {
-            splitter->addWidget(makeLayout(child, splitter)) ;
-        }
-        return splitter ;
-    } else if ( HorizontalLayoutConfig *vl = dynamic_cast<HorizontalLayoutConfig *>(config) ) {
-        QSplitter *splitter = new QSplitter(parent) ;
-         splitter->setOrientation(Qt::Horizontal);
-        for( PanelConfig *child: vl->getChildren() ) {
-            splitter->addWidget(makeLayout(child, splitter)) ;
-        }
-        return splitter ;
-    } else if ( ImagePanelConfig *ip = dynamic_cast<ImagePanelConfig *>(config) ) {
-        ImagePanel *panel = new ImagePanel(*ip, parent) ;
-        panels_.append(panel) ;
-        return panel ;
-    } else if ( ChartPanelConfig *cp = dynamic_cast<ChartPanelConfig *>(config) ) {
-        ChartPanel *panel = new ChartPanel(*cp, parent) ;
-        panels_.append(panel) ;
-        return panel ;
-    } else {
-        MockPanel *panel = new MockPanel(parent) ;
-        return panel ;
-    }
+    root_element_->updateState(su) ;
 }
 

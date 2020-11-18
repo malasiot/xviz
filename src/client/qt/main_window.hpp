@@ -7,7 +7,6 @@
 #include <QCloseEvent>
 
 #include <xviz/channel.hpp>
-#include "panel.hpp"
 
 namespace xviz {
 namespace msg {
@@ -26,7 +25,6 @@ public:
     void getChannelsRecursive(QVector<QByteArray> &channels);
 
 public slots:
-    void config(const std::vector<xviz::Channel> &channelInfo) ;
     void updateState(const xviz::msg::StateUpdate &state);
 
 private:

@@ -38,11 +38,6 @@ void ImageElement::displayImage(const QImage &im) {
 }
 
 
-void ImageElement::config(const std::vector<xviz::Channel> &channels)
-{
-
-}
-
 void ImageElement::updateState(const xviz::msg::StateUpdate &state_update) {
     string channel_id = state_update.channel_id();
     //string object_id = state_update.object_id() ;

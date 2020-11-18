@@ -73,9 +73,6 @@ void MainWindow::getChannelsRecursive(QVector<QByteArray> &channels) {
     root_element_->getChannels(channels) ;
 }
 
-void MainWindow::config(const std::vector<xviz::Channel> &channelInfo) {
-    root_element_->config(channelInfo) ;
-}
 
 void MainWindow::updateState(const xviz::msg::StateUpdate &su) {
     root_element_->updateState(su) ;

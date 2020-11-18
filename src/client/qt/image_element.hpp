@@ -1,7 +1,6 @@
-#ifndef XVIZ_QT_IMAGE_PANEL_HPP
-#define XVIZ_QT_IMAGE_PANEL_HPP
+#ifndef XVIZ_QT_IMAGE_ELEMENT_HPP
+#define XVIZ_QT_IMAGE_ELEMENT_HPP
 
-#include "panel.hpp"
 #include "ui_element_factory.hpp"
 #include "image_widget.hpp"
 
@@ -25,7 +24,6 @@ public:
         channels.append(channels_) ;
     }
 
-    void config(const std::vector<xviz::Channel> &channels) override ;
     void updateState(const xviz::msg::StateUpdate &) override ;
 
     QWidget *widget() const override { return image_widget_ ; }

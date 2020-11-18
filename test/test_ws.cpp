@@ -8,16 +8,13 @@ using namespace std ;
 int main() {
     // Create a server endpoint
     xviz::Server server ;
-    xviz::Channel *imageChannel = server.createChannel("/data/image", xviz::Channel::IMAGE) ;
-    server.createChannel("/data/table", xviz::Channel::TABLE) ;
-    server.createChannel("/data/plot", xviz::Channel::CHART) ;
 
     std::thread t([&] {server.run(9002);});
 
     this_thread::sleep_for(std::chrono::seconds(2));
 
     xviz::Image im("http://image.png") ;
-    server.sendImage(imageChannel, im);
+    server.push("/data/image", im);
 
     t.join() ;
 }

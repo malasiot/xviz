@@ -21,7 +21,7 @@ public:
         for( UIElement *child: children_ )
             delete child ;
     }
-    virtual void config(const std::vector<xviz::Channel> &) {}
+
     virtual void updateState(const xviz::msg::StateUpdate &) {}
 
     virtual void buildWidget(const UIElementFactory &fac, const QDomElement &ele, QWidget *parent) = 0 ;

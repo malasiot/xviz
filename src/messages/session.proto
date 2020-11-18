@@ -10,15 +10,21 @@ message SessionStart {
   repeated string channels = 2 ;
 }
 
-message ChannelInfo {
-        required int32 type = 1 ;
-	required string name = 2 ;
-	optional string description = 3 ;
+message SessionMetadata {
+    required string version = 1;
 }
 
+message ConfigCommand {
+    enum CommandType {
+        ADD_CHANNEL = 0 ;
+        REMOVE_CHANNEL = 1 ;
+    }
+    required string channel = 1;
+    required CommandType cmd = 2;
+}
 
 message SessionConfig {
-	repeated ChannelInfo channel_info = 1 ;
+    repeated ConfigCommand cmds = 1;
 }
 
 message ImageRaw {
@@ -86,8 +92,9 @@ message Message {
 	
   oneof msg {
 	SessionStart session_start = 2 ;
-	SessionConfig session_config = 3 ;
-        StateUpdate state_update = 4 ;
+        SessionMetadata session_metadata = 3 ;
+        SessionConfig session_config = 4 ;
+        StateUpdate state_update = 5 ;
   }
 }
 

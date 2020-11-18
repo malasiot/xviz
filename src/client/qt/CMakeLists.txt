@@ -11,16 +11,14 @@ find_package(Qt5 COMPONENTS Core Widgets WebSockets Xml REQUIRED)
 set( QT_CLIENT_SOURCES
     client.cpp
     client.hpp
-    session_config.cpp
-    session_config.hpp
     ui_element_factory.hpp
     ui_element_factory.cpp
-    chart_element.cpp
-    chart_element.hpp
-#    panel_config.hpp
-#    panel_config.cpp
+
     qt_graphics_helpers.cpp
     qt_graphics_helpers.hpp
+
+    chart_element.cpp
+    chart_element.hpp
 
     chart/chart_widget.hpp
     chart/chart_widget.cpp

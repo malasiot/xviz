@@ -19,7 +19,6 @@ public:
         channels.append(channels_) ;
     }
 
-    void config(const std::vector<xviz::Channel> &channels) override ;
     void updateState(const xviz::msg::StateUpdate &) override ;
 
     QWidget *widget() const override { return widget_ ; }

@@ -21,7 +21,7 @@ public:
 
 Q_SIGNALS:
     void closed();
-    void connected(const std::vector<xviz::Channel> &) ;
+    void connected() ;
     void stateUpdated(const xviz::msg::StateUpdate &update) ;
 
 private Q_SLOTS:

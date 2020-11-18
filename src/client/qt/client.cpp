@@ -58,48 +58,15 @@ void WebSocketClient::onBinaryMessageReceived(QByteArray message) {
 
     if ( msg_body.ParseFromString(message.toStdString()) ) {
         switch ( msg_body.msg_case() ) {
-        case Message::kSessionConfig: {
-            vector<xviz::Channel> channelInfoList ;
-            const SessionConfig &session_config_msg = msg_body.session_config() ;
-            const auto &channels = session_config_msg.channel_info() ;
-            for( const ChannelInfo &channel: channels ) {
-                string name = channel.name() ;
-                string desc = channel.description() ;
-                int type = channel.type() ;
-
-                channelInfoList.emplace_back(name, type, desc) ;
-
-                qDebug() << name.c_str() << desc.c_str() << type ;
-            }
-
-             emit connected(channelInfoList) ;
+        case Message::kSessionMetadata: {
+             emit connected() ;
         }
             break ;
         case Message::kStateUpdate: {
             const StateUpdate &state_update = msg_body.state_update() ;
             emit stateUpdated(state_update) ;
             break ;
-            /*
-            string channel_id = state_update.channel_id();
-            string object_id = state_update.object_id() ;
 
-            switch ( state_update.data_case() ) {
-                case StateUpdate::kImageData:
-                    const ImageData &image_data = state_update.image_data();
-
-                    switch ( image_data.data_case() ) {
-                    case ImageData::kRaw:
-                        break ;
-                    case ImageData::kUrl:
-                        string url = image_data.url() ;
-
-                        qDebug() << url.c_str() ;
-                        break ;
-                    }
-
-
-            }
-            */
         }
         break ;
         }

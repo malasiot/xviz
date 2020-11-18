@@ -22,10 +22,6 @@ void ChartElement::buildWidget(const UIElementFactory &fac, const QDomElement &e
     parseChannels(ele, channels_) ;
 }
 
-void ChartElement::config(const std::vector<xviz::Channel> &channels)
-{
-
-}
 
 void ChartElement::updateState(const xviz::msg::StateUpdate &state_update)
 {

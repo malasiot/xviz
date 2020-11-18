@@ -19,13 +19,13 @@ using namespace xviz ;
 using namespace std ;
 
 xviz::Server server("/home/malasiot/tmp") ;
-xviz::Channel *imageChannel, *chartChannel ;
+string imageChannel("/data/image"), chartChannel("/data/chart") ;
 
 void onConnected() {
 
   //  server.sendImageUri(imageChannel, "https://qph.fs.quoracdn.net/main-qimg-7213b23a51c7d8b97a299eaa9fe69849");
 
-    server.sendImage(imageChannel, Image("http://localhost:9002/image.png"));
+    server.push(imageChannel, Image("http://localhost:9002/image.png"));
 /*
     LineChart lc ;
 
@@ -67,7 +67,7 @@ void onConnected() {
 
     bc.addAnnotation(d);
 
-    server.sendChart(chartChannel, bc) ;
+    server.push(chartChannel, bc) ;
 
  //   lc.setTicksX({0, 1.5, 2, 3}, {"zero", "one", "two", "three"}) ;
 
@@ -116,12 +116,7 @@ int main(int argc, char *argv[])
 
     QVector<QByteArray> channels ;
 
-
     win.getChannelsRecursive(channels) ;
-
-
-    imageChannel = server.createChannel("/data/image", xviz::Channel::IMAGE) ;
-    chartChannel = server.createChannel("/data/chart", xviz::Channel::CHART) ;
 
     std::thread t([&] {server.run(9002);});
 
@@ -132,7 +127,6 @@ int main(int argc, char *argv[])
 
     QObject::connect(&client, &WebSocketClient::closed, &a, &QCoreApplication::quit);
     QObject::connect(&client, &WebSocketClient::connected, &a, &onConnected);
-    QObject::connect(&client, &WebSocketClient::connected, &win, &MainWindow::config);
     QObject::connect(&client, &WebSocketClient::stateUpdated, &win, &MainWindow::updateState);
 
 

@@ -26,21 +26,19 @@ public:
     // blocking call to start accepting connections
     void run(int port) ;
 
-    Channel *createChannel(const std::string &name, const Channel::Type ctype) ;
-    Channel *findChannel(const std::string &name) ;
-
-    void sendImage(Channel *channel, const xviz::Image &im) ;
-    void sendChart(Channel *channel, const Chart &chart) ;
+    void push(const std::string &channel, const xviz::Image &im) ;
+    void push(const std::string &channel, const Chart &chart) ;
 
 private:
+
+    std::string version() { return "1.0" ; }
 
     friend class impl::WebSocketServer ;
 
     void onSessionStarted(impl::Session &session) ;
-    void sendUpdateMessage(Channel *channel, const std::string &msg_data) ;
-    void dispatchUpdateMessage(Channel *c, const std::string &msg) ;
+    void sendUpdateMessage(const std::string &channel, const std::string &msg_data) ;
+    void dispatchUpdateMessage(const std::string &channel, const std::string &msg) ;
 
-    std::map<std::string, Channel> channels_ ;
     std::unique_ptr<impl::WebSocketServer> ws_server_ ;
 };
 

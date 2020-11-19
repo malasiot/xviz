@@ -8,6 +8,7 @@
 #include <xviz/channel.hpp>
 #include <xviz/line_chart.hpp>
 #include <xviz/bar_chart.hpp>
+#include <xviz/tabular.hpp>
 
 namespace xviz {
 
@@ -28,6 +29,7 @@ public:
 
     void push(const std::string &channel, const xviz::Image &im) ;
     void push(const std::string &channel, const Chart &chart) ;
+    void push(const std::string &channel, const Tabular &tab);
 
 private:
 

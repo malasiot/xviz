@@ -33,12 +33,14 @@ set( QT_CLIENT_SOURCES
     chart/legend.hpp
     chart/legend.cpp
 
-#    panel.cpp
-#    panel.hpp
     image_element.cpp
     image_element.hpp
     image_widget.cpp
     image_widget.hpp
+
+    tabular_element.cpp
+    tabular_element.hpp
+
     main_window.hpp
     main_window.cpp
     main.cpp

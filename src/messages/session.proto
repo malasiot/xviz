@@ -80,6 +80,32 @@ message Chart {
     repeated Drawable annotations = 10;
 }
 
+message TabularData {
+    oneof data {
+        string s = 1 ;
+        int64  i = 2 ;
+        uint64 u = 3 ;
+        bool   b = 4 ;
+        float  f = 5 ;
+        double d = 6 ;
+    }
+}
+
+message TabularColumn {
+    required string id = 1 ;
+    optional string header = 2;
+}
+
+message TabularNode {
+    repeated TabularData columns = 1;
+    repeated TabularNode children = 2;
+}
+
+message Tabular {
+    repeated TabularColumn columns = 1;
+    required TabularNode root = 2;
+}
+
 message StateUpdate {
     required double ts = 1;
     required string channel_id = 2 ;

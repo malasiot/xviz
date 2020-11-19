@@ -12,6 +12,7 @@
 #include <xviz/server.hpp>
 #include <xviz/image.hpp>
 #include <xviz/bar_chart.hpp>
+#include <xviz/tabular.hpp>
 
 #include <csignal>
 
@@ -19,7 +20,7 @@ using namespace xviz ;
 using namespace std ;
 
 xviz::Server server("/home/malasiot/tmp") ;
-string imageChannel("/data/image"), chartChannel("/data/chart") ;
+string imageChannel("/data/image"), chartChannel("/data/chart"), tabularChannel("/data/tabular") ;
 
 void onConnected() {
 
@@ -69,13 +70,11 @@ void onConnected() {
 
     server.push(chartChannel, bc) ;
 
- //   lc.setTicksX({0, 1.5, 2, 3}, {"zero", "one", "two", "three"}) ;
+    Tabular t{ { {"name"}, {"value"} }} ;
+    TabularNode *n = t.addNode({ "name", "" });
+    t.addNode({ "value", "2.0" }, n);
 
-
-
- //   std::this_thread::sleep_for(std::chrono::seconds(1));
-
-//    server.sendImageUri(imageChannel, "http://image3.png");
+    server.push(tabularChannel, t) ;
 }
 
 

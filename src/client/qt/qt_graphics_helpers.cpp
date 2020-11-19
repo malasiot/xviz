@@ -241,7 +241,7 @@ QPixmap qPixmapFromMarker(const xviz::Marker &m)
         return QPixmap() ;
     }
 }
-
+#if 0
 void paintDrawable(QPainter &p, xviz::DrawableHandle drawable,
                    double tx, double ty, double sx, double sy)
 {
@@ -262,7 +262,7 @@ void paintDrawable(QPainter &p, xviz::DrawableHandle drawable,
 
     p.restore() ;
 }
-
+#endif
 QPainterPath qPathFromPath(const xviz::Path &path)
 {
     QPainterPath pp ;

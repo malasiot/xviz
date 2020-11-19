@@ -16,6 +16,18 @@ namespace xviz {
         void load(const std::string &fname, int flags = 0, float scale = 1.f ) ;
         void load(const aiScene *sc, const std::string &fname, int flags = 0, float scale = 1.f) ;
 
+        void addNode(NodePtr node) {
+            nodes_.push_back(node) ;
+        }
+
+        void addMesh(MeshPtr mesh) {
+            meshes_.push_back(mesh) ;
+        }
+
+        void addMaterial(MaterialPtr mat) {
+            materials_.push_back(mat) ;
+        }
+
     private:
         std::vector<NodePtr> nodes_ ;
         std::vector<MeshPtr> meshes_ ;

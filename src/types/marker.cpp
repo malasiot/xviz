@@ -21,13 +21,14 @@ public:
     Brush brush_ ;
 };
 
+/*
 class CustomShapeMarkerData: public MarkerData {
 public:
-    CustomShapeMarkerData(const Drawable &d, double sz): MarkerData(sz), drawable_(d) {}
+    CustomShapeMarkerData(const ShapeDrawable &d, double sz): MarkerData(sz), drawable_(d) {}
 
-    Drawable drawable_ ;
+    ShapeDrawable drawable_ ;
 };
-
+*/
 Marker::Marker(): type_(NoMarker)  {
 }
 
@@ -35,10 +36,11 @@ Marker::Marker(StockMarkerShape shape, Pen pen, Brush brush, double sz): type_(S
 
 }
 
-Marker::Marker(const Drawable &d, double sz): type_(CustomShapeMarker),
+/*
+Marker::Marker(const ShapeDrawable &d, double sz): type_(CustomShapeMarker),
     data_(new CustomShapeMarkerData(d, sz)) {
 }
-
+*/
 double Marker::size() const {
     assert(data_) ;
     return data_->sz_ ;
@@ -59,10 +61,12 @@ StockMarkerShape Marker::shape() const {
     return static_cast<const StockMarkerShapeData *>(data_.get())->shape_ ;
 }
 
-Drawable Marker::drawable() const {
+/*
+ShapeDrawable Marker::drawable() const {
     assert(data_ && type_ == CustomShapeMarker ) ;
     return static_cast<const CustomShapeMarkerData *>(data_.get())->drawable_ ;
 }
+*/
 
 Marker Marker::read(const msg::Marker &marker)
 {

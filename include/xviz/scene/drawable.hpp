@@ -8,10 +8,10 @@ namespace xviz {
 
 // a drawable is a combination of geometry and material
 
-class Drawable {
+class ShapeDrawable {
 public:
 
-    Drawable(const MeshPtr &geom, const MaterialPtr &material):
+    ShapeDrawable(const MeshPtr &geom, const MaterialPtr &material):
         geometry_(geom), material_(material) {}
 
     MeshPtr geometry() const { return geometry_ ; }

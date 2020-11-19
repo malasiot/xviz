@@ -49,24 +49,23 @@ public:
     bool findSkeletonHierarchies();
 };
 
-static void getPhongMaterial(const struct aiMaterial *mtl,
-                             optional<Vector4f> &vambient,
-                             optional<Vector4f> &vdiffuse,
-                             optional<Vector4f> &vspecular,
-                             optional<float> &vshininess) {
+static void getPhongMaterial(PhongMaterial *material, const struct aiMaterial *mtl) {
 
     aiColor4D diffuse, specular, ambient;
     float shininess, strength;
     unsigned int max;
 
-    if ( AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_DIFFUSE, &diffuse))
-        vdiffuse = color4_to_float4(diffuse);
+    if ( AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_DIFFUSE, &diffuse)) {
+        material->setDiffuse(color4_to_float4(diffuse)) ;
+    }
 
-    if ( AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_SPECULAR, &specular) )
-        vspecular = color4_to_float4(specular) ;
+    if ( AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_SPECULAR, &specular) ) {
+        material->setSpecular(color4_to_float4(specular)) ;
+    }
 
-    if ( AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_AMBIENT, &ambient) )
-        vambient = color4_to_float4(ambient) ;
+    if ( AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_AMBIENT, &ambient) ) {
+        material->setAmbient(color4_to_float4(ambient) ) ;
+    }
 
     max = 1;
     aiReturn ret1 = aiGetMaterialFloatArray(mtl, AI_MATKEY_SHININESS, &shininess, &max);
@@ -75,25 +74,22 @@ static void getPhongMaterial(const struct aiMaterial *mtl,
         max = 1;
      //   aiReturn ret2 = aiGetMaterialFloatArray(mtl, AI_MATKEY_SHININESS_STRENGTH, &strength, &max);
      //   if(ret2 == AI_SUCCESS) shininess = shininess * strength ;
-
-        vshininess = shininess ;
+        material->setShininess(shininess);
     }
     else {
-        vshininess = 0 ;
-        vspecular = Vector4f(0, 0, 0, 1) ;
+        material->setShininess(0.0);
+        material->setSpecular({0, 0, 0, 1});
     }
 }
 
-static void getMaterialTexture(const struct aiMaterial *mtl, optional<Texture2D> &texture, const string &model_path) {
-
+static void getMaterialTexture(PhongMaterial *material, const struct aiMaterial *mtl) {
     aiString tex_path ;
     aiTextureMapping tmap ;
     aiTextureMapMode mode ;
 
     if ( AI_SUCCESS == mtl->GetTexture(aiTextureType_DIFFUSE, 0, &tex_path, &tmap, 0, 0, 0, &mode) ) {
         string file_name(tex_path.data, tex_path.length) ;
-
-        texture = Texture2D(model_path, Sampler2D()) ;
+        material->setDiffuse(Texture2D(file_name, Sampler2D())) ;
     }
 }
 
@@ -103,20 +99,13 @@ MaterialPtr AssimpImporter::importMaterial(const struct aiMaterial *mtl, const s
     int shading_model ;
     mtl->Get((const char *)AI_MATKEY_SHADING_MODEL, shading_model);
 
-    optional<Texture2D> diffuse_map ;
-    optional<Vector4f> ambient, diffuse, specular ;
-    optional<float> shininess ;
-
-    getMaterialTexture(mtl, diffuse_map, model_path) ;
-    getPhongMaterial(mtl, ambient, diffuse, specular, shininess) ;
 
     PhongMaterial *material  = new PhongMaterial() ;
 
-    if ( diffuse_map ) material->setDiffuse(diffuse_map.value()) ;
-    if ( ambient ) material->setAmbient(ambient.value()) ;
-    if ( diffuse ) material->setDiffuse(diffuse.value()) ;
-    if ( specular ) material->setSpecular(specular.value()) ;
-    if ( shininess ) material->setShininess(shininess.value()) ;
+    getMaterialTexture(material, mtl) ;
+    getPhongMaterial(material, mtl) ;
+
+
 
     return MaterialPtr(material) ;
 
@@ -230,6 +219,7 @@ bool AssimpImporter::importMeshes(const aiScene *sc) {
         }
 #endif
         meshes_[mesh] = smesh ;
+        scene_.addMesh(smesh) ;
     }
 
     return true ;
@@ -415,8 +405,6 @@ bool AssimpImporter::importNodes(Node *pnode, const struct aiScene *sc, const st
 
     NodePtr snode(new Node) ;
 
-
-
     Matrix4f tf ;
     tf << m.a1, m.a2, m.a3, m.a4,
             m.b1, m.b2, m.b3, m.b4,
@@ -428,7 +416,7 @@ bool AssimpImporter::importNodes(Node *pnode, const struct aiScene *sc, const st
     string nname(nd->mName.C_Str()) ;
     snode->setName(nname);
 
-     node_map_.emplace(nname, snode) ;
+    node_map_.emplace(nname, snode) ;
 
     /* draw all meshes assigned to this node */
     for (; n < nd->mNumMeshes; ++n) {
@@ -450,7 +438,7 @@ bool AssimpImporter::importNodes(Node *pnode, const struct aiScene *sc, const st
         if ( cit != materials_.end() )
             mat = cit->second ;
 
-        Drawable *dr = new Drawable(geom, mat) ;
+        ShapeDrawable *dr = new ShapeDrawable(geom, mat) ;
 
         snode->setDrawable(dr) ;
     }
@@ -469,6 +457,8 @@ bool AssimpImporter::importNodes(Node *pnode, const struct aiScene *sc, const st
         if ( !importNodes(snode.get(), sc, nd->mChildren[n]) )
             return false ;
     }
+
+    scene_.addNode(snode) ;
 
     return true ;
 }

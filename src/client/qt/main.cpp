@@ -8,11 +8,14 @@
 #include "main_window.hpp"
 
 #include <thread>
+#include <iostream>
 
 #include <xviz/server.hpp>
 #include <xviz/image.hpp>
 #include <xviz/bar_chart.hpp>
 #include <xviz/tabular.hpp>
+#include <xviz/path.hpp>
+#include <xviz/scene/scene.hpp>
 
 #include <csignal>
 
@@ -62,11 +65,11 @@ void onConnected() {
     p.builder().addRect(0.5, 1.5, 1.2, 0.8)
             .addEllipse(1.6, 1.4, 0.5, 0.5) ;
 
-    DrawableHandle d(new ShapeDrawable(p));
-    d->setPen({Color::red(), 2.5});
-    d->setBrush(Brush(RadialGradient(0.5, 0.5, 0.7, 0.7, 1, {{0.0, Color::red()}, {1.0, Color::white()}})));
+    //DrawableHandle d(new ShapeDrawable(p));
+   // d->setPen({Color::red(), 2.5});
+   // d->setBrush(Brush(RadialGradient(0.5, 0.5, 0.7, 0.7, 1, {{0.0, Color::red()}, {1.0, Color::white()}})));
 
-    bc.addAnnotation(d);
+   // bc.addAnnotation(d);
 
     server.push(chartChannel, bc) ;
 
@@ -75,6 +78,10 @@ void onConnected() {
     t.addRow({ "value", "2.0" }, n);
 
     server.push(tabularChannel, t) ;
+
+    Scene scene ;
+    scene.load("/home/malasiot/Downloads/2CylinderEngine.glb");
+    cout << "ok" << endl ;
 }
 
 

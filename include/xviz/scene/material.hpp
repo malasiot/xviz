@@ -24,14 +24,15 @@ private:
 };
 
 
+
 class TextureOrColor {
 public:
     TextureOrColor(const Eigen::Vector4f &clr): type_(Color) {
-        new (&data_.c_) Eigen::Vector4f(clr) ;
+        new (data_.data()) Eigen::Vector4f(clr) ;
     }
 
     TextureOrColor(const Texture2D &texture): type_(Texture) {
-        new (&data_.t_) Texture2D(texture) ;
+        new (data_.data()) Texture2D(texture) ;
     }
 
     ~TextureOrColor() {
@@ -43,10 +44,8 @@ public:
     }
 
     TextureOrColor &operator=(const TextureOrColor &other) {
-        if ( this != &other ) {
-            destroy() ;
-            create(other) ;
-        }
+        destroy() ;
+        create(other) ;
         return *this ;
     }
 
@@ -57,10 +56,10 @@ private:
     void destroy() {
         switch (type_) {
         case Type::Color:
-            data_.c_.~color_t() ;
+            reinterpret_cast<color_t *>(data_.data())->~color_t();
             break ;
         case Type::Texture:
-            data_.t_.~Texture2D() ;
+            reinterpret_cast<Texture2D *>(data_.data())->~Texture2D();
             break ;
         }
     }
@@ -70,10 +69,10 @@ private:
         switch (type_)
         {
         case Type::Color:
-            new ( &data_.c_ ) Eigen::Vector4f(other.data_.c_) ;
+            new ( data_.data() ) color_t(*reinterpret_cast<const color_t *>(other.data_.data())) ;
             break;
         case Type::Texture:
-            new ( &data_.t_ ) Texture2D(other.data_.t_) ;
+            new ( data_.data() ) Texture2D(*reinterpret_cast<const Texture2D *>(other.data_.data())) ;
             break;
         default:
             break;
@@ -83,17 +82,11 @@ private:
 
     enum Type { Texture, Color } ;
 
-    union Data {
-        Data() {} ;
-        ~Data() {} ;
-        Texture2D t_ ;
-        Eigen::Vector4f c_ ;
-    } ;
-
     Type type_ ;
-    Data data_ ;
-
+    static constexpr size_t sz = std::max(sizeof(Texture2D), sizeof(Eigen::Vector3f)) ;
+    std::array<char, sz> data_ ;
 };
+
 
 class Material {
 public:

@@ -15,39 +15,39 @@ namespace msg {
     class Drawable ;
 }
 
-class Drawable {
+class ShapeDrawable {
   public:
 
-    virtual ~Drawable() = default ;
+    virtual ~ShapeDrawable() = default ;
 
-    Drawable &setBrush(Brush b) { brush_ = b ; return *this ; }
-    Drawable &setPen(Pen p) { pen_ = p ; return *this ;}
-    Drawable &setTransform(const Matrix2d &mat) { transform_ = mat ; return *this; }
-    Drawable &setFont(FontHandle f) { font_ = f ; return *this ; }
+    ShapeDrawable &setBrush(Brush b) { brush_ = b ; return *this ; }
+    ShapeDrawable &setPen(Pen p) { pen_ = p ; return *this ;}
+    ShapeDrawable &setTransform(const Matrix2d &mat) { transform_ = mat ; return *this; }
+    ShapeDrawable &setFont(FontHandle f) { font_ = f ; return *this ; }
 
     Brush brush() const ;
     Pen pen() const ;
     Matrix2d transform() const ;
     Matrix2d globalTransform() const ;
 
-    void setParent(Drawable *d) { parent_ = d ; }
+    void setParent(ShapeDrawable *d) { parent_ = d ; }
 
-    static msg::Drawable *write(const Drawable *d) ;
-    static Drawable *read(const msg::Drawable &msg) ;
+    static msg::Drawable *write(const ShapeDrawable *d) ;
+    static ShapeDrawable *read(const msg::Drawable &msg) ;
 
 protected:
     Brush brush_ ;
     Pen pen_ ;
     Matrix2d transform_ ;
     FontHandle font_ ;
-    Drawable *parent_ = nullptr ;
+    ShapeDrawable *parent_ = nullptr ;
 };
 
-using DrawableHandle = std::shared_ptr<Drawable> ;
+using DrawableHandle = std::shared_ptr<ShapeDrawable> ;
 
 class Path ;
 
-class ShapeDrawable: public Drawable {
+class ShapeDrawable: public ShapeDrawable {
 public:
     ShapeDrawable(const Path &path): path_(path) {}
 
@@ -71,7 +71,7 @@ enum TextDecoration {
     TextDecorationNone, TextDecorationUnderline, TextDecorationStrikeThrough
 };
 
-class TextDrawable: public Drawable {
+class TextDrawable: public ShapeDrawable {
 public:
 
     TextDrawable(const std::string &text, Rectangle2d &rect, int align = TextAlignLeft|TextAlignTop):
@@ -96,19 +96,19 @@ protected:
     Rectangle2d rect_ ;
 };
 
-class GroupDrawable: public Drawable {
+class GroupDrawable: public ShapeDrawable {
 public:
-    void addChild(Drawable *d) {
+    void addChild(ShapeDrawable *d) {
         assert(d) ;
         d->setParent(this) ;
-        children_.push_back(std::move(std::unique_ptr<Drawable>(d))) ;
+        children_.push_back(std::move(std::unique_ptr<ShapeDrawable>(d))) ;
     }
 
-    const std::vector<std::unique_ptr<Drawable>> &children() const { return children_; }
+    const std::vector<std::unique_ptr<ShapeDrawable>> &children() const { return children_; }
 
 protected:
 
-    std::vector<std::unique_ptr<Drawable>> children_ ;
+    std::vector<std::unique_ptr<ShapeDrawable>> children_ ;
 };
 
 

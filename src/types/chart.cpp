@@ -53,12 +53,12 @@ string Chart::write(const Chart *c)
     } else if ( const BarChart *bc = dynamic_cast<const BarChart *>(c) ) {
         BarChart::write(chart_data, bc);
     }
-
+/*
     for( const auto &a: c->annotations() ) {
         msg::Drawable *d = Drawable::write(a.get()) ;
         chart_data.mutable_annotations()->AddAllocated(d);
     }
-
+*/
     return chart_data.SerializeAsString();
 
 
@@ -78,11 +78,11 @@ Chart *Chart::read(const string &bytes)
 
     if ( !chart ) return nullptr ;
 
-
+/*
     for( const auto &a: chart_data.annotations() ) {
         chart->addAnnotation(DrawableHandle(Drawable::read(a)));
     }
-
+*/
 
     chart->setLabelX(chart_data.labelx()) ;
     chart->setLabelY(chart_data.labely()) ;

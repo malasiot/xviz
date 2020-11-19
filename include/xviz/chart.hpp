@@ -8,7 +8,7 @@
 #include <xviz/pen.hpp>
 #include <xviz/brush.hpp>
 #include <xviz/marker.hpp>
-#include <xviz/drawable.hpp>
+
 
 namespace xviz {
 
@@ -47,7 +47,7 @@ public:
 
     const std::vector<Tick> &getTicksX() const { return ticks_x_ ; }
     const std::vector<Tick> &getTicksY() const { return ticks_y_ ; }
-
+/*
     void addAnnotation(const DrawableHandle &d) {
         annotations_.push_back(d) ;
     }
@@ -55,14 +55,14 @@ public:
     const std::vector<DrawableHandle> annotations() const {
         return annotations_ ;
     }
-
+*/
     static std::string  write(const Chart *chart);
     static Chart *read(const std::string &bytes) ;
 
 protected:
     std::string title_, label_x_, label_y_ ;
     std::vector<Tick> ticks_x_, ticks_y_ ;
-    std::vector<DrawableHandle> annotations_ ;
+//    std::vector<DrawableHandle> annotations_ ;
 
 private:
 

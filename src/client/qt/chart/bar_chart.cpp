@@ -112,13 +112,13 @@ void QBarChart::paintAnnotations(QPainter &c) {
     c.save() ;
  //   c.translate(x_axis_.getOffset(), y_axis_.getOffset());
  //   c.scale(x_axis_.getScale(), -y_axis_.getScale()) ;
-
+#if 0
     for( const auto &a: annotations_ ) {
         paintDrawable(c, a,
                       x_axis_.getOffset(), y_axis_.getOffset(),
                       x_axis_.getScale(), -y_axis_.getScale());
     }
-
+#endif
     c.restore() ;
 
 }

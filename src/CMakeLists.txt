@@ -4,6 +4,7 @@ include_directories(
     ../3rdparty
     ../3rdparty/asio/
      ${EIGEN3_INCLUDE_DIR}
+     ${ASSIMP_INCLUDE_DIR}
 )
 
 set(XVIZ_LIB_SOURCES
@@ -23,7 +24,7 @@ set(XVIZ_LIB_SOURCES
     types/pen.cpp
     types/brush.cpp
     types/marker.cpp
-    types/drawable.cpp
+
     types/path.cpp
     types/gradient.cpp
     types/tabular.cpp
@@ -39,7 +40,6 @@ set(XVIZ_LIB_SOURCES
     ${XVIZ_INCLUDE_DIR}/bar_chart.hpp
     ${XVIZ_INCLUDE_DIR}/style.hpp
     ${XVIZ_INCLUDE_DIR}/image.hpp
-    ${XVIZ_INCLUDE_DIR}/drawable.hpp
     ${XVIZ_INCLUDE_DIR}/path.hpp
     ${XVIZ_INCLUDE_DIR}/gradient.hpp
     ${XVIZ_INCLUDE_DIR}/tabular.hpp
@@ -56,4 +56,4 @@ protobuf_generate_cpp(PROTO_SRC PROTO_HDR messages/session.proto messages/style.
 set_source_files_properties(${PROTO_SRC} ${PROTO_HDR} PROPERTIES GENERATED TRUE)
 
 add_library(xviz ${XVIZ_LIB_SOURCES} ${PROTO_SRC} ${PROTO_HDR})
-target_link_libraries(xviz pthread ${PROTOBUF_LIBRARY})
+target_link_libraries(xviz pthread ${PROTOBUF_LIBRARY} ${ASSIMP_LIBRARIES})

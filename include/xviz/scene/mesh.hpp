@@ -18,7 +18,7 @@ public:
     using indices_t = std::vector<uint32_t> ;
 
     Mesh(PrimitiveType t): ptype_(t) {}
-     ~Mesh();
+     ~Mesh() = default;
 
     using vb3_t = std::vector<Eigen::Vector3f> ;
     using vb2_t = std::vector<Eigen::Vector2f> ;

@@ -3,6 +3,7 @@ add_subdirectory(client/qt)
 include_directories(
     ../3rdparty
     ../3rdparty/asio/
+     ${EIGEN3_INCLUDE_DIR}
 )
 
 set(XVIZ_LIB_SOURCES
@@ -27,6 +28,11 @@ set(XVIZ_LIB_SOURCES
     types/gradient.cpp
     types/tabular.cpp
 
+    types/scene/node.cpp
+    types/scene/scene.cpp
+    types/scene/mesh.cpp
+    types/scene/assimp_loader.cpp
+
     ${XVIZ_INCLUDE_DIR}/server.hpp
     ${XVIZ_INCLUDE_DIR}/channel.hpp
     ${XVIZ_INCLUDE_DIR}/line_chart.hpp
@@ -37,6 +43,13 @@ set(XVIZ_LIB_SOURCES
     ${XVIZ_INCLUDE_DIR}/path.hpp
     ${XVIZ_INCLUDE_DIR}/gradient.hpp
     ${XVIZ_INCLUDE_DIR}/tabular.hpp
+
+    ${XVIZ_INCLUDE_DIR}/scene/node.hpp
+    ${XVIZ_INCLUDE_DIR}/scene/scene.hpp
+    ${XVIZ_INCLUDE_DIR}/scene/scene_fwd.hpp
+    ${XVIZ_INCLUDE_DIR}/scene/mesh.hpp
+    ${XVIZ_INCLUDE_DIR}/scene/drawable.hpp
+    ${XVIZ_INCLUDE_DIR}/scene/material.hpp
 )
 
 protobuf_generate_cpp(PROTO_SRC PROTO_HDR messages/session.proto messages/style.proto messages/drawable.proto)

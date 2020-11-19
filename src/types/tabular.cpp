@@ -10,16 +10,16 @@ Tabular::~Tabular() {
     delete root_ ;
 }
 
-TabularNode *Tabular::getNode(int row, const TabularNode *parent) {
+TabularNode *Tabular::getRow(int row, const TabularNode *parent) {
     if ( parent == nullptr ) return root()->child(row) ;
     else return parent->child(row) ;
 }
 
-TabularNode *Tabular::addNode(const std::vector<TabularData> &data, TabularNode *parent) {
+TabularNode *Tabular::addRow(const std::vector<TabularData> &data, TabularNode *parent) {
+    assert(data.size() == columns_.size()) ;
+
     TabularNode *p = ( parent == nullptr ) ? root_ : parent ;
-
     TabularNode *c = new TabularNode(data, p) ;
-
     p->addChildNode(c) ;
 
     return c ;
@@ -105,7 +105,7 @@ static void read_node(Tabular *t, const msg::TabularNode &msg, TabularNode *pare
         }
     }
 
-    TabularNode *node = t->addNode(data, parent) ;
+    TabularNode *node = t->addRow(data, parent) ;
 
     for( const auto &child: msg.children() ) {
         read_node(t, child, node) ;

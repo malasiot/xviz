@@ -49,12 +49,12 @@ TabularDataModel::TabularDataModel(xviz::Tabular *data, QObject *parent): QAbstr
 QVariant TabularDataModel::headerData(int section, Qt::Orientation orientation,
                                int role) const
 {
-    /*
     if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
-        return rootItem->data(section);
-*/
+        return QString::fromStdString(data_->columns().at(section).name()) ;
+
     return QVariant();
 }
+
 QModelIndex TabularDataModel::index(int row, int column, const QModelIndex &parent) const
 {
     if (!hasIndex(row, column, parent))
@@ -134,12 +134,11 @@ QVariant TabularDataModel::data(const QModelIndex &index, int role) const
         return val.toFloat() ;
     case xviz::TabularData::Type::Double:
         return val.toDouble() ;
-
+    default:
+        return QVariant() ;
     }
 }
-//! [3]
 
-//! [4]
 Qt::ItemFlags TabularDataModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid())

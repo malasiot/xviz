@@ -70,9 +70,9 @@ void onConnected() {
 
     server.push(chartChannel, bc) ;
 
-    Tabular t{ { {"name"}, {"value"} }} ;
-    TabularNode *n = t.addNode({ "name", "" });
-    t.addNode({ "value", "2.0" }, n);
+    Tabular t{ { {"name", "Key"}, {"value", "Value"} }} ;
+    TabularNode *n = t.addRow({ "name", "" });
+    t.addRow({ "value", "2.0" }, n);
 
     server.push(tabularChannel, t) ;
 }

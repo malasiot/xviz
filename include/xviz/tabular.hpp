@@ -11,7 +11,7 @@ namespace xviz {
 namespace msg {
     class Tabular ;
 }
-// Hierarchical data structure to store column of arbitrary type
+// Hierarchical data structure to store row/columns of arbitrary type
 
 class TabularNode ;
 class TabularData ;
@@ -19,11 +19,12 @@ class TabularColumn ;
 
 class Tabular {
 public:
+    // list of columns
     Tabular(const std::vector<TabularColumn> &columns);
     ~Tabular() ;
 
-    TabularNode *getNode(int row, const TabularNode *parent);
-    TabularNode *addNode(const std::vector<TabularData> &data, TabularNode *parent = nullptr);
+    TabularNode *getRow(int row, const TabularNode *parent);
+    TabularNode *addRow(const std::vector<TabularData> &data, TabularNode *parent = nullptr);
 
     TabularNode *root() const { return root_ ; }
 

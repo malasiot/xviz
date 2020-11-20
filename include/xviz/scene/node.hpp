@@ -31,7 +31,7 @@ public:
 
     void setName(const std::string &name) { name_ = name ; }
 
-    void setDrawable(ShapeDrawable *d) { drawable_.reset(d) ; }
+    void setDrawable(Drawable *d) { drawable_.reset(d) ; }
 
     void addChild(const NodePtr &n) {
         children_.push_back(n) ;
@@ -44,7 +44,7 @@ public:
 
     Node *parent() const { return parent_ ; }
 
-    const ShapeDrawable *drawable() const { return drawable_.get() ; }
+    const Drawable *drawable() const { return drawable_.get() ; }
 
     const std::vector<NodePtr> &children() const { return children_ ; }
 
@@ -75,7 +75,7 @@ private:
     std::vector<NodePtr> children_ ;      // child nodes
 
     LightPtr light_ ;
-    std::unique_ptr<ShapeDrawable> drawable_ ;
+    std::unique_ptr<Drawable> drawable_ ;
 
     Node *parent_ = nullptr;
 };

@@ -49,6 +49,12 @@ public:
         return *this ;
     }
 
+    bool isColor() const { return type_ == Color ; }
+    bool isTexture() const { return type_ == Texture ; }
+
+    const Eigen::Vector4f &color() const { return *reinterpret_cast<const color_t *>(data_.data()) ; }
+    const Texture2D &texture() const { return *reinterpret_cast<const Texture2D *>(data_.data()) ; }
+
 private:
 
     using color_t = Eigen::Vector4f ;
@@ -104,6 +110,10 @@ public:
     void setDiffuse(const Texture2D &d) { diffuse_ = d ; }
     void setShininess(float s) { shininess_ = s ; }
 
+    const TextureOrColor &diffuse() const { return diffuse_ ; }
+    const TextureOrColor &specular() const { return specular_ ; }
+    const Eigen::Vector4f &ambient() const { return ambient_ ; }
+    float shininess() const { return shininess_ ; }
 
     ~PhongMaterial() = default ;
 private:

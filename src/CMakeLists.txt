@@ -33,6 +33,7 @@ set(XVIZ_LIB_SOURCES
     types/scene/scene.cpp
     types/scene/mesh.cpp
     types/scene/assimp_loader.cpp
+    types/scene/camera.cpp
 
     ${XVIZ_INCLUDE_DIR}/server.hpp
     ${XVIZ_INCLUDE_DIR}/channel.hpp
@@ -50,6 +51,7 @@ set(XVIZ_LIB_SOURCES
     ${XVIZ_INCLUDE_DIR}/scene/mesh.hpp
     ${XVIZ_INCLUDE_DIR}/scene/drawable.hpp
     ${XVIZ_INCLUDE_DIR}/scene/material.hpp
+    ${XVIZ_INCLUDE_DIR}/scene/camera.hpp
 )
 
 protobuf_generate_cpp(PROTO_SRC PROTO_HDR messages/session.proto messages/style.proto messages/drawable.proto)

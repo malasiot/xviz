@@ -2,6 +2,7 @@
 #include "image_element.hpp"
 #include "chart_element.hpp"
 #include "tabular_element.hpp"
+#include "scene_element.hpp"
 
 #include <QPushButton>
 #include <QVBoxLayout>
@@ -225,6 +226,8 @@ UIElement *UIElementFactory::build(const QDomElement &e, QWidget *parent) const 
         ele = new ChartElement() ;
     else if ( name == "tabular" )
         ele = new TabularElement() ;
+    else if ( name == "scene" )
+        ele = new SceneElement() ;
 
     if ( ele )
         ele->buildWidget(*this, e, parent) ;

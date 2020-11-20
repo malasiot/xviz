@@ -79,9 +79,9 @@ void onConnected() {
 
     server.push(tabularChannel, t) ;
 
-    Scene scene ;
-    scene.load("/home/malasiot/Downloads/2CylinderEngine.glb");
-    cout << "ok" << endl ;
+ //   Scene scene ;
+ //   scene.load("/home/malasiot/Downloads/2CylinderEngine.glb");
+ //   cout << "ok" << endl ;
 }
 
 

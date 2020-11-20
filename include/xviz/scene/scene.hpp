@@ -28,6 +28,10 @@ namespace xviz {
             materials_.push_back(mat) ;
         }
 
+        const std::vector<MeshPtr> &meshes() const { return meshes_ ; }
+        const std::vector<NodePtr> &nodes() const { return nodes_ ; }
+        const std::vector<MaterialPtr> &materials() const { return materials_ ; }
+
     private:
         std::vector<NodePtr> nodes_ ;
         std::vector<MeshPtr> meshes_ ;

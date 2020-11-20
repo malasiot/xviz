@@ -23,8 +23,11 @@ typedef std::shared_ptr<Scene> ScenePtr ;
 class Node ;
 typedef std::shared_ptr<Node> NodePtr ;
 
-class ShapeDrawable ;
-typedef std::shared_ptr<ShapeDrawable> DrawablePtr ;
+class Drawable ;
+typedef std::shared_ptr<Drawable> DrawablePtr ;
+
+class Camera ;
+typedef std::shared_ptr<Camera> CameraPtr ;
 
 }
 

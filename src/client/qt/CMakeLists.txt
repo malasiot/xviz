@@ -33,6 +33,17 @@ set( QT_CLIENT_SOURCES
     chart/legend.hpp
     chart/legend.cpp
 
+    scene/viewer.hpp
+    scene/viewer.cpp
+    scene/trackball.cpp
+    scene/trackball.hpp
+    scene/renderer.cpp
+    scene/renderer.hpp
+    scene/mesh_data.cpp
+    scene/mesh_data.hpp
+    scene/material.cpp
+    scene/material.hpp
+
     image_element.cpp
     image_element.hpp
     image_widget.cpp
@@ -40,6 +51,9 @@ set( QT_CLIENT_SOURCES
 
     tabular_element.cpp
     tabular_element.hpp
+
+    scene_element.cpp
+    scene_element.hpp
 
     main_window.hpp
     main_window.cpp

@@ -8,7 +8,11 @@ include(FindThirdParty)
 
 set(XVIZ_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/xviz/)
 
-include_directories(src ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR}/src)
+include_directories(src
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_BINARY_DIR}/src
+    ${EIGEN3_INCLUDE_DIR}
+    )
 
 add_subdirectory(src)
 add_subdirectory(test)

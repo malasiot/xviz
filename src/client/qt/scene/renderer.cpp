@@ -9,9 +9,13 @@
 #include <xviz/scene/material.hpp>
 
 #include <QOpenGLFunctions>
+#include <QImage>
+#include <QOpenGLTexture>
 
 #include "mesh_data.hpp"
 #include "material.hpp"
+#include "../image_loader.hpp"
+#include "../qt_graphics_helpers.hpp"
 
 #define POSITION_LOCATION    0
 #define NORMALS_LOCATION    1
@@ -30,11 +34,18 @@ Renderer::Renderer(int flags) {
 void Renderer::init(const xviz::ScenePtr &scene) {
     initializeOpenGLFunctions() ;
 
+    auto &loader = ImageLoader::instance() ;
+
+    xviz::PhongMaterial *mat = new xviz::PhongMaterial() ;
+    mat->setDiffuseColor({0.5, 0.5, 0.5, 1.0}) ;
+    default_material_.reset(mat) ;
+    default_prog_ = PhongMaterialProgram::instance(0) ;
+
     scene_ = scene ;
 
     for ( const xviz::MeshPtr &mesh: scene->meshes() ) {
-        MeshData data(*mesh) ;
-        meshes_.emplace(make_pair(mesh.get(), std::move(data))) ;
+        MeshData *data = new MeshData(*mesh) ;
+        meshes_.emplace(make_pair(mesh.get(), data)) ;
     }
 
     for ( const xviz::MaterialPtr &mat: scene->materials() ) {
@@ -42,7 +53,24 @@ void Renderer::init(const xviz::ScenePtr &scene) {
         if ( const xviz::PhongMaterial *material = dynamic_cast<const xviz::PhongMaterial *>(mat.get())) {
             int flags = 0 ;
 
-            if ( material->diffuse().isTexture() ) flags |= PhongMaterialProgram::HAS_DIFFUSE_TEXTURE ;
+            textures_[(xviz::Material *)material] = {nullptr} ;
+
+            if ( material->diffuseTexture() ) {
+                flags |= PhongMaterialProgram::HAS_DIFFUSE_TEXTURE ;
+                const xviz::Texture2D *texture = material->diffuseTexture() ;
+
+                QObject::connect(&loader, &ImageLoader::downloaded, this, [&](QImage im){ uploadTexture(im, mat, 0);});
+
+                xviz::Image image = texture->image() ;
+
+                if ( image.type() == xviz::ImageType::Uri )
+                    loader.fetch(QString::fromStdString(image.uri())) ;
+                else {
+                    QImage qim = qImageFromImage(image) ;
+                    uploadTexture(qim, mat, 0) ;
+                }
+            }
+            if ( material->specularTexture() ) flags |= PhongMaterialProgram::HAS_SPECULAR_TEXTURE ;
 
             MaterialProgramPtr prog = PhongMaterialProgram::instance(flags) ;
 
@@ -64,8 +92,8 @@ void Renderer::render(const xviz::CameraPtr &cam) {
     glCullFace(GL_BACK) ;
     glFrontFace(GL_CCW) ;
 
-    glEnable (GL_BLEND);
-    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//    glEnable (GL_BLEND);
+ //   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     Vector4f bg_clr = cam->bgColor() ;
 
@@ -87,7 +115,18 @@ void Renderer::render(const xviz::CameraPtr &cam) {
         if ( node->parent() == nullptr )
             render(node, Matrix4f::Identity()) ;
     }
-    //render(scene, scene, Matrix4f::Identity()) ;
+
+}
+
+void Renderer::uploadTexture(QImage im, xviz::MaterialPtr mat, int slot) {
+    QOpenGLTexture *texture = new QOpenGLTexture(im);
+    texture->setMinificationFilter(QOpenGLTexture::Linear);
+    texture->setMagnificationFilter(QOpenGLTexture::Linear);
+    texture->setWrapMode(QOpenGLTexture::DirectionS, QOpenGLTexture::Repeat) ;
+    texture->setWrapMode(QOpenGLTexture::DirectionT, QOpenGLTexture::Repeat) ;
+    texture->generateMipMaps();
+
+    textures_[mat.get()][slot] = texture ;
 }
 
 
@@ -96,14 +135,46 @@ void Renderer::render(const xviz::NodePtr &node, const Matrix4f &tf) {
     Matrix4f mat = node->matrix().matrix(),
             tr = tf * mat ; // accumulate transform
 
-    const xviz::Drawable *m = node->drawable() ;
-    render(m, tr) ;
+    const auto &drawables = node->drawables() ;
 
+    for( const auto &m: drawables )
+        render(m.get(), tr) ;
 
     for( uint i=0 ; i<node->numChildren() ; i++ ) {
         const xviz::NodePtr &n = node->getChild(i) ;
         render(n, tr) ;
     }
+}
+
+
+#define MAX_LIGHTS 10
+
+void Renderer::setLights(const xviz::NodePtr &node, const Affine3f &parent_tf, const MaterialProgramPtr &mat)
+{
+    Affine3f tf = parent_tf * node->matrix() ;
+
+    xviz::LightPtr l = node->light() ;
+
+    if ( light_index_ >= MAX_LIGHTS ) return ;
+
+    if ( l ) {
+        mat->applyLight(light_index_, l, tf) ;
+        light_index_ ++ ;
+    }
+
+    for( uint i=0 ; i<node->numChildren() ; i++ )
+        setLights(node->getChild(i), tf, mat) ;
+}
+
+void Renderer::setLights(const MaterialProgramPtr &material) {
+    light_index_ = 0 ;
+
+    Isometry3f mat ;
+    mat.setIdentity() ;
+
+    for( const xviz::NodePtr &node: scene_->nodes() )
+        if ( node->parent() == nullptr )
+            setLights(node, mat, material) ;
 }
 
 
@@ -115,22 +186,40 @@ void Renderer::render(const xviz::Drawable *geom, const Matrix4f &mat)
     auto it = meshes_.find(mesh.get()) ;
     if ( it == meshes_.end() ) return ;
 
-    const MeshData &data = it->second ;
+    const MeshData &data = *it->second ;
 
     xviz::MaterialPtr material = geom->material() ;
-    //if ( !material ) material = default_material_ ;
 
-    auto mit = materials_.find(material) ;
-    if ( mit == materials_.end() ) return ;
+    MaterialProgramPtr prog ;
 
-    MaterialProgramPtr prog = mit->second ;
+    if ( material ) {
+        auto mit = materials_.find(material) ;
+        if ( mit == materials_.end() ) return ;
+        prog = mit->second ;
+    } else {
+        prog = default_prog_ ;
+        material = default_material_ ;
+    }
 
     prog->use() ;
     prog->applyParams(material) ;
     prog->applyTransform(perspective_, proj_, mat) ;
-    /*
-    setLights(scene, material) ;
-*/
+
+    setLights(prog) ;
+
+    auto tit = textures_.find(material.get()) ;
+    if ( tit != textures_.end() ) {
+        const TextureData &data = tit->second ;
+        for( int i=0 ; i<4 ; i++ ) {
+            QOpenGLTexture *texture = data[i] ;
+            if ( texture != nullptr ) {
+                texture->bind(i) ;
+            }
+        }
+    }
+
+
+
  //   if ( mesh && mesh->hasSkeleton() )
  //       setPose(mesh, material) ;
 
@@ -157,7 +246,7 @@ void Renderer::render(const xviz::Drawable *geom, const Matrix4f &mat)
     drawMeshData(data, mesh) ;
 
 #endif
-    // glUseProgram(0) ;
+     glUseProgram(0) ;
 }
 
 void Renderer::drawMeshData(const MeshData &data, xviz::MeshPtr mesh) {

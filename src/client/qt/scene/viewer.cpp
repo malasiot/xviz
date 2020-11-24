@@ -1,5 +1,7 @@
 #include "viewer.hpp"
-
+#include <xviz/scene/scene.hpp>
+#include <xviz/scene/light.hpp>
+#include <xviz/scene/node.hpp>
 #include <QTimer>
 
 using namespace std ;
@@ -8,7 +10,24 @@ using namespace Eigen ;
 SceneViewer::SceneViewer(QWidget *parent): QOpenGLWidget(parent) {
     setFocusPolicy(Qt::StrongFocus) ;
 
-    initCamera({0, 0, 0}, 1.0, UpAxis::XAxis) ;
+    scene_.reset(new xviz::Scene) ;
+    scene_->load("/home/malasiot/Downloads/BoxTextured.gltf", xviz::Scene::IMPORT_LIGHTS);
+
+    xviz::DirectionalLight *dl = new xviz::DirectionalLight(Vector3f(0.5, 0.5, 1)) ;
+    dl->diffuse_color_ = Vector3f(1, 1, 1) ;
+    xviz::LightPtr light(dl) ;
+
+    xviz::NodePtr node(new xviz::Node) ;
+    node->setLight(light) ;
+    scene_->addNode(node) ;
+    scene_->addLight(light) ;
+
+    auto c = scene_->geomCenter() ;
+    auto r = scene_->geomRadius(c) ;
+    initCamera(c, r, UpAxis::YAxis) ;
+
+  //  scene_->addLight(xviz::LightPtr(dl)) ;
+    //   cout << "ok" << endl ;
 }
 
 void SceneViewer::initCamera(const Vector3f &c, float r, UpAxis axis) {
@@ -17,7 +36,7 @@ void SceneViewer::initCamera(const Vector3f &c, float r, UpAxis axis) {
 
    aradius_ = 10 * r ;
 
-   camera_.reset(new xviz::PerspectiveCamera(1.0, 50*M_PI/180, 0.0001, 100*r)) ;
+   camera_.reset(new xviz::PerspectiveCamera(1.0, 70*M_PI/180, 0.01, 10*r)) ;
    if ( axis == YAxis )
        trackball_.setCamera(camera_, c + Vector3f{0.0, 0, 4*r}, c, {0, 1, 0}) ;
    else if ( axis == XAxis )
@@ -27,7 +46,7 @@ void SceneViewer::initCamera(const Vector3f &c, float r, UpAxis axis) {
 
    trackball_.setZoomScale(0.1*r) ;
 
-   camera_->setBgColor({1, 0, 1, 1}) ;
+   camera_->setBgColor({1, 1, 1, 1}) ;
 }
 
 void SceneViewer::setScene(const xviz::ScenePtr &scene) {
@@ -96,9 +115,7 @@ void SceneViewer::wheelEvent(QWheelEvent *event) {
 }
 
 
-void SceneViewer::initializeGL()
-{
- //   gl3wInit() ;
+void SceneViewer::initializeGL() {
     rdr_.init(scene_) ;
 
 }

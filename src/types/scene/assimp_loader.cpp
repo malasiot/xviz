@@ -12,6 +12,7 @@
 #include <assimp/cimport.h>
 
 #include <Eigen/Dense>
+#include <iostream>
 
 using namespace std ;
 using namespace Eigen ;
@@ -28,7 +29,7 @@ class AssimpImporter {
 public:
     AssimpImporter(Scene &sc, int options, float scale): scene_(sc), options_(options), scale_(scale) {}
 
-    MaterialPtr importMaterial(const struct aiMaterial *mtl, const string &model_path) ;
+    MaterialPtr importMaterial(const aiScene *sc, const struct aiMaterial *mtl, const string &model_path) ;
 
     Scene &scene_ ;
 
@@ -47,6 +48,8 @@ public:
     bool importNodes(Node *pnode, const aiScene *sc, const aiNode *nd);
     bool import(const aiScene *sc, const std::string &fname);
     bool findSkeletonHierarchies();
+
+    void getMaterialTexture(const aiScene *sc, PhongMaterial *material, const struct aiMaterial *mtl) ;
 };
 
 static void getPhongMaterial(PhongMaterial *material, const struct aiMaterial *mtl) {
@@ -56,15 +59,15 @@ static void getPhongMaterial(PhongMaterial *material, const struct aiMaterial *m
     unsigned int max;
 
     if ( AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_DIFFUSE, &diffuse)) {
-        material->setDiffuse(color4_to_float4(diffuse)) ;
+        material->setDiffuseColor(color4_to_float4(diffuse)) ;
     }
 
     if ( AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_SPECULAR, &specular) ) {
-        material->setSpecular(color4_to_float4(specular)) ;
+        material->setSpecularColor(color4_to_float4(specular)) ;
     }
 
     if ( AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_AMBIENT, &ambient) ) {
-        material->setAmbient(color4_to_float4(ambient) ) ;
+        material->setAmbientColor(color4_to_float4(ambient) ) ;
     }
 
     max = 1;
@@ -78,34 +81,78 @@ static void getPhongMaterial(PhongMaterial *material, const struct aiMaterial *m
     }
     else {
         material->setShininess(0.0);
-        material->setSpecular({0, 0, 0, 1});
+        material->setSpecularColor({0, 0, 0, 1});
     }
 }
 
-static void getMaterialTexture(PhongMaterial *material, const struct aiMaterial *mtl) {
+static Sampler2D::TextureMapMode convertMapMode(aiTextureMapMode m) {
+    switch ( m ) {
+    case aiTextureMapMode_Clamp:
+        return Sampler2D::CLAMP ;
+    case aiTextureMapMode_Decal:
+        return Sampler2D::DECAL ;
+    case aiTextureMapMode_Wrap:
+        return Sampler2D::WRAP ;
+    }
+}
+
+static Image readTexture(aiTexture *t) {
+
+    if ( t->mHeight == 0 ) {
+        return Image(reinterpret_cast<u_char *>(t->pcData), ImageFormat::encoded, t->mWidth, 0);
+    } else {
+        uint sz = t->mWidth * t->mHeight;
+
+        std::unique_ptr<unsigned char []> bytes(new unsigned char [sz * 4]) ;
+        unsigned char *p = bytes.get() ;
+
+        for ( uint j = 0; j < sz; ++j ) {
+            *p++ = t->pcData[j].r;
+            *p++ = t->pcData[j].g;
+            *p++ = t->pcData[j].b;
+            *p++ = t->pcData[j].a;
+        }
+
+        return Image(bytes.get(), ImageFormat::rgba32, t->mWidth, t->mHeight) ;
+    }
+}
+
+void AssimpImporter::getMaterialTexture(const aiScene *sc, PhongMaterial *material, const struct aiMaterial *mtl) {
     aiString tex_path ;
     aiTextureMapping tmap ;
-    aiTextureMapMode mode ;
+    aiTextureMapMode mode[3] ;
+    ai_real blend ;
 
-    if ( AI_SUCCESS == mtl->GetTexture(aiTextureType_DIFFUSE, 0, &tex_path, &tmap, 0, 0, 0, &mode) ) {
-        string file_name(tex_path.data, tex_path.length) ;
-        material->setDiffuse(Texture2D(file_name, Sampler2D())) ;
+    if ( AI_SUCCESS == mtl->GetTexture(aiTextureType_DIFFUSE, 0, &tex_path, &tmap, 0, &blend, 0, mode) ) {
+
+        if ( tex_path.data == nullptr || tex_path.length == 0 ) return ;
+
+        Image image ;
+
+        if ( *tex_path.data == '*' ) {
+            int texture_id = atoi(tex_path.data + 1) ;
+            aiTexture *texture = sc->mTextures[texture_id] ;
+
+            image = readTexture(texture) ;
+        } else {
+            image = Image(string(tex_path.data, tex_path.length));
+        }
+
+        material->setDiffuseTexture(new Texture2D(image,
+              Sampler2D(convertMapMode(mode[0]), convertMapMode(mode[1])))) ;
     }
 }
 
 
-MaterialPtr AssimpImporter::importMaterial(const struct aiMaterial *mtl, const string &model_path) {
+MaterialPtr AssimpImporter::importMaterial(const aiScene *sc, const struct aiMaterial *mtl, const string &model_path) {
 
     int shading_model ;
     mtl->Get((const char *)AI_MATKEY_SHADING_MODEL, shading_model);
 
-
     PhongMaterial *material  = new PhongMaterial() ;
 
-    getMaterialTexture(material, mtl) ;
+    getMaterialTexture(sc, material, mtl) ;
     getPhongMaterial(material, mtl) ;
-
-
 
     return MaterialPtr(material) ;
 
@@ -114,8 +161,9 @@ MaterialPtr AssimpImporter::importMaterial(const struct aiMaterial *mtl, const s
 bool AssimpImporter::importMaterials(const string &mpath, const aiScene *sc) {
     for( uint m=0 ; m<sc->mNumMaterials ; m++ ) {
         const aiMaterial *material = sc->mMaterials[m] ;
-        MaterialPtr smat = importMaterial(material, mpath) ;
+        MaterialPtr smat = importMaterial(sc, material, mpath) ;
         materials_[material] = smat ;
+        scene_.addMaterial(smat) ;
     }
 
     return true ;
@@ -283,6 +331,7 @@ bool AssimpImporter::importLights(const aiScene *sc) {
         if ( slight ) {
             slight->name_ = light->mName.C_Str() ;
             lights_[slight->name_] = slight ;
+            scene_.addLight(slight) ;
         }
     }
 
@@ -440,7 +489,7 @@ bool AssimpImporter::importNodes(Node *pnode, const struct aiScene *sc, const st
 
         Drawable *dr = new Drawable(geom, mat) ;
 
-        snode->setDrawable(dr) ;
+        snode->addDrawable(dr) ;
     }
 
     auto lit = lights_.find(nname) ;
@@ -499,11 +548,10 @@ bool AssimpImporter::import(const aiScene *sc, const std::string &fname) {
 
     if ( !importMeshes(sc) ) return false ;
     if ( !importMaterials(fname, sc) ) return false ;
-/*
+
     if ( options_ & Scene::IMPORT_LIGHTS ) {
         if ( !importLights(sc) ) return false ;
     }
-*/
     //NodePtr root = scene_.shared_from_this() ;
     if ( !importNodes(nullptr, sc, sc->mRootNode) ) return false ;
 /*
@@ -527,7 +575,7 @@ void Scene::load(const std::string &fname, int options, float scale) {
   | aiProcess_SortByPType
   | aiProcess_OptimizeMeshes
   | aiProcess_LimitBoneWeights
-  |  aiProcess_FlipUVs | aiProcess_TransformUVCoords
+  |  aiProcess_GenUVCoords
                                      ) ;
     if ( !sc ) {
         throw SceneLoaderException(aiGetErrorString(), fname) ;

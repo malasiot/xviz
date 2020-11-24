@@ -24,6 +24,9 @@ set(XVIZ_LIB_SOURCES
     types/pen.cpp
     types/brush.cpp
     types/marker.cpp
+    types/annotation.cpp
+    types/xform.cpp
+    types/font.cpp
 
     types/path.cpp
     types/gradient.cpp

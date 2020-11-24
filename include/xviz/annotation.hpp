@@ -1,5 +1,5 @@
-#ifndef XVIZ_DRAWABLE_HPP
-#define XVIZ_DRAWABLE_HPP
+#ifndef XVIZ_ANNOTATION_HPP
+#define XVIZ_ANNOTATION_HPP
 
 #include <vector>
 #include <cassert>
@@ -12,103 +12,90 @@
 namespace xviz {
 
 namespace msg {
-    class Drawable ;
+    class Annotation ;
 }
 
-class ShapeDrawable {
-  public:
+class AnnotationData ;
 
-    virtual ~ShapeDrawable() = default ;
+class Annotation {
+public:
+    enum Type { Shape, Label, Marker } ;
 
-    ShapeDrawable &setBrush(Brush b) { brush_ = b ; return *this ; }
-    ShapeDrawable &setPen(Pen p) { pen_ = p ; return *this ;}
-    ShapeDrawable &setTransform(const Matrix2d &mat) { transform_ = mat ; return *this; }
-    ShapeDrawable &setFont(FontHandle f) { font_ = f ; return *this ; }
+    Type type() const ;
 
-    Brush brush() const ;
-    Pen pen() const ;
-    Matrix2d transform() const ;
-    Matrix2d globalTransform() const ;
-
-    void setParent(ShapeDrawable *d) { parent_ = d ; }
-
-    static msg::Drawable *write(const ShapeDrawable *d) ;
-    static ShapeDrawable *read(const msg::Drawable &msg) ;
+    static msg::Annotation *write(const Annotation &d) ;
+    static Annotation read(const msg::Annotation &msg) ;
 
 protected:
-    Brush brush_ ;
-    Pen pen_ ;
-    Matrix2d transform_ ;
-    FontHandle font_ ;
-    ShapeDrawable *parent_ = nullptr ;
+    std::shared_ptr<AnnotationData> data_ ;
 };
-
-using DrawableHandle = std::shared_ptr<ShapeDrawable> ;
 
 class Path ;
 
-class ShapeDrawable: public ShapeDrawable {
+// Draw one or more shapes
+// The shape is drawn with the given brush and pen
+
+class ShapeAnnotation: public Annotation {
 public:
-    ShapeDrawable(const Path &path): path_(path) {}
+    ShapeAnnotation() ;
 
-    Path &path() { return path_ ; }
-    const Path &path() const { return path_ ; }
+    ShapeAnnotation &setBrush(Brush b) ;
+    ShapeAnnotation &setPen(Pen p) ;
 
-protected:
+    Brush brush() const ;
+    Pen pen() const ;
 
-    Path path_ ;
+    ShapeAnnotation &addShape(const Path &path) ;
+
+    const std::vector<Path> &shapes() const ;
 };
 
+// This is used to draw the same shape at multiple locations
+// Thus the path should be centered at (0, 0) and scaled to logical coordinates
+// The shape is drawn using the containing layer brush and pen
 
-enum class TextDirection { Auto, LeftToRight, RightToLeft } ;
+class MarkerAnnotation: public Annotation {
+public:
+    MarkerAnnotation(const Path &marker) ;
 
-enum TextAlignFlags {
-    TextAlignLeft = 0x01, TextAlignRight = 0x02, TextAlignTop = 0x04, TextAlignBottom = 0x08,
-    TextAlignHCenter = 0x10, TextAlignVCenter = 0x20, TextWordWrap = 0x40
-}  ;
+    MarkerAnnotation &addPosition(float x, float y) ;
 
-enum TextDecoration {
-    TextDecorationNone, TextDecorationUnderline, TextDecorationStrikeThrough
+    Brush brush() const ;
+    Pen pen() const ;
+
+    MarkerAnnotation &setBrush(Brush b) ;
+    MarkerAnnotation &setPen(Pen p) ;
+
+    Path marker() const ;
+    const std::vector<Vector2d> &positions() const ;
 };
 
-class TextDrawable: public ShapeDrawable {
+class LabelAnnotation: public Annotation {
 public:
 
-    TextDrawable(const std::string &text, Rectangle2d &rect, int align = TextAlignLeft|TextAlignTop):
-        text_(text), rect_(rect), align_flags_(align) {}
+    LabelAnnotation() ;
 
-    TextDrawable(const std::string &text, double x, double y):
-        text_(text), rect_(Rectangle2d(x, y, 0, 0)) {}
+    enum AlignFlags {
+        TextAlignLeft = 0x01, TextAlignRight = 0x02, TextAlignTop = 0x04, TextAlignBottom = 0x08,
+        TextAlignHCenter = 0x10, TextAlignVCenter = 0x20, TextWordWrap = 0x40
+    }  ;
 
-    int textAlignFlags() const { return align_flags_ ; }
+    LabelAnnotation &setBrush(Brush b) ;
+    LabelAnnotation &setPen(Pen p) ;
+    LabelAnnotation &setFont(FontHandle f) ;
+    LabelAnnotation &setAlignFlags(int align) ;
+    LabelAnnotation &setOffset(float x, float y) ;
 
-    TextDecoration textDecoration() const { return decoration_ ; }
-    void setTextDecoration(TextDecoration t) { decoration_ = t ; }
+    Brush brush() const ;
+    Pen pen() const ;
+    FontHandle font() const ;
+    int alignFlags() const ;
+    Vector2d offset() const ;
 
-    const std::string &text() const { return text_ ; }
-    const Rectangle2d &rect() const { return rect_ ; }
+    LabelAnnotation &addLabel(const std::string &text, float x, float y) ;
 
-protected:
-
-    std::string text_ ;
-    int align_flags_ ;
-    TextDecoration decoration_ ;
-    Rectangle2d rect_ ;
-};
-
-class GroupDrawable: public ShapeDrawable {
-public:
-    void addChild(ShapeDrawable *d) {
-        assert(d) ;
-        d->setParent(this) ;
-        children_.push_back(std::move(std::unique_ptr<ShapeDrawable>(d))) ;
-    }
-
-    const std::vector<std::unique_ptr<ShapeDrawable>> &children() const { return children_; }
-
-protected:
-
-    std::vector<std::unique_ptr<ShapeDrawable>> children_ ;
+    const std::vector<Vector2d> &positions() const ;
+    const std::vector<std::string> &labels() const ;
 };
 
 

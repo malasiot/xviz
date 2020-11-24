@@ -22,38 +22,43 @@ message Path {
     repeated PathCommand commands = 1;
 }
 
-message ShapeDrawable {
-    required Path path = 1;
+message ShapeAnnotation {
+    repeated Path shapes = 1;
+
+    required Brush brush = 6;
+    required Pen pen = 7;
 }
 
-message GroupDrawable {
+message Point2 {
+    required float x = 1;
+    required float y = 2;
 }
 
-message TextDrawable {
-    enum TextDecoration {
-        TEXT_DECORATION_NONE = 0 ;
-        TEXT_DECORATION_UNDERLINE = 1 ;
-        TEXT_DECORATION_STRIKE_THROUGH = 2 ;
-    }
-
-    required string text = 1 ;
-    required double x = 2 ;
-    required double y = 3 ;
-    optional double w = 4 ;
-    optional double h = 5 ;
-    required int32 flags = 6;
-    optional TextDecoration decoration = 7 [default = TEXT_DECORATION_NONE] ;
+message MarkerAnnotation {
+    required Path marker = 1;
+    repeated Point2 positions = 2 ;
+    required Brush brush = 3;
+    required Pen pen = 4;
 }
 
-message Drawable {
-    repeated Drawable children = 1;
 
-    optional Pen pen = 2;
-    optional Brush brush = 3;
+message LabelAnnotation {
+    repeated Point2 positions = 1 ;
+    repeated string labels = 2;
 
-    oneof shape {
-        GroupDrawable group_drawable = 4;
-        ShapeDrawable shape_drawable = 5;
-        TextDrawable  text_drawable = 6 ;
+    required int32 flags = 3;
+    optional float ox = 4 [default=0.0];
+    optional float oy = 5 [default=0.0];
+    required Brush brush = 6;
+    required Pen pen = 7;
+    optional Font font = 8;
+}
+
+
+message Annotation {
+    oneof annotation {
+        ShapeAnnotation shape = 1 ;
+        LabelAnnotation label = 2 ;
+        MarkerAnnotation marker = 3 ;
     }
 }

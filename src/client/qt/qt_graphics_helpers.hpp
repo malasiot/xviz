@@ -9,15 +9,16 @@
 #include <xviz/marker.hpp>
 #include <xviz/brush.hpp>
 #include <xviz/path.hpp>
-
+#include <xviz/image.hpp>
+#include <xviz/font.hpp>
 
 QPen qPenFromSolidPen(const xviz::Pen &pen);
 QPixmap qPixmapFromMarker(const xviz::Marker &marker) ;
 QBrush qBrushFromSolidBrush(const xviz::Brush &brush);
 
 QPainterPath qPathFromPath(const xviz::Path &path) ;
-/*
-void paintDrawable(QPainter &p, xviz::DrawableHandle drawable,
-                   double tx, double ty, double sx, double sy) ;
-*/
+
+QImage qImageFromImage(const xviz::Image &image) ;
+QFont qFontFromFont(const xviz::Font &f) ;
+
 #endif

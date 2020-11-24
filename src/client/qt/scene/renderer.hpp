@@ -10,8 +10,10 @@
 #include "material.hpp"
 
 class MeshData ;
+class QOpenGLTexture ;
 
-class Renderer: protected QOpenGLFunctions {
+class Renderer: public QObject, protected QOpenGLFunctions {
+    Q_OBJECT
 public:
 
     enum { RENDER_SHADOWS = 1 };
@@ -26,6 +28,10 @@ public:
     // render a scene hierarchy
 
     void render(const xviz::CameraPtr &scene) ;
+
+private slots:
+
+    void uploadTexture(QImage im, xviz::MaterialPtr material, int slot) ;
 #if 0
     // Draws text on top of the scene using given font and color
     void text(const std::string &text, float x, float y, const Font &f, const Eigen::Vector3f &clr) ;
@@ -54,10 +60,13 @@ public:
 
 private:
 
-    xviz::CameraPtr cam_ ;
+
     xviz::ScenePtr scene_ ;
 
     Eigen::Matrix4f perspective_, proj_, ls_mat_ ;
+
+    MaterialProgramPtr default_prog_ ;
+    xviz::MaterialPtr default_material_ ;
 
     float znear_, zfar_ ;
 //    MaterialInstancePtr default_material_ ;
@@ -70,14 +79,19 @@ private:
 
     int flags_ ;
 
-    std::map<xviz::Mesh *, MeshData> meshes_ ;
+    using TextureData = std::array<QOpenGLTexture *, 4> ;
+
+    std::map<xviz::Mesh *, std::unique_ptr<MeshData>> meshes_ ;
     std::map<xviz::MaterialPtr, MaterialProgramPtr> materials_ ;
     std::vector<MaterialProgramPtr> programs_ ;
+    std::map<xviz::Material *, TextureData> textures_ ;
 
 private:
     void render(const xviz::NodePtr &node, const Eigen::Matrix4f &tf);
     void render(const xviz::Drawable *geom, const Eigen::Matrix4f &mat);
     void drawMeshData(const MeshData &data, xviz::MeshPtr mesh);
+    void setLights(const MaterialProgramPtr &material);
+    void setLights(const xviz::NodePtr &node, const Eigen::Affine3f &parent_tf, const MaterialProgramPtr &mat);
 } ;
 
 #endif

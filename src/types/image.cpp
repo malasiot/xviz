@@ -29,6 +29,8 @@ public:
             return width_ * height_ * 3 ;
         case ImageFormat::gray8:
             return width_ * height_ * 1 ;
+        case ImageFormat::encoded:
+            return width_ ;
         }
     }
 
@@ -80,12 +82,13 @@ const unsigned char *Image::data() const {
     return static_cast<RawImageData *>(data_.get())->bytes_.get() ;
 }
 
-
 uint32_t Image::dataSize() const {
     assert( type_ == ImageType::Raw && data_ ) ;
-    return static_cast<RawImageData *>(data_.get())->sz() ;
+    if ( format() == ImageFormat::encoded )
+        return width();
+    else
+        return static_cast<RawImageData *>(data_.get())->sz() ;
 }
-
 
 Image Image::read(const msg::Image &data) {
     if ( data.has_image_uri() ) {
@@ -93,15 +96,18 @@ Image Image::read(const msg::Image &data) {
     } else if ( data.has_raw_image() ) {
         const msg::ImageRaw &ri = data.raw_image() ;
         ImageFormat fmt ;
-        switch ( ri.pixel_type() ) {
-        case msg::ImageRaw_PixelType_RGBA32:
+        switch ( ri.format() ) {
+        case msg::ImageRaw_Format_RGBA32:
             fmt = ImageFormat::rgba32 ;
             break ;
-        case msg::ImageRaw_PixelType_RGB24:
+        case msg::ImageRaw_Format_RGB24:
             fmt = ImageFormat::rgb24 ;
             break ;
-        case msg::ImageRaw_PixelType_GRAY8:
+        case msg::ImageRaw_Format_GRAY8:
             fmt = ImageFormat::gray8 ;
+            break ;
+        case msg::ImageRaw_Format_ENCODED:
+            fmt = ImageFormat::encoded ;
             break ;
         }
 
@@ -113,17 +119,22 @@ msg::Image * Image::write(const Image &c) {
     msg::Image *msg_im = new msg::Image() ;
     if ( c.type() == ImageType::Raw ) {
         msg::ImageRaw *msg_raw = new msg::ImageRaw ;
+
         switch ( c.format() ) {
         case ImageFormat::rgba32:
-            msg_raw->set_pixel_type(msg::ImageRaw_PixelType_RGBA32);
+            msg_raw->set_format(msg::ImageRaw_Format_RGBA32);
             break ;
         case ImageFormat::rgb24:
-            msg_raw->set_pixel_type(msg::ImageRaw_PixelType_RGB24);
+            msg_raw->set_format(msg::ImageRaw_Format_RGB24);
             break ;
         case ImageFormat::gray8:
-            msg_raw->set_pixel_type(msg::ImageRaw_PixelType_GRAY8);
+            msg_raw->set_format(msg::ImageRaw_Format_GRAY8);
+            break ;
+        case ImageFormat::encoded:
+            msg_raw->set_format(msg::ImageRaw_Format_ENCODED);
             break ;
         }
+
         msg_raw->set_width(c.width()) ;
         msg_raw->set_height(c.height()) ;
         msg_raw->set_pixels(c.data(), c.dataSize()) ;

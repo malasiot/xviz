@@ -17,6 +17,9 @@ set( QT_CLIENT_SOURCES
     qt_graphics_helpers.cpp
     qt_graphics_helpers.hpp
 
+    image_loader.cpp
+    image_loader.hpp
+
     chart_element.cpp
     chart_element.hpp
 

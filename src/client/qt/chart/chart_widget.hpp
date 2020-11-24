@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <memory>
 
+#include <xviz/annotation.hpp>
 
 class Chart ;
 
@@ -33,15 +34,15 @@ public:
 
     void setTitle(const QString &title) { title_ = title ; }
     const QString &getTitle() const { return title_ ; }
-/*
-    void setAnnotations(const std::vector<xviz::DrawableHandle> &drawables) {
-        annotations_ = drawables ;
+
+    void setAnnotations(const std::vector<xviz::Annotation> &annotations) {
+        annotations_ = annotations ;
     }
-    */
+
 
 protected:
     QString title_ ;
-    //std::vector<xviz::DrawableHandle> annotations_ ;
+    std::vector<xviz::Annotation> annotations_ ;
 };
 
 

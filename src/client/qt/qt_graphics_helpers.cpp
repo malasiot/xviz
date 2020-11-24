@@ -241,6 +241,19 @@ QPixmap qPixmapFromMarker(const xviz::Marker &m)
         return QPixmap() ;
     }
 }
+
+QFont qFontFromFont(const xviz::Font &f) {
+    QFont font ;
+    QStringList family_names ;
+
+//    for( const auto &fam: f.familyNames() )
+//        family_names.append(QString::fromStdString(fam)) ;
+//    font.setFamilies(family_names) ;
+
+    font.setFamily(QString::fromStdString(f.familyNames()[0]));
+    font.setPointSizeF(f.size()) ;
+    return font ;
+}
 #if 0
 void paintDrawable(QPainter &p, xviz::DrawableHandle drawable,
                    double tx, double ty, double sx, double sy)
@@ -285,4 +298,14 @@ QPainterPath qPathFromPath(const xviz::Path &path)
 
     return pp ;
 
+}
+
+QImage qImageFromImage(const xviz::Image &image) {
+    if ( image.format() == xviz::ImageFormat::encoded )
+        return QImage::fromData(image.data(), image.dataSize());
+    else if ( image.format() == xviz::ImageFormat::rgba32 ) {
+        QImage qim(image.data(), image.width(), image.height(), QImage::Format_RGBA8888) ;
+        qim.detach() ;
+        return qim ;
+    }
 }

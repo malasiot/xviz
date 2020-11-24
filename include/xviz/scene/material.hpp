@@ -2,96 +2,35 @@
 #define XVIZ_SCENE_MATERIAL_HPP
 
 #include <string>
+#include <memory>
 #include <Eigen/Geometry>
+
+#include <xviz/image.hpp>
 
 namespace xviz {
 
 class Sampler2D {
 public:
-    std::string wrap_s_, wrap_t_ ;
-};
+    enum TextureMapMode { WRAP, CLAMP, DECAL } ;
 
+    Sampler2D(TextureMapMode wrap_u, TextureMapMode wrap_v):
+        wrap_u_(wrap_u), wrap_v_(wrap_v) {}
+
+    TextureMapMode wrap_u_ = WRAP, wrap_v_ = WRAP ;
+};
 
 class Texture2D {
 public:
-
     Texture2D() = delete ;
-    Texture2D(const std::string &url, const Sampler2D &sampler): image_url_(url), sampler_(sampler) {}
+    Texture2D(const xviz::Image &image, const Sampler2D &sampler): image_(image), sampler_(sampler) {}
+
+    const xviz::Image &image() const { return image_ ; }
 
 private:
-    std::string image_url_ ;       // url should be file://<absolute path>
+    xviz::Image image_ ;
     Sampler2D sampler_ ;
 };
 
-
-
-class TextureOrColor {
-public:
-    TextureOrColor(const Eigen::Vector4f &clr): type_(Color) {
-        new (data_.data()) Eigen::Vector4f(clr) ;
-    }
-
-    TextureOrColor(const Texture2D &texture): type_(Texture) {
-        new (data_.data()) Texture2D(texture) ;
-    }
-
-    ~TextureOrColor() {
-        destroy() ;
-    }
-
-    TextureOrColor(const TextureOrColor& other) {
-        create(other) ;
-    }
-
-    TextureOrColor &operator=(const TextureOrColor &other) {
-        destroy() ;
-        create(other) ;
-        return *this ;
-    }
-
-    bool isColor() const { return type_ == Color ; }
-    bool isTexture() const { return type_ == Texture ; }
-
-    const Eigen::Vector4f &color() const { return *reinterpret_cast<const color_t *>(data_.data()) ; }
-    const Texture2D &texture() const { return *reinterpret_cast<const Texture2D *>(data_.data()) ; }
-
-private:
-
-    using color_t = Eigen::Vector4f ;
-
-    void destroy() {
-        switch (type_) {
-        case Type::Color:
-            reinterpret_cast<color_t *>(data_.data())->~color_t();
-            break ;
-        case Type::Texture:
-            reinterpret_cast<Texture2D *>(data_.data())->~Texture2D();
-            break ;
-        }
-    }
-
-    void create(const TextureOrColor &other) {
-        type_ = other.type_ ;
-        switch (type_)
-        {
-        case Type::Color:
-            new ( data_.data() ) color_t(*reinterpret_cast<const color_t *>(other.data_.data())) ;
-            break;
-        case Type::Texture:
-            new ( data_.data() ) Texture2D(*reinterpret_cast<const Texture2D *>(other.data_.data())) ;
-            break;
-        default:
-            break;
-        }
-
-    }
-
-    enum Type { Texture, Color } ;
-
-    Type type_ ;
-    static constexpr size_t sz = std::max(sizeof(Texture2D), sizeof(Eigen::Vector3f)) ;
-    std::array<char, sz> data_ ;
-};
 
 
 class Material {
@@ -103,25 +42,29 @@ public:
 class PhongMaterial: public Material {
 public:
 
-    void setAmbient(const Eigen::Vector4f &a) { ambient_ = a ; }
-    void setDiffuse(const Eigen::Vector4f &d) { diffuse_ = d ; }
-    void setSpecular(const Eigen::Vector4f &s) { specular_ = s; }
+    void setAmbientColor(const Eigen::Vector4f &a) { ambient_ = a ; }
+    void setDiffuseColor(const Eigen::Vector4f &d) { diffuse_clr_ = d ; }
+    void setSpecularColor(const Eigen::Vector4f &s) { specular_clr_ = s; }
 
-    void setDiffuse(const Texture2D &d) { diffuse_ = d ; }
+    void setDiffuseTexture(Texture2D *d) { diffuse_map_.reset(d) ; }
+    void setSpecularTexture(Texture2D *d) { specular_map_.reset(d) ; }
     void setShininess(float s) { shininess_ = s ; }
 
-    const TextureOrColor &diffuse() const { return diffuse_ ; }
-    const TextureOrColor &specular() const { return specular_ ; }
-    const Eigen::Vector4f &ambient() const { return ambient_ ; }
+    const Eigen::Vector4f &diffuseColor() const { return diffuse_clr_ ; }
+    const Eigen::Vector4f &specularColor() const { return specular_clr_ ; }
+    const Eigen::Vector4f &ambientColor() const { return ambient_ ; }
     float shininess() const { return shininess_ ; }
+
+    const Texture2D *diffuseTexture() const { return diffuse_map_.get() ; }
+    const Texture2D *specularTexture() const { return specular_map_.get() ; }
 
     ~PhongMaterial() = default ;
 private:
     Eigen::Vector4f ambient_ = { 0, 0, 0, 1} ;
-    TextureOrColor diffuse_ = Eigen::Vector4f{ 0.5, 0.5, 0.5, 1.0 };
-    TextureOrColor specular_ = Eigen::Vector4f{ 0, 0, 0, 1 };
+    Eigen::Vector4f diffuse_clr_{ 0.5, 0.5, 0.5, 1.0 };
+    Eigen::Vector4f specular_clr_{ 0, 0, 0, 1 };
+    std::unique_ptr<Texture2D> diffuse_map_, specular_map_ ;
     float shininess_  = 1.0 ;
-
 };
 
 

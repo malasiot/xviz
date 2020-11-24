@@ -31,7 +31,7 @@ public:
 
     void setName(const std::string &name) { name_ = name ; }
 
-    void setDrawable(Drawable *d) { drawable_.reset(d) ; }
+    void addDrawable(Drawable *d) { drawables_.push_back(std::unique_ptr<Drawable>(d)) ; }
 
     void addChild(const NodePtr &n) {
         children_.push_back(n) ;
@@ -44,7 +44,7 @@ public:
 
     Node *parent() const { return parent_ ; }
 
-    const Drawable *drawable() const { return drawable_.get() ; }
+    const std::vector<std::unique_ptr<Drawable>> &drawables() const { return drawables_ ; }
 
     const std::vector<NodePtr> &children() const { return children_ ; }
 
@@ -66,45 +66,29 @@ public:
 
     NodePtr makeChildNode(const MeshPtr &geom, const MaterialPtr &mat) ;
 
+    static void visit(const NodePtr &parent, const std::function<void(const Node&)> &f) {
+        for( const auto &c: parent->children() ) {
+            Node::visit(c, f) ;
+        }
+        f(*parent) ;
+    }
+
 private:
 
     std::string name_ ;
 
     Eigen::Affine3f mat_ ;             // transformation matrix to apply to child nodes and attached geometries
 
-    std::vector<NodePtr> children_ ;      // child nodes
+    using children_t = std::vector<NodePtr> ;
+
+    children_t children_ ;      // child nodes
 
     LightPtr light_ ;
-    std::unique_ptr<Drawable> drawable_ ;
+    std::vector<std::unique_ptr<Drawable>> drawables_ ;
 
     Node *parent_ = nullptr;
 };
 
-class NodeVisitor {
-public:
-    NodeVisitor() = default ;
-
-    virtual void visit(Node &node) = 0 ;
-
-    void visitChildren(Node &n) {
-        for( auto &c: n.children() ) {
-            visit(*c) ;
-        }
-    }
-};
-
-class ConstNodeVisitor {
-public:
-    ConstNodeVisitor() = default ;
-
-    virtual void visit(const Node &node) = 0 ;
-
-    void visitChildren(const Node &n) {
-        for( auto c: n.children() ) {
-            visit(*c) ;
-        }
-    }
-};
 
 }
 

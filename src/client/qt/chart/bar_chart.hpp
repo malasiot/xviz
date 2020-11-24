@@ -19,10 +19,14 @@ public:
     YAxis &yAxis() { return y_axis_ ; }
     Legend &legend() { return legend_ ; }
 
+
 private:
 
     void paintBars(QPainter &p, const QPen &pen, const QBrush &brush, const xviz::BarSeries &ls);
     void paintAnnotations(QPainter &c);
+    void paintLabels(QPainter &c, const xviz::Matrix2d &m, const xviz::LabelAnnotation &la) ;
+    void paintShapes(QPainter &c, const xviz::Matrix2d &m, const xviz::ShapeAnnotation &la);
+    void paintMarkers(QPainter &c, const xviz::Matrix2d &m, const xviz::MarkerAnnotation &ma);
 
     XAxis x_axis_ ;
     YAxis y_axis_ ;
@@ -39,6 +43,7 @@ private:
 
     QRectF data_bounds_ ;
     std::unique_ptr<const xviz::BarChart> chart_ ;
+
 };
 
 #endif

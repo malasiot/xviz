@@ -14,6 +14,9 @@ namespace msg {
     class Font ;
 }
 
+class Font ;
+using FontHandle = std::shared_ptr<Font> ;
+
 class Font {
 public:
 
@@ -51,8 +54,8 @@ public:
 
     bool operator !=(const Font &other) const { return !operator == (other) ; }
 
-    msg::Font *write(const Font &f) ;
-    Font *read(const msg::Font &msg) ;
+    static msg::Font *write(const FontHandle &f) ;
+    static FontHandle read(const msg::Font &msg) ;
 
 private:
 
@@ -74,7 +77,7 @@ private:
     std::vector<std::string> family_names_ ;
 } ;
 
-using FontHandle = std::shared_ptr<Font> ;
+
 }
 
 #endif

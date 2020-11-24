@@ -1,11 +1,12 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QCommandLineOption>
-
+#include <QSurfaceFormat>
 
 #include "client.hpp"
 //#include "panel_config.hpp"
 #include "main_window.hpp"
+#include "image_loader.hpp"
 
 #include <thread>
 #include <iostream>
@@ -62,15 +63,41 @@ void onConnected() {
     bc.setLabelY("Y") ;
 
     Path p ;
-    p.builder().addRect(0.5, 1.5, 1.2, 0.8)
-            .addEllipse(1.6, 1.4, 0.5, 0.5) ;
+    p.builder().addRect(-0.5, 0.5, 1.0, 1.0)
+            .addEllipse(0.0, 0.0, 0.2, 0.2) ;
 
-    //DrawableHandle d(new ShapeDrawable(p));
-   // d->setPen({Color::red(), 2.5});
-   // d->setBrush(Brush(RadialGradient(0.5, 0.5, 0.7, 0.7, 1, {{0.0, Color::red()}, {1.0, Color::white()}})));
+    LabelAnnotation l ;
 
-   // bc.addAnnotation(d);
+    l.setPen({Color::red(), 2.5});
+    l.setBrush(Brush(RadialGradient(0.1, 0.1, 0.7, 0.7, 1, {{0.0, Color::red()}, {1.0, Color::white()}})));
+    l.setFont(FontHandle(new Font("Arial", 32))) ;
 
+    l.setAlignFlags(LabelAnnotation::TextAlignTop|LabelAnnotation::TextAlignRight);
+    l.addLabel("hello", 1.0, 1.0) ;
+
+    l.addLabel("1.0", 0.5, 4.0) ;
+
+    bc.addAnnotation(l);
+
+    ShapeAnnotation sa ;
+    sa.addShape(p) ;
+
+    sa.setPen({Color::red(), 2.5});
+    sa.setBrush(Brush(RadialGradient(0.1, 0.1, 0.7, 0.7, 1, {{0.0, Color::red()}, {1.0, Color::white()}})));
+
+    bc.addAnnotation(sa);
+
+    Path r ;
+    r.builder().addRect(-5, -5, 10, 10) ;
+
+    MarkerAnnotation ma(r) ;
+    ma.setBrush({Color::green()}) ;
+
+    ma.addPosition(-0.5, 1.0) ;
+    ma.addPosition(-0.2, 2.0) ;
+    ma.addPosition(1.5, 3.0) ;
+
+    bc.addAnnotation(ma) ;
     server.push(chartChannel, bc) ;
 
     Tabular t{ { {"name", "Key"}, {"value", "Value"} }} ;
@@ -84,6 +111,20 @@ void onConnected() {
  //   cout << "ok" << endl ;
 }
 
+static void initDefaultGLContext() {
+
+    QSurfaceFormat format;
+    format.setDepthBufferSize(24);
+    format.setMajorVersion(3);
+    format.setMinorVersion(3);
+    format.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
+    format.setSwapInterval(1);
+
+    format.setSamples(4);
+    format.setProfile(QSurfaceFormat::CoreProfile);
+
+    QSurfaceFormat::setDefaultFormat(format);
+}
 
 int main(int argc, char *argv[])
 {
@@ -92,6 +133,9 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("ITI");
     QCoreApplication::setApplicationName("xviz-qt-client");
 
+
+
+    initDefaultGLContext();
 
     QCommandLineParser parser;
     parser.setApplicationDescription("Qt xviz client");
@@ -116,6 +160,9 @@ int main(int argc, char *argv[])
 
     QString configFile = args.at(0) ;
     QString url = parser.value("url") ;
+
+    ImageLoader::instance().setHost(url) ;
+    ImageLoader::instance().setLocalPath("/home/malasiot/Downloads/") ;
 
 
     MainWindow win(configFile) ;

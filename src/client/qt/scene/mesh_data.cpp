@@ -55,7 +55,7 @@ MeshData::MeshData(const xviz::Mesh &mesh)
         colors_->release() ;
     }
 
-    for( uint t = 0 ; t<max_textures_ ; t++ ) {
+    for( uint t = 0 ; t<mesh.numUVChannels() ; t++ ) {
         if ( !mesh.texCoords(t).empty() ) {
             tex_coords_[t]  = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
             tex_coords_[t]->create();

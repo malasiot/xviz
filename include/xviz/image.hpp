@@ -14,7 +14,10 @@ namespace msg {
 }
 
 enum class ImageType { Raw, Uri, NoImage } ;
-enum class ImageFormat { rgb24, rgba32, gray8 };
+
+enum class ImageFormat { rgb24, rgba32, gray8, encoded };
+/* encoded means an encoded image payload  e.g. PNG.
+ * In this case width is the data size and height is 0 */
 
 class ImageData ;
 

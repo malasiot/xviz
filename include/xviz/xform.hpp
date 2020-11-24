@@ -5,6 +5,10 @@
 
 namespace xviz {
 
+namespace msg {
+    class Matrix2d ;
+}
+
 class Matrix2d {
 
     // non-zero elements of 3x3 affine matrix transpose
@@ -184,6 +188,9 @@ public:
     Matrix2d& operator*=(const Matrix2d& rhs) {
         return premult(rhs) ;
     }
+
+    static Matrix2d read(const msg::Matrix2d &m) ;
+    static msg::Matrix2d *write(const Matrix2d &m) ;
 };
 
 Matrix2d operator*(const Matrix2d& lhs, const Matrix2d& rhs) noexcept;

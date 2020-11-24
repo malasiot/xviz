@@ -38,7 +38,7 @@ public:
     const vb3_t &normals() const { return normals_ ; }
     const vb3_t &colors() const { return colors_ ; }
     const vb2_t &texCoords(uint t) const {
-        assert(t<MAX_TEXTURES) ;
+        assert ( t < MAX_TEXTURES ) ;
         return tex_coords_[t] ;
     }
 
@@ -76,6 +76,8 @@ public:
                }
         }
     };
+
+    int numUVChannels() const { return MAX_TEXTURES ; }
     /*
 
     const std::vector<Bone> &skeleton() const { return skeleton_ ; }

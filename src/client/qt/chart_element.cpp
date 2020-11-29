@@ -2,10 +2,12 @@
 #include "qt_graphics_helpers.hpp"
 #include "chart/line_chart.hpp"
 #include "chart/bar_chart.hpp"
+#include "chart/raster_chart.hpp"
 
 #include <xviz/chart.hpp>
 #include <xviz/line_chart.hpp>
 #include <xviz/bar_chart.hpp>
+#include <xviz/raster_chart.hpp>
 
 #include "session.pb.h"
 
@@ -33,16 +35,19 @@ void ChartElement::updateState(const xviz::msg::StateUpdate &state_update)
     auto chart = xviz::Chart::read(data) ;
     if ( !chart ) return ;
 
+    Chart *qchart = nullptr;
     if ( xviz::LineChart *lc = dynamic_cast<xviz::LineChart *>(chart)) {
-        QLineChart *line_chart = new QLineChart(lc) ;
-        line_chart->setAnnotations(lc->annotations());
-        line_chart->setTitle(QString::fromStdString(lc->title())) ;
-        widget_->setChart(line_chart) ;
+        qchart = new QLineChart(lc) ;
     } else if ( xviz::BarChart *lc = dynamic_cast<xviz::BarChart *>(chart)) {
-        QBarChart *bar_chart = new QBarChart(lc) ;
-        bar_chart->setAnnotations(lc->annotations());
-        bar_chart->setTitle(QString::fromStdString(lc->title())) ;
-        widget_->setChart(bar_chart) ;
+        qchart = new QBarChart(lc) ;
+    } else if ( xviz::RasterChart *lc = dynamic_cast<xviz::RasterChart *>(chart)) {
+        qchart = new QRasterChart(lc) ;
+    }
+
+    if ( qchart ) {
+        qchart->setAnnotations(chart->annotations());
+        qchart->setTitle(QString::fromStdString(chart->title())) ;
+        widget_->setChart(qchart) ;
     }
 
 }

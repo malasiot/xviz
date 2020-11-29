@@ -5,6 +5,10 @@
 #include <memory>
 
 #include <xviz/annotation.hpp>
+#include <xviz/chart.hpp>
+
+#include "axis.hpp"
+#include "legend.hpp"
 
 class Chart ;
 
@@ -14,7 +18,7 @@ class ChartWidget: public QWidget {
 public:
     ChartWidget(QWidget *parent) ;
 
-    void setChart(Chart *c) { chart_.reset(c) ; update() ; }
+    void setChart(Chart *c);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -26,11 +30,19 @@ private:
 class Chart {
 public:
 
-    Chart() = default ;
-    virtual ~Chart() {}
-    virtual void paint(QPainter &p, const QRect &rect) = 0 ;
+    Chart(const xviz::Chart *c) ;
 
+    XAxis &xAxis() { return x_axis_ ; }
+    YAxis &yAxis() { return y_axis_ ; }
+    Legend &legend() { return legend_ ; }
+
+    virtual ~Chart() {}
+    virtual void build() ;
+
+    virtual void paint(QPainter &p, const QRect &rect) ;
     virtual QRectF getDataBounds() = 0 ;
+    virtual void makeLegendEntries() = 0 ;
+    virtual void paintChart(QPainter &p, const QSize &sz) = 0;
 
     void setTitle(const QString &title) { title_ = title ; }
     const QString &getTitle() const { return title_ ; }
@@ -39,10 +51,27 @@ public:
         annotations_ = annotations ;
     }
 
-
 protected:
+    void paintAnnotations(QPainter &p, const xviz::Matrix2d &m) ;
+
+    XAxis x_axis_ ;
+    YAxis y_axis_ ;
+    Legend legend_ ;
+
+    QVector<LegendEntry> entries_ ;
+
+    qreal max_title_width_ = 200 ;
+    qreal title_offset_ = 4 ;
+    QFont title_font_ = QFont("Arial", 14);
+
+    QBrush bg_brush_ = QBrush(Qt::white) ;
+    QPen bg_pen_ ;
+
     QString title_ ;
     std::vector<xviz::Annotation> annotations_ ;
+    QRectF data_bounds_ ;
+
+    std::unique_ptr<const xviz::Chart> chart_ ;
 };
 
 

@@ -47,6 +47,11 @@ message Image {
     }
 }
 
+message ColorMap {
+    repeated float values = 1;
+    repeated Color colors = 2;
+}
+
 message LineSeries {
     repeated double x = 1 ;
     repeated double y = 2 ;
@@ -67,6 +72,30 @@ message BarSeries {
     optional string title = 7 ;
 }
 
+message LineChart {
+    repeated LineSeries line_series = 1;
+}
+
+message BarChart {
+    repeated BarSeries bar_series = 1;
+}
+
+message RasterChart {
+    enum Shading {
+        FLAT = 0;
+        GOURAUD =1;
+    }
+    required int32 width = 1;
+    required int32 height = 2;
+    repeated double c = 3;
+    repeated double x = 4;
+    repeated double y = 5;
+    optional int32 colormap = 6;
+    required Shading shading = 7 ;
+    optional double vmin = 8 ;
+    optional double vmax = 9 ;
+}
+
 message Chart {
     optional string title = 1 ;
     optional string labelX = 2 ;
@@ -75,10 +104,13 @@ message Chart {
     repeated double ticsY = 5 ;
     repeated string ticLabelsX = 6 ;
     repeated string ticLabelsY = 7 ;
+    repeated Annotation annotations = 8;
 
-    repeated LineSeries line_series = 8;
-    repeated BarSeries bar_series = 9;
-    repeated Annotation annotations = 10;
+    oneof chart {
+        LineChart line_chart = 9;
+        BarChart bar_chart = 10;
+        RasterChart raster_chart = 11;
+    }
 }
 
 message TabularData {

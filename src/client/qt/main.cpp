@@ -4,7 +4,7 @@
 #include <QSurfaceFormat>
 
 #include "client.hpp"
-//#include "panel_config.hpp"
+
 #include "main_window.hpp"
 #include "image_loader.hpp"
 
@@ -14,6 +14,7 @@
 #include <xviz/server.hpp>
 #include <xviz/image.hpp>
 #include <xviz/bar_chart.hpp>
+#include <xviz/raster_chart.hpp>
 #include <xviz/tabular.hpp>
 #include <xviz/path.hpp>
 #include <xviz/scene/scene.hpp>
@@ -98,7 +99,29 @@ void onConnected() {
     ma.addPosition(1.5, 3.0) ;
 
     bc.addAnnotation(ma) ;
-    server.push(chartChannel, bc) ;
+
+    vector<double> X, Y, Z ;
+
+    double dx = 0.25, dy = 0.15 ;
+    for ( double x = -4 ; x< 4+dx  ; x+= dx ) {
+        X.push_back(x) ;
+    }
+    for ( double y = -4 ; y< 4+dy  ; y+= dy ) {
+        Y.push_back(y) ;
+    }
+
+    for( int i=0 ; i<Y.size() -1 ; i++ )
+        for( int j=0 ; j<X.size() - 1 ; j++ ) {
+            double z = (1 - X[j] / 3. + pow(X[j], 6) + pow(Y[i], 3)) * exp(-X[j] * X[j] - Y[i] * Y[i]);
+            Z.push_back(z) ;
+        }
+
+    RasterChart rc(X.size()-1, Y.size()-1, Z, X, Y ) ;
+    rc.setShading(RasterChart::Gouraud) ;
+    rc.setValueRange(-0.5, 1.5);
+    rc.setColormap(ColorMapMagma);
+
+    server.push(chartChannel, rc) ;
 
     Tabular t{ { {"name", "Key"}, {"value", "Value"} }} ;
     TabularNode *n = t.addRow({ "name", "" });

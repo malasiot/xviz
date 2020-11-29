@@ -4,7 +4,7 @@
 #include <QPainterPath>
 
 using namespace std ;
-
+/*
 void QLineChart::paint(QPainter &c, const QRect &rect) {
 
     c.setPen(Qt::black) ;
@@ -90,6 +90,24 @@ void QLineChart::paint(QPainter &c, const QRect &rect) {
 
     c.restore() ;
 }
+*/
+
+void QLineChart::paintChart(QPainter &c, const QSize &) {
+    for( uint i=0 ; i<entries_.size() ; i++ ) {
+        const auto &ls = chart()->series()[i] ;
+        const auto &e = entries_[i] ;
+        if ( e.flags_ & LegendEntry::HasPen )
+            paintLine(c, e.pen_, ls) ;
+        if ( e.flags_ & LegendEntry::HasMarker )
+            paintMarkers(c, e.marker_, ls) ;
+
+        const auto &errors = ls.e() ;
+        if ( !errors.empty() ) {
+            paintErrorBars(c, ls) ;
+        }
+
+    }
+}
 
 void QLineChart::paintErrorBars(QPainter &c, const xviz::LineSeries &ls) {
     const auto &x = ls.x() ;
@@ -171,43 +189,11 @@ QRectF QLineChart::getDataBounds()
     return QRectF(minx, miny, maxx - minx, maxy - miny) ;
 }
 
-QLineChart::QLineChart(const xviz::LineChart *lc) {
-    chart_.reset(lc) ;
-    data_bounds_ = getDataBounds() ;
+QLineChart::QLineChart(const xviz::LineChart *lc): Chart(lc) {
+}
 
-    x_axis_.setRange(data_bounds_.topLeft().x(), data_bounds_.bottomRight().x()) ;
-    y_axis_.setRange(data_bounds_.topLeft().y(), data_bounds_.bottomRight().y()) ;
-
-    x_axis_.setTitle(QString::fromStdString(lc->labelX())) ;
-    y_axis_.setTitle(QString::fromStdString(lc->labelY())) ;
-
-    if ( !lc->getTicksX().empty() ) {
-        vector<double> ticks ;
-        QVector<QString> tick_labels ;
-        for( const xviz::Tick &tick: lc->getTicksX() ) {
-            ticks.push_back(tick.pos_) ;
-            if ( !tick.label_.empty() )
-                tick_labels.append(QString::fromStdString(tick.label_)) ;
-        }
-
-        x_axis_.setTickLocations(ticks);
-        if ( !tick_labels.isEmpty() )
-            x_axis_.setTickLabels(tick_labels) ;
-    }
-
-    if ( !lc->getTicksY().empty() ) {
-        vector<double> ticks ;
-        QVector<QString> tick_labels ;
-        for( const xviz::Tick &tick: lc->getTicksY() ) {
-            ticks.push_back(tick.pos_) ;
-            if ( !tick.label_.empty() )
-                tick_labels.append(QString::fromStdString(tick.label_));
-        }
-
-        y_axis_.setTickLocations(ticks);
-        if ( !tick_labels.isEmpty() )
-            y_axis_.setTickLabels(tick_labels) ;
-    }
+void QLineChart::makeLegendEntries() {
+    const xviz::LineChart *lc = static_cast<const xviz::LineChart *>(chart_.get()) ;
 
     for( const xviz::LineSeries &ls: lc->series()) {
         LegendEntry e ;
@@ -218,4 +204,5 @@ QLineChart::QLineChart(const xviz::LineChart *lc) {
 
         entries_.append(e) ;
     }
+
 }

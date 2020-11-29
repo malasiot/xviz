@@ -5,84 +5,14 @@
 
 using namespace std ;
 
-void QBarChart::paint(QPainter &c, const QRect &rect) {
-
-    c.setPen(Qt::black) ;
-
-    qreal w = rect.width() ;
-    qreal h = rect.height() ;
-    qreal title_height = 0;
-
-    // compute axis layout to determine valid plot rectangle
-
-    if ( !title_.isEmpty() ) {
-        QFontMetrics fm(title_font_) ;
-        QRect layout(0, 0, max_title_width_, 100 ) ;
-        QRect br = fm.boundingRect(layout, Qt::AlignHCenter|Qt::AlignTop|Qt::TextWordWrap, title_) ;
-        h -= title_height = br.height() ;
-    }
-
-    x_axis_.computeLayout(w) ;
-    y_axis_.computeLayout(h) ;
-
-    qreal ox = y_axis_.size() ;
-    qreal oy = x_axis_.size() ;
-
-    w -= ox ;
-    h -= oy ;
-
-    x_axis_.computeTransform(w) ;
-    y_axis_.computeTransform(h) ;
-
-    // draw
-
-    c.save() ;
-    c.translate(ox, -oy) ;
-
-    // background
-
-    c.fillRect(0, 0, w, -h, bg_brush_) ;
-
-    // x-y axis
-
-    x_axis_.draw(c, w, h);
-    y_axis_.draw(c, w, h);
-
-    // opposite lines
-
-    c.drawLine(0, -h, w, -h) ;
-    c.drawLine(w, 0, w, -h) ;
-
-    // data
-
-    c.save();
-    c.setClipRect(0, 0, w, -h) ;
-
+void QBarChart::paintChart(QPainter &c, const QSize &) {
+    const xviz::BarChart *lc = dynamic_cast<const xviz::BarChart *>(chart_.get()) ;
     for( uint i=0 ; i<entries_.size() ; i++ ) {
-        const auto &ls = chart_->series()[i] ;
+        const auto &ls = lc->series()[i] ;
         const auto &e = entries_[i] ;
 
         paintBars(c, e.pen_, e.brush_, ls) ;
     }
-
-    paintAnnotations(c);
-
-    c.restore() ;
-
-    // legend
-
-    legend_.draw(c, entries_, w, h);
-
-
-    if ( !title_.isEmpty() ) {
-        c.save() ;
-        QRect layout(w/2- max_title_width_/2, -h - title_height - title_offset_, max_title_width_, 100 ) ;
-        c.setFont(title_font_) ;
-        c.drawText(layout, Qt::AlignHCenter|Qt::AlignTop|Qt::TextWordWrap, title_) ;
-        c.restore() ;
-    }
-
-    c.restore() ;
 }
 
 void QBarChart::paintBars(QPainter &c, const QPen &pen, const QBrush &brush, const xviz::BarSeries &ls) {
@@ -108,119 +38,16 @@ void QBarChart::paintBars(QPainter &c, const QPen &pen, const QBrush &brush, con
     }
 }
 
-void QBarChart::paintAnnotations(QPainter &c) {
-    c.save() ;
- //   c.translate(x_axis_.getOffset(), y_axis_.getOffset());
- //   c.scale(x_axis_.getScale(), -y_axis_.getScale()) ;
-
-    xviz::Matrix2d m(x_axis_.getScale(), 0.0, 0.0, -y_axis_.getScale(), x_axis_.getOffset(), y_axis_.getOffset());
-
-    for( const xviz::Annotation &a: annotations_ ) {
-        if ( a.type() == xviz::Annotation::Label ) {
-            paintLabels(c,  m, (const xviz::LabelAnnotation &)a) ;
-        } else if ( a.type() == xviz::Annotation::Shape ) {
-            paintShapes(c,  m, (const xviz::ShapeAnnotation &)a) ;
-        } else if ( a.type() == xviz::Annotation::Marker ) {
-            paintMarkers(c,  m, (const xviz::MarkerAnnotation &)a) ;
-        }
-
-    }
-
-    c.restore() ;
-
-}
-
-void QBarChart::paintLabels(QPainter &c, const xviz::Matrix2d &m, const xviz::LabelAnnotation &la)
-{
-    const auto &labels = la.labels() ;
-    const auto &positions = la.positions() ;
-
-    int flags = la.alignFlags() ;
-    qreal offset_x = la.offset().x() ;
-    qreal offset_y = la.offset().y() ;
-
-    c.save() ;
-    c.setPen(qPenFromSolidPen(la.pen())) ;
-    c.setBrush(qBrushFromSolidBrush(la.brush())) ;
-
-    if ( la.font() )
-        c.setFont(qFontFromFont(*la.font())) ;
-
-    QFontMetrics fm(c.font()) ;
-
-    for( int i=0 ; i<labels.size() ; i++ ) {
-        xviz::Vector2d pt = m.transform(positions[i]) ;
-        qreal px = pt.x() ;
-        qreal py = pt.y() ;
-        QString str = QString::fromStdString(labels[i]) ;
-        QRect br = fm.tightBoundingRect(str) ;
-
-        if ( flags & xviz::LabelAnnotation::TextAlignLeft )
-            px -= br.width() + offset_x ;
-        else if ( flags & xviz::LabelAnnotation::TextAlignRight )
-            px += offset_x ;
-        else if ( flags & xviz::LabelAnnotation::TextAlignHCenter )
-            px -= br.width()/2 ;
-
-        if ( flags & xviz::LabelAnnotation::TextAlignTop )
-            py -= offset_y ;
-        else if ( flags & xviz::LabelAnnotation::TextAlignBottom )
-            py += br.height() + offset_y ;
-        else if ( flags & xviz::LabelAnnotation::TextAlignVCenter )
-            py += br.height()/2 ;
-
-        c.drawText(QPointF(px, py), QString::fromStdString(labels[i])) ;
-    }
-    c.restore() ;
-}
-
-void QBarChart::paintShapes(QPainter &c, const xviz::Matrix2d &m, const xviz::ShapeAnnotation &sa)
-{
-    const auto &shapes = sa.shapes() ;
-
-    c.save() ;
-    c.setPen(qPenFromSolidPen(sa.pen())) ;
-    c.setBrush(qBrushFromSolidBrush(sa.brush())) ;
-
-    for( int i=0 ; i<shapes.size() ; i++ ) {
-        QPainterPath p = qPathFromPath(shapes[i].transformed(m)) ;
-        c.drawPath(p) ;
-    }
-    c.restore() ;
-}
-
-void QBarChart::paintMarkers(QPainter &c, const xviz::Matrix2d &m, const xviz::MarkerAnnotation &ma)
-{
-    const auto &marker = ma.marker() ;
-    const auto &positions = ma.positions() ;
-
-    c.save() ;
-    c.setPen(qPenFromSolidPen(ma.pen())) ;
-    c.setBrush(qBrushFromSolidBrush(ma.brush())) ;
-
-    QPainterPath p = qPathFromPath(marker) ;
-
-    for( int i=0 ; i<positions.size() ; i++ ) {
-        c.save() ;
-        xviz::Vector2d pt = m.transform(positions[i]) ;
-        qreal px = pt.x() ;
-        qreal py = pt.y() ;
-        c.translate(px, py);
-        c.drawPath(p) ;
-        c.restore() ;
-    }
-
-    c.restore() ;
-}
-
 QRectF QBarChart::getDataBounds()
 {
+
+
     qreal minx = numeric_limits<qreal>::max(),
             miny = numeric_limits<qreal>::max() ,
             maxx = -numeric_limits<qreal>::max(),
             maxy = -numeric_limits<qreal>::max() ;
 
-    for( const xviz::BarSeries &ls: chart_->series() ) {
+    for( const xviz::BarSeries &ls: chart()->series() ) {
         const auto &x = ls.x() ;
         const auto &height = ls.height() ;
         const auto &bottom = ls.bottom() ;
@@ -239,46 +66,13 @@ QRectF QBarChart::getDataBounds()
     return QRectF(minx, miny, maxx - minx, maxy - miny) ;
 }
 
-QBarChart::QBarChart(const xviz::BarChart *lc) {
-    chart_.reset(lc) ;
-    data_bounds_ = getDataBounds() ;
+QBarChart::QBarChart(const xviz::BarChart *lc): Chart(lc) {
+}
 
-    y_axis_.setMargin(0.0);
-    x_axis_.setRange(data_bounds_.topLeft().x(), data_bounds_.bottomRight().x()) ;
-    y_axis_.setRange(data_bounds_.topLeft().y(), data_bounds_.bottomRight().y()) ;
+void QBarChart::makeLegendEntries() {
 
-    x_axis_.setTitle(QString::fromStdString(lc->labelX())) ;
-    y_axis_.setTitle(QString::fromStdString(lc->labelY())) ;
 
-    if ( !lc->getTicksX().empty() ) {
-        vector<double> ticks ;
-        QVector<QString> tick_labels ;
-        for( const xviz::Tick &tick: lc->getTicksX() ) {
-            ticks.push_back(tick.pos_) ;
-            if ( !tick.label_.empty() )
-                tick_labels.append(QString::fromStdString(tick.label_)) ;
-        }
-
-        x_axis_.setTickLocations(ticks);
-        if ( !tick_labels.isEmpty() )
-            x_axis_.setTickLabels(tick_labels) ;
-    }
-
-    if ( !lc->getTicksY().empty() ) {
-        vector<double> ticks ;
-        QVector<QString> tick_labels ;
-        for( const xviz::Tick &tick: lc->getTicksY() ) {
-            ticks.push_back(tick.pos_) ;
-            if ( !tick.label_.empty() )
-                tick_labels.append(QString::fromStdString(tick.label_));
-        }
-
-        y_axis_.setTickLocations(ticks);
-        if ( !tick_labels.isEmpty() )
-            y_axis_.setTickLabels(tick_labels) ;
-    }
-
-    for( const xviz::BarSeries &ls: lc->series()) {
+    for( const xviz::BarSeries &ls: chart()->series()) {
         LegendEntry e ;
         e.flags_ = 0 ;
         e.label_ = QString::fromStdString(ls.title()) ;

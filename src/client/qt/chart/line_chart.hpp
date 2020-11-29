@@ -12,14 +12,20 @@ public:
 
     QLineChart(const xviz::LineChart *lc);
 
-    void paint(QPainter &p, const QRect &rect) override ;
+    void paintChart(QPainter &p, const QSize &) override ;
     QRectF getDataBounds() override ;
+
+    const xviz::LineChart *chart() const {
+        return static_cast<const xviz::LineChart *>(chart_.get()) ;
+    }
 
     XAxis &xAxis() { return x_axis_ ; }
     YAxis &yAxis() { return y_axis_ ; }
     Legend &legend() { return legend_ ; }
 
 private:
+
+    void makeLegendEntries() override ;
 
     void paintLine(QPainter &p, const QPen &pen, const xviz::LineSeries &ls);
     void paintMarkers(QPainter &p, const QPixmap &px, const xviz::LineSeries &ls);
@@ -46,6 +52,7 @@ private:
 
     QRectF data_bounds_ ;
     std::unique_ptr<const xviz::LineChart> chart_ ;
+
 };
 
 

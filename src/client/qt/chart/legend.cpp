@@ -3,6 +3,8 @@
 void Legend::draw(QPainter &c,  const QVector<LegendEntry> &entries, qreal w, qreal h)
 {
 
+    if ( entries.empty() ) return ;
+
     size_t nGraphs = entries.size() ;
 
     qreal lw = 0, lh = 0, ox, oy ;

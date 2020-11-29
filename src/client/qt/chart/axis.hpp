@@ -56,7 +56,7 @@ protected:
 protected:
 
 
-    qreal margin_ = 12.0 ;
+    qreal margin_ = 0.0 ;
     qreal label_sep_ = 40 ;
     bool is_log_ = false ;
     bool is_reversed_ = false ;

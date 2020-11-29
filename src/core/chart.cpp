@@ -1,6 +1,7 @@
 #include <xviz/chart.hpp>
 #include <xviz/line_chart.hpp>
 #include <xviz/bar_chart.hpp>
+#include <xviz/raster_chart.hpp>
 
 using namespace std ;
 
@@ -48,19 +49,22 @@ string Chart::write(const Chart *c)
     }
 
 
-    if ( const LineChart *lc = dynamic_cast<const LineChart *>(c) ) {
-        LineChart::write(chart_data, lc);
-    } else if ( const BarChart *bc = dynamic_cast<const BarChart *>(c) ) {
-        BarChart::write(chart_data, bc);
-    }
-
     for( const auto &a: c->annotations() ) {
         msg::Annotation *msg = Annotation::write(a) ;
         chart_data.mutable_annotations()->AddAllocated(msg);
     }
 
+    if ( const LineChart *lc = dynamic_cast<const LineChart *>(c) ) {
+        LineChart::write(chart_data, lc);
+    } else if ( const BarChart *bc = dynamic_cast<const BarChart *>(c) ) {
+        BarChart::write(chart_data, bc);
+    } else if ( const RasterChart *rc = dynamic_cast<const RasterChart *>(c) ) {
+        RasterChart::write(chart_data, rc);
+    }
+
     return chart_data.SerializeAsString();
 }
+
 
 Chart *Chart::read(const string &bytes)
 {
@@ -68,10 +72,12 @@ Chart *Chart::read(const string &bytes)
     if ( !chart_data.ParseFromString(bytes) ) return nullptr ;
 
     Chart *chart = nullptr ;
-    if ( !chart_data.line_series().empty() ) {
+    if ( chart_data.has_line_chart() ) {
         chart = LineChart::read(chart_data) ;
-    } else if ( !chart_data.bar_series().empty() ) {
+    } else if ( chart_data.has_bar_chart() ) {
         chart = BarChart::read(chart_data) ;
+    } else if ( chart_data.has_raster_chart() ) {
+        chart = RasterChart::read(chart_data) ;
     }
 
     if ( !chart ) return nullptr ;
@@ -80,7 +86,6 @@ Chart *Chart::read(const string &bytes)
         Annotation l = Annotation::read(a) ;
         chart->addAnnotation(l) ;
     }
-
 
     chart->setLabelX(chart_data.labelx()) ;
     chart->setLabelY(chart_data.labely()) ;

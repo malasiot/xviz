@@ -8,8 +8,11 @@ namespace xviz {
 
 void BarChart::write(msg::Chart &chart_data, const BarChart *c)  {
 
+    msg::BarChart *msg_bc = new msg::BarChart() ;
+    chart_data.set_allocated_bar_chart(msg_bc) ;
+
     for( const BarSeries &ls : c->series() ) {
-        msg::BarSeries *msg_ls = chart_data.add_bar_series() ;
+        msg::BarSeries *msg_ls = msg_bc->add_bar_series() ;
 
         msg_ls->set_width(ls.width());
 
@@ -35,7 +38,9 @@ Chart *BarChart::read(const msg::Chart &chart_data) {
 
     BarChart *lc = new BarChart ;
 
-    for( const msg::BarSeries &msg_ls: chart_data.bar_series() ) {
+    const msg::BarChart &msg_bc = chart_data.bar_chart() ;
+
+    for( const msg::BarSeries &msg_ls: msg_bc.bar_series() ) {
         BarSeries ls ;
 
         ls.setTitle(msg_ls.title()) ;

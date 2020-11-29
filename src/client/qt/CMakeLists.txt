@@ -17,6 +17,9 @@ set( QT_CLIENT_SOURCES
     qt_graphics_helpers.cpp
     qt_graphics_helpers.hpp
 
+    annotation.hpp
+    annotation.cpp
+
     image_loader.cpp
     image_loader.hpp
 
@@ -29,6 +32,8 @@ set( QT_CLIENT_SOURCES
     chart/line_chart.cpp
     chart/bar_chart.hpp
     chart/bar_chart.cpp
+    chart/raster_chart.cpp
+    chart/raster_chart.hpp
     chart/axis.cpp
     chart/axis.hpp
     chart/tics.cpp

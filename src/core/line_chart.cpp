@@ -88,8 +88,11 @@ void LineSeries::parseParamString(const char *src) {
 void LineChart::write(msg::Chart &chart_data, const LineChart *c)  {
     if ( c == nullptr ) return;
 
+    msg::LineChart *msg_lc = new msg::LineChart() ;
+    chart_data.set_allocated_line_chart(msg_lc) ;
+
     for( const LineSeries &ls : c->series() ) {
-        msg::LineSeries *msg_ls = chart_data.add_line_series() ;
+        msg::LineSeries *msg_ls = msg_lc->add_line_series() ;
 
         msg_ls->set_title(ls.title()) ;
         msg_ls->set_allocated_brush(Brush::write(ls.brush())) ;
@@ -112,8 +115,9 @@ void LineChart::write(msg::Chart &chart_data, const LineChart *c)  {
 Chart *LineChart::read(const msg::Chart &chart_data) {
 
     LineChart *lc = new LineChart ;
+    const msg::LineChart &msg_lc = chart_data.line_chart() ;
 
-    for( const msg::LineSeries &msg_ls: chart_data.line_series() ) {
+    for( const msg::LineSeries &msg_ls: msg_lc.line_series() ) {
         LineSeries ls ;
 
         ls.setTitle(msg_ls.title()) ;

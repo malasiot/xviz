@@ -16,35 +16,39 @@ set(XVIZ_LIB_SOURCES
     server/session.cpp
     server/session.hpp
     server/channel.cpp
-    types/chart.cpp
-    types/line_chart.cpp
-    types/bar_chart.cpp
-    types/image.cpp
-    types/color.cpp
-    types/pen.cpp
-    types/brush.cpp
-    types/marker.cpp
-    types/annotation.cpp
-    types/xform.cpp
-    types/font.cpp
+    core/chart.cpp
+    core/line_chart.cpp
+    core/bar_chart.cpp
+    core/raster_chart.cpp
+    core/image.cpp
+    core/color.cpp
+    core/pen.cpp
+    core/brush.cpp
+    core/marker.cpp
+    core/annotation.cpp
+    core/xform.cpp
+    core/font.cpp
+    core/colormap.cpp
 
-    types/path.cpp
-    types/gradient.cpp
-    types/tabular.cpp
+    core/path.cpp
+    core/gradient.cpp
+    core/tabular.cpp
 
-    types/scene/node.cpp
-    types/scene/scene.cpp
-    types/scene/mesh.cpp
-    types/scene/assimp_loader.cpp
-    types/scene/camera.cpp
+    core/scene/node.cpp
+    core/scene/scene.cpp
+    core/scene/mesh.cpp
+    core/scene/assimp_loader.cpp
+    core/scene/camera.cpp
 
     ${XVIZ_INCLUDE_DIR}/server.hpp
     ${XVIZ_INCLUDE_DIR}/channel.hpp
     ${XVIZ_INCLUDE_DIR}/line_chart.hpp
     ${XVIZ_INCLUDE_DIR}/bar_chart.hpp
+    ${XVIZ_INCLUDE_DIR}/raster_chart.hpp
     ${XVIZ_INCLUDE_DIR}/style.hpp
     ${XVIZ_INCLUDE_DIR}/image.hpp
     ${XVIZ_INCLUDE_DIR}/path.hpp
+    ${XVIZ_INCLUDE_DIR}/colormap.hpp
     ${XVIZ_INCLUDE_DIR}/gradient.hpp
     ${XVIZ_INCLUDE_DIR}/tabular.hpp
 

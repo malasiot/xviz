@@ -5,8 +5,6 @@
 #include <QPen>
 #include <QVariant>
 
-#include "chart_widget.hpp"
-
 struct LegendEntry {
     enum Flags { HasPen = 1, HasBrush = 2, HasMarker = 4 } ;
 

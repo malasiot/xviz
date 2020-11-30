@@ -53,6 +53,16 @@ void Chart::paint(QPainter &c, const QRect &rect) {
         h -= title_height = br.height() ;
     }
 
+    uint cramp_width = 0 ;
+
+    ColorRamp *cr = colorRamp() ;
+
+    if ( cr ) {
+        QRect r = cr->layout(h) ;
+        cramp_width = r.width() ;
+        w -= cramp_width ;
+    }
+
     x_axis_.computeLayout(w) ;
     y_axis_.computeLayout(h) ;
 
@@ -96,6 +106,15 @@ void Chart::paint(QPainter &c, const QRect &rect) {
     paintAnnotations(c, m);
 
     c.restore() ;
+
+    // color ramp
+
+    if ( cr ) {
+        c.save() ;
+        c.translate(w, 0) ;
+        cr->paint(c, QRect(0, 0, cramp_width, h));
+        c.restore() ;
+    }
 
     // legend
 

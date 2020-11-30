@@ -40,6 +40,8 @@ set( QT_CLIENT_SOURCES
     chart/tics.hpp
     chart/legend.hpp
     chart/legend.cpp
+    chart/color_ramp.cpp
+    chart/color_ramp.hpp
 
     scene/viewer.hpp
     scene/viewer.cpp

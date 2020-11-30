@@ -1,67 +1,5 @@
 #include "raster_chart.hpp"
 
-#include <QOpenGLFramebufferObject>
-#include <QOpenGLShaderProgram>
-#include <QOffscreenSurface>
-#include <QOpenGLContext>
-#include <QOpenGLFunctions>
-#include <QOpenGLVertexArrayObject>
-#include <QOpenGLBuffer>
-
-static void hsv2rgb(float h, QColor &rgb)
-{
-    int i ;
-    float f, p, q, t, r, g, b ;
-
-    if ( h == 0.0 ) return ;
-
-    // h = 360.0-h ;
-
-    h /= 60.0 ;
-
-    i = (int)h ;
-    f = h - i ;
-    p = 0  ;
-    q = 1-f ;
-    t = f ;
-
-    switch (i)
-    {
-        case 0:
-            r = 1 ;
-            g = t ;
-            b = p ;
-            break ;
-        case 1:
-            r = q ;
-            g = 1 ;
-            b = p ;
-            break ;
-        case 2:
-            r = p ;
-            g = 1 ;
-            b = t ;
-            break ;
-        case 3:
-            r = p ;
-            g = q ;
-            b = 1 ;
-            break ;
-        case 4:
-            r = t ;
-            g = p ;
-            b = 1 ;
-            break ;
-        case 5:
-            r = 1 ;
-            g = p ;
-            b = q ;
-            break ;
-    }
-
-    rgb = qRgb((int)(255.0*r), (int)(255.0*g), (int)(255.0*b)) ;
-}
-
 QRasterChart::QRasterChart(const xviz::RasterChart *rc): Chart(rc) {
 
     const auto &c = rc->c() ;
@@ -73,6 +11,8 @@ QRasterChart::QRasterChart(const xviz::RasterChart *rc): Chart(rc) {
         c_min_ = vrange->first ;
         c_max_ = vrange->second ;
     }
+
+    cramp_.reset(new ColorRamp(rc->colorMap(), c_min_, c_max_)) ;
 }
 
 QColor QRasterChart::mapColor(double v) {
@@ -84,29 +24,9 @@ QColor QRasterChart::mapColor(double v) {
     return QColor(clr[0]*255, clr[1]*255, clr[2]*255) ;
 }
 
-void QRasterChart::paintChart(QPainter &p, const QSize &sz)
-{
-    const xviz::RasterChart *rc = chart() ;
-/*
-    QVector<qreal> x_grid = getXCoords() ;
-    QVector<qreal> y_grid = getYCoords() ;
-
-    for( uint i=0 ; i<y_grid.size()-1 ; i++ ) {
-        for( uint j=0 ; j<x_grid.size()-1 ; j++ ) {
-            qreal x0 = x_grid[j], x1 = x_grid[j+1] ;
-            qreal y0 = y_grid[i], y1 = y_grid[i+1] ;
-            QRectF rect(x0, y0, x1-x0, y1-y0) ;
-            double val = rc->c()[i * rc->width() + j]  ;
-            QColor clr = mapColor(val) ;
-            p.fillRect(rect, QBrush(clr)) ;
-        }
-    }
-*/
-
+void QRasterChart::paintChart(QPainter &p, const QSize &sz) {
     QImage im = render(sz) ;
-    im.save("/tmp/oo.png");
-   p.drawImage(0, -sz.height(), im);
-
+    p.drawImage(0, -sz.height(), im);
 }
 
 QRectF QRasterChart::getDataBounds() {
@@ -131,6 +51,8 @@ QRectF QRasterChart::getDataBounds() {
 
 void QRasterChart::makeLegendEntries() {
 }
+
+
 
 
 void QRasterChart::bilinear(QImage &im, const QRectF &rect, const QColor &clr00, const QColor &clr01, const QColor &clr10, const QColor &clr11) {

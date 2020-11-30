@@ -20,17 +20,17 @@ public:
         return static_cast<const xviz::RasterChart *>(chart_.get()) ;
     }
 
+    ColorRamp *colorRamp() const override { return cramp_.get() ; }
+
 private:
+
+    double c_min_, c_max_ ;
+
+    std::unique_ptr<ColorRamp> cramp_ ;
 
     QImage render(const QSize &sz) ;
     QVector<qreal> getXCoords() ;
     QVector<qreal> getYCoords() ;
-
-
-    QVector<QColor> colormap_ ;
-    double c_min_, c_max_ ;
-
-    //void paintBars(QPainter &p, const QPen &pen, const QBrush &brush, const xviz::BarSeries &ls);
 
     QColor mapColor(double v);
     void bilinear(QImage &im, const QRectF &rect, const QColor &clr00, const QColor &clr01, const QColor &clr10, const QColor &clr11);

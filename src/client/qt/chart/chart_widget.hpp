@@ -9,6 +9,7 @@
 
 #include "axis.hpp"
 #include "legend.hpp"
+#include "color_ramp.hpp"
 
 class Chart ;
 
@@ -43,6 +44,7 @@ public:
     virtual QRectF getDataBounds() = 0 ;
     virtual void makeLegendEntries() = 0 ;
     virtual void paintChart(QPainter &p, const QSize &sz) = 0;
+    virtual ColorRamp *colorRamp() const { return nullptr ;}
 
     void setTitle(const QString &title) { title_ = title ; }
     const QString &getTitle() const { return title_ ; }

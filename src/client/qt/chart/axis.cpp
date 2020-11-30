@@ -135,7 +135,8 @@ QRect Axis::paintLabel(QPainter &canvas,  const QString &text, qreal x, qreal y,
         xf = x - lw/2.0 ;
         yf = y ;
     } else {
-        xf = x - lw ;
+        xf = x ;
+        if ( tics_placement_ == TicsOutside ) xf -= lw ;
         yf = y - lh/2 ;
     }
 

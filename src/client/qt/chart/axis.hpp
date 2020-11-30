@@ -33,6 +33,7 @@ public:
     Axis &setLogarithmic(bool loga) { is_log_ = loga ; return *this ; }
     Axis &setGrid(bool grid) { draw_grid_ = grid ; return *this ; }
     Axis &setTickLocator(TickLocator *loc) { tick_locator_.reset(loc) ; return *this ;}
+    Axis &setTickPlacement(TicsPlacement p) { tics_placement_ = p ; return *this ; }
 
     Axis &setTickLocations(const std::vector<double> &tp) ;
     Axis &setTickLabels(const QVector<QString> &labels) ;

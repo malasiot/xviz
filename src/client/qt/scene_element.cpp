@@ -61,6 +61,7 @@ void SceneElement::loadScene(const string &url)
         QTemporaryFile file(templateStr) ;
         if ( file.open() ) {
             file.write(data) ;
+            file.close() ;
             xviz::ScenePtr scene(new xviz::Scene) ;
             scene->load(file.fileName().toStdString()) ;
 

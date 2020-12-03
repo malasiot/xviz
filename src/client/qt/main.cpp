@@ -6,7 +6,7 @@
 #include "client.hpp"
 
 #include "main_window.hpp"
-#include "image_loader.hpp"
+#include "resource_loader.hpp"
 
 #include <thread>
 #include <iostream>
@@ -25,7 +25,7 @@ using namespace xviz ;
 using namespace std ;
 
 xviz::Server server("/home/malasiot/tmp") ;
-string imageChannel("/data/image"), chartChannel("/data/chart"), tabularChannel("/data/tabular") ;
+string imageChannel("/data/image"), chartChannel("/data/chart"), tabularChannel("/data/tabular"), sceneChannel("/data/scene") ;
 
 void onConnected() {
 
@@ -129,6 +129,8 @@ void onConnected() {
 
     server.push(tabularChannel, t) ;
 
+    server.push(sceneChannel, SceneMessage("models/BoxTextured.gltf")) ;
+
  //   Scene scene ;
  //   scene.load("/home/malasiot/Downloads/2CylinderEngine.glb");
  //   cout << "ok" << endl ;
@@ -184,8 +186,8 @@ int main(int argc, char *argv[])
     QString configFile = args.at(0) ;
     QString url = parser.value("url") ;
 
-    ImageLoader::instance().setHost(url) ;
-    ImageLoader::instance().setLocalPath("/home/malasiot/Downloads/") ;
+    ResourceLoader::instance().setHost(url) ;
+    ResourceLoader::instance().setLocalPath("/home/malasiot/Downloads/") ;
 
 
     MainWindow win(configFile) ;

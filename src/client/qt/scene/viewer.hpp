@@ -22,7 +22,7 @@ public:
 
     enum UpAxis { XAxis, YAxis, ZAxis } ;
 
-    SceneViewer(QWidget *parent)  ;
+    SceneViewer(QWidget *parent, const xviz::ScenePtr &scene)  ;
 
     static void initDefaultGLContext() {
 

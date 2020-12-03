@@ -2,6 +2,7 @@ syntax = "proto2";
 
 import public "style.proto";
 import public "drawable.proto";
+import public "scene.proto";
 
 package xviz.msg ;
 
@@ -140,10 +141,16 @@ message Tabular {
 }
 
 message StateUpdate {
+    enum Action {
+        ADD = 0 ;
+        REPLACE = 1 ;
+        DELETE = 2 ;
+    }
     required double ts = 1;
     required string channel_id = 2 ;
     optional string object_id = 3;
-    required bytes data = 4 ;
+    required Action action = 4 ;
+    required bytes data = 5 ;
 }
 
 message Message {

@@ -14,7 +14,7 @@
 
 #include "mesh_data.hpp"
 #include "material.hpp"
-#include "../image_loader.hpp"
+#include "../resource_loader.hpp"
 #include "../qt_graphics_helpers.hpp"
 
 #define POSITION_LOCATION    0
@@ -34,7 +34,7 @@ Renderer::Renderer(int flags) {
 void Renderer::init(const xviz::ScenePtr &scene) {
     initializeOpenGLFunctions() ;
 
-    auto &loader = ImageLoader::instance() ;
+    auto &loader = ResourceLoader::instance() ;
 
     xviz::PhongMaterial *mat = new xviz::PhongMaterial() ;
     mat->setDiffuseColor({0.5, 0.5, 0.5, 1.0}) ;
@@ -59,7 +59,11 @@ void Renderer::init(const xviz::ScenePtr &scene) {
                 flags |= PhongMaterialProgram::HAS_DIFFUSE_TEXTURE ;
                 const xviz::Texture2D *texture = material->diffuseTexture() ;
 
-                QObject::connect(&loader, &ImageLoader::downloaded, this, [&](QImage im){ uploadTexture(im, mat, 0);});
+                QObject::connect(&loader, &ResourceLoader::downloaded, this, [&](const QByteArray &data){
+                    QImage im ;
+                    im.loadFromData(data) ;
+                    uploadTexture(im, mat, 0);
+                });
 
                 xviz::Image image = texture->image() ;
 

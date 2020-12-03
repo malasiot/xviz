@@ -7,11 +7,11 @@
 using namespace std ;
 using namespace Eigen ;
 
-SceneViewer::SceneViewer(QWidget *parent): QOpenGLWidget(parent) {
+SceneViewer::SceneViewer(QWidget *parent, const xviz::ScenePtr &scene): QOpenGLWidget(parent), scene_(scene) {
     setFocusPolicy(Qt::StrongFocus) ;
 
-    scene_.reset(new xviz::Scene) ;
-    scene_->load("/home/malasiot/Downloads/BoxTextured.gltf", xviz::Scene::IMPORT_LIGHTS);
+    //scene_.reset(new xviz::Scene) ;
+   // scene_->load("/home/malasiot/Downloads/BoxTextured.gltf", xviz::Scene::IMPORT_LIGHTS);
 
     xviz::DirectionalLight *dl = new xviz::DirectionalLight(Vector3f(0.5, 0.5, 1)) ;
     dl->diffuse_color_ = Vector3f(1, 1, 1) ;
@@ -32,11 +32,12 @@ SceneViewer::SceneViewer(QWidget *parent): QOpenGLWidget(parent) {
 
 void SceneViewer::initCamera(const Vector3f &c, float r, UpAxis axis) {
 
+   camera_.reset(new xviz::PerspectiveCamera(1.0, 70*M_PI/180, 0.01*r, 100*r)) ;
+
    axis_ = axis ;
 
    aradius_ = 10 * r ;
 
-   camera_.reset(new xviz::PerspectiveCamera(1.0, 70*M_PI/180, 0.01, 10*r)) ;
    if ( axis == YAxis )
        trackball_.setCamera(camera_, c + Vector3f{0.0, 0, 4*r}, c, {0, 1, 0}) ;
    else if ( axis == XAxis )
@@ -47,10 +48,6 @@ void SceneViewer::initCamera(const Vector3f &c, float r, UpAxis axis) {
    trackball_.setZoomScale(0.1*r) ;
 
    camera_->setBgColor({1, 1, 1, 1}) ;
-}
-
-void SceneViewer::setScene(const xviz::ScenePtr &scene) {
-    scene_ = scene ;
 }
 
 void SceneViewer::startAnimations()
@@ -64,6 +61,8 @@ void SceneViewer::startAnimations()
 
 void SceneViewer::mousePressEvent(QMouseEvent *event)
 {
+    if ( !camera_ ) return ;
+
     switch ( event->button() ) {
     case Qt::LeftButton:
         trackball_.setLeftClicked(true) ;
@@ -81,6 +80,8 @@ void SceneViewer::mousePressEvent(QMouseEvent *event)
 
 void SceneViewer::mouseReleaseEvent(QMouseEvent *event)
 {
+    if ( !camera_ ) return ;
+
     switch ( event->button() ) {
     case Qt::LeftButton:
         trackball_.setLeftClicked(false) ;
@@ -99,6 +100,8 @@ void SceneViewer::mouseReleaseEvent(QMouseEvent *event)
 
 void SceneViewer::mouseMoveEvent(QMouseEvent *event)
 {
+    if ( !camera_ ) return ;
+
     int x = event->x() ;
     int y = event->y() ;
 
@@ -109,6 +112,8 @@ void SceneViewer::mouseMoveEvent(QMouseEvent *event)
 }
 
 void SceneViewer::wheelEvent(QWheelEvent *event) {
+    if ( !camera_ ) return ;
+
     trackball_.setScrollDirection(event->delta()>0);
     trackball_.update() ;
     update() ;
@@ -116,21 +121,25 @@ void SceneViewer::wheelEvent(QWheelEvent *event) {
 
 
 void SceneViewer::initializeGL() {
-    rdr_.init(scene_) ;
+    if ( scene_ )
+        rdr_.init(scene_) ;
 
 }
 
 void SceneViewer::resizeGL(int w, int h) {
-    float ratio = w/(float)h ;
-    std::static_pointer_cast<xviz::PerspectiveCamera>(camera_)->setAspectRatio(ratio) ;
+    if ( camera_ ) {
+        float ratio = w/(float)h ;
+        std::static_pointer_cast<xviz::PerspectiveCamera>(camera_)->setAspectRatio(ratio) ;
 
-    trackball_.setScreenSize(w, h);
-    camera_->setViewport(w, h) ;
+        trackball_.setScreenSize(w, h);
+        camera_->setViewport(w, h) ;
+    }
 }
 
 
 void SceneViewer::paintGL()
 {
+    if ( !scene_ ) return ;
 
     rdr_.render(camera_) ;
 #if 0

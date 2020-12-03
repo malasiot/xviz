@@ -20,8 +20,8 @@ set( QT_CLIENT_SOURCES
     annotation.hpp
     annotation.cpp
 
-    image_loader.cpp
-    image_loader.hpp
+    resource_loader.cpp
+    resource_loader.hpp
 
     chart_element.cpp
     chart_element.hpp

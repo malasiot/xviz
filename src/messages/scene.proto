@@ -1,0 +1,11 @@
+package xviz.msg ;
+
+message Scene {
+}
+
+message SceneMessage {
+    oneof data {
+        string url = 1 ;
+        Scene scene = 2 ;
+    }
+}

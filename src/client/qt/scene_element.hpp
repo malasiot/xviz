@@ -27,7 +27,11 @@ public:
 
 private:
 
-    SceneViewer *widget_ ;
+    void loadScene(const std::string &url) ;
+
+    QWidget *widget_ ;
+    QVBoxLayout *layout_ ;
+    SceneViewer *viewer_ ;
     QByteArray scene_channel_, pose_channel_ ;
 };
 

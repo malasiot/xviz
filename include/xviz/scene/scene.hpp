@@ -61,6 +61,27 @@ public:
         std::runtime_error(message + "(" + fname  + ")") {}
 };
 
+class SceneMessage {
+public:
+    enum Type { Url, SceneData, Empty } ;
+
+    SceneMessage(): type_(Empty) {}
+    SceneMessage(const std::string &url): type_(Url), url_(url) {}
+    SceneMessage(Scene *scene): type_(SceneData), scene_(scene) {}
+
+    Type type() const { return type_ ; }
+
+    const Scene *scene() const { return scene_.get() ; }
+    const std::string &url() const { return url_ ; }
+
+    static std::string write(const SceneMessage &msg) ;
+    static SceneMessage read(const std::string &msg) ;
+
+private:
+    std::string url_ ;
+    std::unique_ptr<Scene> scene_ ;
+    Type type_ = Empty ;
+};
 
 }
 #endif // XVIZ_SCENE_SCENE_HPP

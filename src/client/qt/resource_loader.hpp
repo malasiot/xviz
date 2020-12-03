@@ -1,17 +1,18 @@
-#ifndef XVIZ_QT_IMAGE_LOADER
-#define XVIZ_QT_IMAGE_LOADER
+#ifndef XVIZ_QT_RESOURCE_LOADER
+#define XVIZ_QT_RESOURCE_LOADER
 
 #include <QNetworkAccessManager>
+#include <QFile>
 
-class ImageLoader: public QObject {
+class ResourceLoader: public QObject {
     Q_OBJECT
 public:
-    ImageLoader() ;
+    ResourceLoader() ;
 
     void fetch(const QString &path);
 
-    static ImageLoader &instance() {
-        static ImageLoader loader ;
+    static ResourceLoader &instance() {
+        static ResourceLoader loader ;
         return loader ;
     }
 
@@ -25,7 +26,7 @@ public:
 
 signals:
 
-    void downloaded(QImage) ;
+    void downloaded(const QByteArray &data, const QString &path) ;
 
 private:
 

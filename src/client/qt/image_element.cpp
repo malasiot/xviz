@@ -16,10 +16,7 @@ void ImageElement::buildWidget(const UIElementFactory &fac, const QDomElement &e
     manager_ = new QNetworkAccessManager(parent);
     QObject::connect(manager_, &QNetworkAccessManager::finished, this, &ImageElement::replyFinished);
 
-  //  layout_ = new QVBoxLayout(this) ;
- //   layout_->addWidget(widget_) ;
     image_widget_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-   // setLayout(layout_) ;
 
     parseChannels(ele, channels_) ;
 

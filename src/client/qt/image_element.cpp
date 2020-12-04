@@ -44,12 +44,12 @@ void ImageElement::updateState(const xviz::msg::StateUpdate &state_update) {
     xviz::msg::Image im ;
     if ( !im.ParseFromString(data) ) return ;
 
-    xviz::Image image = xviz::Image::read(im) ;
+    std::unique_ptr<xviz::Image> image(xviz::Image::read(im)) ;
 
-    if ( image.type() == xviz::ImageType::Uri )  {
-        QUrl imageUrl(QByteArray::fromStdString(image.uri())) ;
+    if ( image->type() == xviz::ImageType::Uri )  {
+        QUrl imageUrl(QByteArray::fromStdString(image->uri())) ;
         loadImageFromUrl(imageUrl) ;
-    } else if ( image.type() == xviz::ImageType::Raw ) {
+    } else if ( image->type() == xviz::ImageType::Raw ) {
 
     }
 

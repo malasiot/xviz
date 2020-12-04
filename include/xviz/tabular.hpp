@@ -6,18 +6,17 @@
 #include <memory>
 #include <sstream>
 
+#include <xviz/message.hpp>
+
 namespace xviz {
 
-namespace msg {
-    class Tabular ;
-}
 // Hierarchical data structure to store row/columns of arbitrary type
 
 class TabularNode ;
 class TabularData ;
 class TabularColumn ;
 
-class Tabular {
+class Tabular: public Message {
 public:
     // list of columns
     Tabular(const std::vector<TabularColumn> &columns);
@@ -30,8 +29,8 @@ public:
 
     const std::vector<TabularColumn> &columns() const { return columns_ ; }
 
-    static std::string write(const Tabular &t) ;
-    static Tabular *read(const std::string &msg) ;
+    std::string encode() const override ;
+    static Tabular *decode(const std::string &msg) ;
 private:
 
     TabularNode *root_ ;

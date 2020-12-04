@@ -50,12 +50,12 @@ float Scene::geomRadius(const Vector3f &center) const {
     return sqrt(max_dist) ;
 }
 
-string SceneMessage::write(const SceneMessage &msg) {
+string SceneMessage::encode() const {
     msg::SceneMessage sc_msg ;
-    if ( msg.type_ == SceneData ) {
+    if ( type_ == SceneData ) {
 
-    } else if ( msg.type_ == Url ) {
-        sc_msg.set_url(msg.url()) ;
+    } else if ( type_ == Url ) {
+        sc_msg.set_url(url_) ;
     } else {
 
     }
@@ -63,18 +63,18 @@ string SceneMessage::write(const SceneMessage &msg) {
     return sc_msg.SerializeAsString() ;
 }
 
-SceneMessage SceneMessage::read(const string &msg) {
+SceneMessage *SceneMessage::decode(const string &msg) {
     msg::SceneMessage sc_msg ;
 
-    if ( !sc_msg.ParseFromString(msg) ) return SceneMessage() ;
+    if ( !sc_msg.ParseFromString(msg) ) return nullptr ;
 
     if ( sc_msg.has_scene() ) {
-        return SceneMessage(new Scene) ;
+        return new SceneMessage(new Scene) ;
     }
     else if ( sc_msg.has_url() ) {
-       return SceneMessage(sc_msg.url()) ;
+       return new SceneMessage(sc_msg.url()) ;
     }
-    else return SceneMessage() ;
+    else return new SceneMessage() ;
 }
 
 

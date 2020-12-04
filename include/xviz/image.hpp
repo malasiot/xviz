@@ -5,7 +5,7 @@
 #include <string>
 #include <memory>
 
-#include <xviz/serialize.hpp>
+#include <xviz/message.hpp>
 
 namespace xviz {
 
@@ -21,7 +21,7 @@ enum class ImageFormat { rgb24, rgba32, gray8, encoded };
 
 class ImageData ;
 
-class Image {
+class Image: public Message {
 public:
 
     // Null image
@@ -45,9 +45,13 @@ public:
     const unsigned char *data() const ;
     uint32_t dataSize() const ;
 
+    std::string encode() const override ;
+    static Image *decode(const std::string &payload) ;
+
     // i/o
-    static Image read(const msg::Image &) ;
+    static Image *read(const msg::Image &) ;
     static msg::Image *write(const Image &) ;
+
 
 private:
 

@@ -90,9 +90,20 @@ uint32_t Image::dataSize() const {
         return static_cast<RawImageData *>(data_.get())->sz() ;
 }
 
-Image Image::read(const msg::Image &data) {
+string Image::encode() const {
+    std::unique_ptr<msg::Image> im_msg(Image::write(*this)) ;
+    return im_msg->SerializeAsString();
+}
+
+Image *Image::decode(const string &payload) {
+    msg::Image im_msg ;
+    if ( !im_msg.ParseFromString(payload) ) return nullptr ;
+    return Image::read(im_msg) ;
+}
+
+Image *Image::read(const msg::Image &data) {
     if ( data.has_image_uri() ) {
-        return Image(data.image_uri()) ;
+        return new Image(data.image_uri()) ;
     } else if ( data.has_raw_image() ) {
         const msg::ImageRaw &ri = data.raw_image() ;
         ImageFormat fmt ;
@@ -111,8 +122,8 @@ Image Image::read(const msg::Image &data) {
             break ;
         }
 
-        return Image(reinterpret_cast<const unsigned char *>(ri.pixels().data()), fmt, ri.width(), ri.height()) ;
-    } else { return Image() ; }
+        return new Image(reinterpret_cast<const unsigned char *>(ri.pixels().data()), fmt, ri.width(), ri.height()) ;
+    } else { return new Image() ; }
 }
 
 msg::Image * Image::write(const Image &c) {

@@ -30,7 +30,7 @@ void TabularElement::updateState(const xviz::msg::StateUpdate &state_update) {
     if ( !channels_.contains(QByteArray::fromStdString(channel_id))) return ;
     string data = state_update.data() ;
 
-    xviz::Tabular *t = xviz::Tabular::read(data) ;
+    xviz::Tabular *t = xviz::Tabular::decode(data) ;
 
     if ( !t ) return ;
 

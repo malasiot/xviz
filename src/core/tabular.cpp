@@ -59,13 +59,13 @@ static void write_node(const TabularNode *n, msg::TabularNode *msg) {
     }
 }
 
-std::string Tabular::write(const Tabular &t) {
+std::string Tabular::encode() const {
     msg::Tabular tab ;
     msg::TabularNode *r = new msg::TabularNode ;
-    write_node(t.root(), r) ;
+    write_node(root(), r) ;
     tab.set_allocated_root(r) ;
 
-    for( const auto &col: t.columns() ) {
+    for( const auto &col: columns() ) {
         msg::TabularColumn *msg_col = tab.add_columns() ;
         msg_col->set_id(col.id()) ;
         if ( !col.name().empty() )
@@ -112,7 +112,7 @@ static void read_node(Tabular *t, const msg::TabularNode &msg, TabularNode *pare
     }
 }
 
-Tabular *Tabular::read(const std::string &msg) {
+Tabular *Tabular::decode(const std::string &msg) {
     msg::Tabular tab ;
     if ( !tab.ParseFromString(msg) ) return nullptr ;
 

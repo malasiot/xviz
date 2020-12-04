@@ -30,35 +30,37 @@ void Chart::setTicksY(const std::vector<double> &pos, const std::vector<string> 
     setTicks(ticks_y_, pos, labels) ;
 }
 
-string Chart::write(const Chart *c)
-{
+
+
+string Chart::encode() const {
+
     msg::Chart chart_data ;
 
-    chart_data.set_title(c->title()) ;
-    chart_data.set_labelx(c->labelX()) ;
-    chart_data.set_labely(c->labelY()) ;
+    chart_data.set_title(title()) ;
+    chart_data.set_labelx(labelX()) ;
+    chart_data.set_labely(labelY()) ;
 
-    for ( const Tick &tic: c->ticks_x_ ) {
+    for ( const Tick &tic: ticks_x_ ) {
         chart_data.add_ticsx(tic.pos_);
         if ( !tic.label_.empty() ) chart_data.add_ticlabelsx(tic.label_) ;
     }
 
-    for ( const Tick &tic: c->ticks_y_ ) {
+    for ( const Tick &tic: ticks_y_ ) {
         chart_data.add_ticsy(tic.pos_);
         if ( !tic.label_.empty() ) chart_data.add_ticlabelsy(tic.label_) ;
     }
 
 
-    for( const auto &a: c->annotations() ) {
+    for( const auto &a: annotations() ) {
         msg::Annotation *msg = Annotation::write(a) ;
         chart_data.mutable_annotations()->AddAllocated(msg);
     }
 
-    if ( const LineChart *lc = dynamic_cast<const LineChart *>(c) ) {
+    if ( const LineChart *lc = dynamic_cast<const LineChart *>(this) ) {
         LineChart::write(chart_data, lc);
-    } else if ( const BarChart *bc = dynamic_cast<const BarChart *>(c) ) {
+    } else if ( const BarChart *bc = dynamic_cast<const BarChart *>(this) ) {
         BarChart::write(chart_data, bc);
-    } else if ( const RasterChart *rc = dynamic_cast<const RasterChart *>(c) ) {
+    } else if ( const RasterChart *rc = dynamic_cast<const RasterChart *>(this) ) {
         RasterChart::write(chart_data, rc);
     }
 
@@ -66,7 +68,7 @@ string Chart::write(const Chart *c)
 }
 
 
-Chart *Chart::read(const string &bytes)
+Chart *Chart::decode(const string &bytes)
 {
     msg::Chart chart_data ;
     if ( !chart_data.ParseFromString(bytes) ) return nullptr ;

@@ -8,6 +8,10 @@
 
 namespace xviz {
 
+namespace msg {
+class Scene ;
+}
+
 class Scene {
 public:
     Scene() = default ;
@@ -47,6 +51,9 @@ public:
     Eigen::Vector3f geomCenter() const ;
     float geomRadius(const Eigen::Vector3f &center) const ;
 
+    static msg::Scene *write(const Scene &scene) ;
+    static Scene *read(const msg::Scene *msg) ;
+
 private:
 
     std::vector<NodePtr> nodes_ ;
@@ -61,7 +68,7 @@ public:
         std::runtime_error(message + "(" + fname  + ")") {}
 };
 
-class SceneMessage {
+class SceneMessage: public Message {
 public:
     enum Type { Url, SceneData, Empty } ;
 
@@ -74,8 +81,8 @@ public:
     const Scene *scene() const { return scene_.get() ; }
     const std::string &url() const { return url_ ; }
 
-    static std::string write(const SceneMessage &msg) ;
-    static SceneMessage read(const std::string &msg) ;
+    std::string encode() const override ;
+    static SceneMessage *decode(const std::string &msg) ;
 
 private:
     std::string url_ ;

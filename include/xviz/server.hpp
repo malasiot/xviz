@@ -34,10 +34,7 @@ public:
     // blocking call to start accepting connections
     void run(int port) ;
 
-    void push(const std::string &channel, const Image &im, ChannelUpdateAction a = ChannelReplaceAction, const std::string &object_id = {}) ;
-    void push(const std::string &channel, const Chart &chart, ChannelUpdateAction a = ChannelReplaceAction, const std::string &object_id = {}) ;
-    void push(const std::string &channel, const Tabular &tab, ChannelUpdateAction a = ChannelReplaceAction, const std::string &object_id = {});
-    void push(const std::string &channel, const SceneMessage &scene, ChannelUpdateAction a = ChannelReplaceAction, const std::string &object_id = {});
+    void push(const std::string &channel, const Message &im, ChannelUpdateAction a = ChannelReplaceAction, const std::string &object_id = {}) ;
 
 private:
 

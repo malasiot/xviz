@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 
+#include <xviz/message.hpp>
 #include <xviz/pen.hpp>
 #include <xviz/brush.hpp>
 #include <xviz/marker.hpp>
@@ -28,8 +29,9 @@ struct Tick {
     double pos_ ;
 };
 
+class ChartCodec ;
 
-class Chart {
+class Chart: public Message {
 public:
     virtual ~Chart() = default ;
 
@@ -56,10 +58,13 @@ public:
         return annotations_ ;
     }
 
-    static std::string  write(const Chart *chart);
-    static Chart *read(const std::string &bytes) ;
+    std::string encode() const override ;
+    static Chart *decode(const std::string &bytes);
 
 protected:
+
+    friend class ChartCodec ;
+
     std::string title_, label_x_, label_y_ ;
     std::vector<Tick> ticks_x_, ticks_y_ ;
     std::vector<Annotation> annotations_ ;

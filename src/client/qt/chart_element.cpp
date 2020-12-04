@@ -32,7 +32,8 @@ void ChartElement::updateState(const xviz::msg::StateUpdate &state_update)
     if ( !channels_.contains(QByteArray::fromStdString(channel_id))) return ;
     string data = state_update.data() ;
 
-    auto chart = xviz::Chart::read(data) ;
+    xviz::Chart *chart = xviz::Chart::decode(data) ;
+
     if ( !chart ) return ;
 
     Chart *qchart = nullptr;

@@ -57,23 +57,9 @@ void Server::sendUpdateMessage(const std::string &channel, const string &data, C
     dispatchUpdateMessage(channel, msg.SerializeAsString());
 }
 
-void Server::push(const std::string &channel, const Image &im, ChannelUpdateAction a, const string &object_id) {
-    std::unique_ptr<msg::Image> im_msg(Image::write(im)) ;
-    sendUpdateMessage(channel, im_msg->SerializeAsString(), a, object_id);
-}
 
-
-void Server::push(const std::string &channel, const Chart &chart, ChannelUpdateAction a, const string &object_id) {
-    sendUpdateMessage(channel, Chart::write(&chart), a, object_id) ;
-}
-
-
-void Server::push(const std::string &channel, const Tabular &tab, ChannelUpdateAction a, const string &object_id) {
-    sendUpdateMessage(channel, Tabular::write(tab), a, object_id) ;
-}
-
-void Server::push(const string &channel, const SceneMessage &scene, ChannelUpdateAction a, const string &object_id) {
-     sendUpdateMessage(channel, SceneMessage::write(scene), a, object_id) ;
+void Server::push(const string &channel, const Message &msg, ChannelUpdateAction a, const string &object_id) {
+    sendUpdateMessage(channel, msg.encode(), a, object_id) ;
 }
 
 

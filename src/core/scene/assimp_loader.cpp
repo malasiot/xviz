@@ -487,7 +487,7 @@ bool AssimpImporter::importNodes(Node *pnode, const struct aiScene *sc, const st
         if ( cit != materials_.end() )
             mat = cit->second ;
 
-        Drawable *dr = new Drawable(geom, mat) ;
+        Drawable dr(geom, mat) ;
 
         snode->addDrawable(dr) ;
     }

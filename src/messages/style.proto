@@ -1,21 +1,7 @@
 
 package xviz.msg ;
 
-message Color {
-    required float r = 1;
-    required float g = 2;
-    required float b = 3;
-    required float a = 4;
-}
-
-message Matrix2d {
-    required double m1 = 1 ;
-    required double m2 = 2 ;
-    required double m3 = 3 ;
-    required double m4 = 4 ;
-    required double m5 = 5 ;
-    required double m6 = 6 ;
-}
+import "core.proto";
 
 message EmptyPen {
 }

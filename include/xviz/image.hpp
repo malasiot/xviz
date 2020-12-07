@@ -33,7 +33,7 @@ public:
     // Image from raw bytes
     Image(const unsigned char *bytes, ImageFormat fmt, uint32_t w, uint32_t h) ;
 
-    ImageType type() const { return type_ ; }
+    ImageType type() const ;
 
     // get image location if it is of type Uri
     std::string uri() const ;
@@ -55,7 +55,6 @@ public:
 
 private:
 
-    ImageType type_ ;
     std::shared_ptr<ImageData> data_ ;
 };
 

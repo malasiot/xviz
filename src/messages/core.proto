@@ -1,0 +1,42 @@
+package xviz.msg ;
+
+message Color {
+    required float r = 1;
+    required float g = 2;
+    required float b = 3;
+    required float a = 4;
+}
+
+message Matrix2d {
+    required double m1 = 1 ;
+    required double m2 = 2 ;
+    required double m3 = 3 ;
+    required double m4 = 4 ;
+    required double m5 = 5 ;
+    required double m6 = 6 ;
+}
+
+message ImageRaw {
+    enum Format {
+        RGB24 = 0 ;
+        RGBA32 = 1 ;
+        GRAY8 = 2 ;
+        ENCODED = 3 ;
+    }
+    required int32 width = 1 ;
+    required int32 height = 2 ;
+    required Format format = 3 ;
+    required bytes pixels = 4 ;
+}
+
+message Image {
+    oneof image {
+        ImageRaw raw_image = 1;
+        string image_uri = 2;
+    }
+}
+
+message ColorMap {
+    repeated float values = 1;
+    repeated Color colors = 2;
+}

@@ -1,6 +1,86 @@
 package xviz.msg ;
 
+import "core.proto";
+
+message VertexAttributeBuffer {
+    enum Type {
+        VERTICES = 0 ;
+        NORMALS = 1 ;
+        COLORS = 2 ;
+        UV = 3 ;
+    }
+    required Type type = 1;
+    repeated float data = 2;
+}
+
+message Mesh {
+    enum PrimitiveType {
+        LINES = 0;
+        POINTS = 1;
+        TRIANGLES = 2;
+    }
+
+    required uint64 id = 1;
+    required PrimitiveType type = 2;
+    repeated VertexAttributeBuffer attributes = 3;
+    repeated uint32 indices = 4;
+}
+
+message Drawable {
+    required uint64 mesh_id = 1;
+    required uint64 material_id = 2;
+}
+
+message Light {
+    required uint64 id = 1;
+}
+
+message Sampler2D {
+    enum TextureMapMode {
+        WRAP = 0;
+        CLAMP = 1;
+        DECAL = 2;
+    }
+
+    required TextureMapMode wrap_u = 1 ;
+    required TextureMapMode wrap_v = 2 ;
+}
+
+message Texture2D {
+    required Image image = 1 ;
+    required Sampler2D sampler = 2;
+}
+
+message PhongMaterial {
+    repeated float ambient = 1 ;
+    repeated float diffuse = 2 ;
+    repeated float specular = 3 ;
+    required float shininess = 4 ;
+    optional Texture2D diffuse_texture = 5 ;
+    optional Texture2D specular_texture = 6 ;
+}
+
+message Material {
+    required uint64 id = 1;
+    oneof material {
+        PhongMaterial phong_material = 2;
+    }
+}
+
+message Node {
+    required uint64 id = 1 ;
+    optional string name = 2 ;
+    repeated float mat = 3 ;
+    repeated uint64 children = 4 ;
+    repeated Drawable drawables = 5 ;
+    optional uint64 light_id = 6 ;
+}
+
 message Scene {
+    repeated Mesh meshes = 1 ;
+    repeated Node nodes = 2 ;
+    repeated Light lights = 3 ;
+    repeated Material material = 4 ;
 }
 
 message SceneMessage {

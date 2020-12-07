@@ -38,7 +38,7 @@ void SceneElement::updateState(const xviz::msg::StateUpdate &state_update) {
         string data = state_update.data() ;
 
         std::unique_ptr<xviz::SceneMessage> msg(xviz::SceneMessage::decode(data)) ;
-        if ( msg->type() == xviz::SceneMessage::Url ) {
+        if ( msg->type() == xviz::SceneMessageType::Url ) {
             loadScene(msg->url())  ;
         }
 

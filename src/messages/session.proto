@@ -1,5 +1,6 @@
 syntax = "proto2";
 
+import public "core.proto";
 import public "style.proto";
 import public "drawable.proto";
 import public "scene.proto";
@@ -28,30 +29,6 @@ message SessionConfig {
     repeated ConfigCommand cmds = 1;
 }
 
-message ImageRaw {
-    enum Format {
-        RGB24 = 0 ;
-        RGBA32 = 1 ;
-        GRAY8 = 2 ;
-        ENCODED = 3 ;
-    }
-    required int32 width = 1 ;
-    required int32 height = 2 ;
-    required Format format = 3 ;
-    required bytes pixels = 4 ;
-}
-
-message Image {
-    oneof image {
-        ImageRaw raw_image = 1;
-        string image_uri = 2;
-    }
-}
-
-message ColorMap {
-    repeated float values = 1;
-    repeated Color colors = 2;
-}
 
 message LineSeries {
     repeated double x = 1 ;

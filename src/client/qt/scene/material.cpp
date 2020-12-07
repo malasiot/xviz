@@ -353,3 +353,4 @@ void MaterialProgram::applyDefaultLight(uint light_index, const xviz::LightPtr &
 void MaterialProgram::use() {
     prog_.bind() ;
 }
+

@@ -142,7 +142,7 @@ void Renderer::render(const xviz::NodePtr &node, const Matrix4f &tf) {
     const auto &drawables = node->drawables() ;
 
     for( const auto &m: drawables )
-        render(m.get(), tr) ;
+        render(m, tr) ;
 
     for( uint i=0 ; i<node->numChildren() ; i++ ) {
         const xviz::NodePtr &n = node->getChild(i) ;
@@ -182,9 +182,9 @@ void Renderer::setLights(const MaterialProgramPtr &material) {
 }
 
 
-void Renderer::render(const xviz::Drawable *geom, const Matrix4f &mat)
+void Renderer::render(const xviz::Drawable &geom, const Matrix4f &mat)
 {
-    xviz::MeshPtr mesh = geom->geometry() ;
+    xviz::MeshPtr mesh = geom.geometry() ;
     if ( !mesh ) return ;
 
     auto it = meshes_.find(mesh.get()) ;
@@ -192,7 +192,7 @@ void Renderer::render(const xviz::Drawable *geom, const Matrix4f &mat)
 
     const MeshData &data = *it->second ;
 
-    xviz::MaterialPtr material = geom->material() ;
+    xviz::MaterialPtr material = geom.material() ;
 
     MaterialProgramPtr prog ;
 

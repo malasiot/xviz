@@ -88,7 +88,7 @@ private:
 
 private:
     void render(const xviz::NodePtr &node, const Eigen::Matrix4f &tf);
-    void render(const xviz::Drawable *geom, const Eigen::Matrix4f &mat);
+    void render(const xviz::Drawable &geom, const Eigen::Matrix4f &mat);
     void drawMeshData(const MeshData &data, xviz::MeshPtr mesh);
     void setLights(const MaterialProgramPtr &material);
     void setLights(const xviz::NodePtr &node, const Eigen::Affine3f &parent_tf, const MaterialProgramPtr &mat);

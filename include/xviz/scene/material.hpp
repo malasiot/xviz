@@ -9,6 +9,11 @@
 
 namespace xviz {
 
+namespace msg {
+    class Texture2D ;
+    class Sampler2D ;
+}
+
 class Sampler2D {
 public:
     enum TextureMapMode { WRAP, CLAMP, DECAL } ;
@@ -16,6 +21,13 @@ public:
     Sampler2D(TextureMapMode wrap_u, TextureMapMode wrap_v):
         wrap_u_(wrap_u), wrap_v_(wrap_v) {}
 
+    TextureMapMode mapModeU() const { return wrap_u_; }
+    TextureMapMode mapModeV() const { return wrap_v_; }
+
+    static msg::Sampler2D *write(const Sampler2D &s) ;
+    static Sampler2D *read(const msg::Sampler2D &msg) ;
+
+private:
     TextureMapMode wrap_u_ = WRAP, wrap_v_ = WRAP ;
 };
 
@@ -25,6 +37,10 @@ public:
     Texture2D(const xviz::Image &image, const Sampler2D &sampler): image_(image), sampler_(sampler) {}
 
     const xviz::Image &image() const { return image_ ; }
+    const xviz::Sampler2D &sampler() const { return sampler_ ; }
+
+    static msg::Texture2D *write(const Texture2D &t) ;
+    static Texture2D *read(const msg::Texture2D &msg) ;
 
 private:
     xviz::Image image_ ;

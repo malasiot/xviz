@@ -52,7 +52,7 @@ public:
     float geomRadius(const Eigen::Vector3f &center) const ;
 
     static msg::Scene *write(const Scene &scene) ;
-    static Scene *read(const msg::Scene *msg) ;
+    static Scene *read(const msg::Scene &msg) ;
 
 private:
 
@@ -68,15 +68,16 @@ public:
         std::runtime_error(message + "(" + fname  + ")") {}
 };
 
+enum class SceneMessageType { Url, Data, Empty } ;
+
 class SceneMessage: public Message {
 public:
-    enum Type { Url, SceneData, Empty } ;
 
-    SceneMessage(): type_(Empty) {}
-    SceneMessage(const std::string &url): type_(Url), url_(url) {}
-    SceneMessage(Scene *scene): type_(SceneData), scene_(scene) {}
+    SceneMessage(): type_(SceneMessageType::Empty) {}
+    SceneMessage(const std::string &url): type_(SceneMessageType::Url), url_(url) {}
+    SceneMessage(Scene *scene): type_(SceneMessageType::Data), scene_(scene) {}
 
-    Type type() const { return type_ ; }
+    SceneMessageType type() const { return type_ ; }
 
     const Scene *scene() const { return scene_.get() ; }
     const std::string &url() const { return url_ ; }
@@ -87,7 +88,7 @@ public:
 private:
     std::string url_ ;
     std::unique_ptr<Scene> scene_ ;
-    Type type_ = Empty ;
+    SceneMessageType type_ = SceneMessageType::Empty ;
 };
 
 }

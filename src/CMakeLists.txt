@@ -39,6 +39,7 @@ set(XVIZ_LIB_SOURCES
     core/scene/mesh.cpp
     core/scene/assimp_loader.cpp
     core/scene/camera.cpp
+    core/scene/material.cpp
 
     ${XVIZ_INCLUDE_DIR}/server.hpp
     ${XVIZ_INCLUDE_DIR}/channel.hpp
@@ -61,7 +62,7 @@ set(XVIZ_LIB_SOURCES
     ${XVIZ_INCLUDE_DIR}/scene/camera.hpp
 )
 
-protobuf_generate_cpp(PROTO_SRC PROTO_HDR messages/session.proto messages/style.proto messages/drawable.proto messages/scene.proto)
+protobuf_generate_cpp(PROTO_SRC PROTO_HDR messages/core.proto messages/session.proto messages/style.proto messages/drawable.proto messages/scene.proto)
 set_source_files_properties(${PROTO_SRC} ${PROTO_HDR} PROPERTIES GENERATED TRUE)
 
 add_library(xviz ${XVIZ_LIB_SOURCES} ${PROTO_SRC} ${PROTO_HDR})

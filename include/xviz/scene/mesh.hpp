@@ -132,7 +132,7 @@ private:
     vb3_t vertices_, normals_, colors_ ;
     vb2_t tex_coords_[MAX_TEXTURES] ;
     indices_t indices_ ;
-    std::vector<BoneWeight> weights_ ;
+   // std::vector<BoneWeight> weights_ ;
 //    std::vector<Bone> skeleton_ ;
 //    Eigen::Affine3f skeleton_inverse_global_transform_ = Eigen::Affine3f::Identity() ;
 

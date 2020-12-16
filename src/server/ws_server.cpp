@@ -94,7 +94,7 @@ void WebSocketServer::processBroadcastMessages()
         BroadcastMessage m = broadcast_messages_.front();
         broadcast_messages_.pop();
 
-        cout << m.channel_ << endl ;
+      //  cout << m.channel_ << endl ;
 
         lock.unlock();
 
@@ -158,11 +158,11 @@ void WebSocketServer::onMessage(websocketpp::connection_hdl hdl, message_ptr msg
     Session &session = getSessionFromConnectionHandle(hdl) ;
 
     auto payload = msg->get_payload() ;
-
+/*
     std::cout << "on_message called with hdl: " << hdl.lock().get()
               << " and message: " << payload
               << std::endl;
-
+*/
     try {
         msg::Message msg_body ;
         if ( msg_body.ParseFromString(payload) ) {

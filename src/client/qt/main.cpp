@@ -129,7 +129,10 @@ void onConnected() {
 
     server.push(tabularChannel, t) ;
 
-    server.push(sceneChannel, SceneMessage("models/BoxTextured.gltf")) ;
+
+    Scene *scene = new Scene ;
+    scene->load("/home/malasiot/Downloads/2CylinderEngine.glb");
+    server.push(sceneChannel, SceneMessage(scene)) ;
 
  //   Scene scene ;
  //   scene.load("/home/malasiot/Downloads/2CylinderEngine.glb");

@@ -287,6 +287,8 @@ Scene *Scene::read(const msg::Scene &msg) {
             for ( uint j=0 ; j<4 ; j++ )
                 mat(i, j) = node_msg.mat(count++) ;
 
+        node->setTransform(Affine3f(mat)) ;
+
         for( const msg::Drawable &msg_dr: node_msg.drawables() ) {
             MeshPtr mesh = mesh_map[msg_dr.mesh_id()] ;
             MaterialPtr material = material_map[msg_dr.material_id()] ;

@@ -79,7 +79,7 @@ public:
 
     SceneMessageType type() const { return type_ ; }
 
-    const Scene *scene() const { return scene_.get() ; }
+    ScenePtr scene() { return scene_ ; }
     const std::string &url() const { return url_ ; }
 
     std::string encode() const override ;
@@ -87,7 +87,7 @@ public:
 
 private:
     std::string url_ ;
-    std::unique_ptr<Scene> scene_ ;
+    ScenePtr scene_ ;
     SceneMessageType type_ = SceneMessageType::Empty ;
 };
 

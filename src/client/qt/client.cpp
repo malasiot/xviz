@@ -72,8 +72,8 @@ void WebSocketClient::onBinaryMessageReceived(QByteArray message) {
         }
 
     }
-    if (debug_)
-        qDebug() << "Message received:" << message;
+ //   if (debug_)
+  //      qDebug() << "Message received:" << message;
     //m_webSocket.close();
 }
 //! [onTextMessageReceived]

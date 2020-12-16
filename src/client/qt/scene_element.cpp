@@ -40,6 +40,10 @@ void SceneElement::updateState(const xviz::msg::StateUpdate &state_update) {
         std::unique_ptr<xviz::SceneMessage> msg(xviz::SceneMessage::decode(data)) ;
         if ( msg->type() == xviz::SceneMessageType::Url ) {
             loadScene(msg->url())  ;
+        } else if ( msg->type() == xviz::SceneMessageType::Data ) {
+
+            viewer_ = new SceneViewer(widget_, msg->scene()) ;
+            layout_->addWidget(viewer_) ;
         }
 
     }

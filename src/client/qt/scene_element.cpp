@@ -1,5 +1,5 @@
 #include "scene_element.hpp"
-#include "resource_loader.hpp"
+#include <xviz/qt/resource_loader.hpp>
 
 #include <xviz/scene/scene.hpp>
 
@@ -41,8 +41,7 @@ void SceneElement::updateState(const xviz::msg::StateUpdate &state_update) {
         if ( msg->type() == xviz::SceneMessageType::Url ) {
             loadScene(msg->url())  ;
         } else if ( msg->type() == xviz::SceneMessageType::Data ) {
-
-            viewer_ = new SceneViewer(widget_, msg->scene()) ;
+            viewer_ = new SceneViewer(msg->scene(), widget_) ;
             layout_->addWidget(viewer_) ;
         }
 
@@ -69,7 +68,7 @@ void SceneElement::loadScene(const string &url)
             xviz::ScenePtr scene(new xviz::Scene) ;
             scene->load(file.fileName().toStdString()) ;
 
-            viewer_ = new SceneViewer(widget_, scene) ;
+            viewer_ = new SceneViewer(scene, widget_) ;
             layout_->addWidget(viewer_) ;
         }
     });

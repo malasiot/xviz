@@ -1,4 +1,4 @@
-#include "legend.hpp"
+#include <xviz/qt/chart/legend.hpp>
 
 void Legend::draw(QPainter &c,  const QVector<LegendEntry> &entries, qreal w, qreal h)
 {

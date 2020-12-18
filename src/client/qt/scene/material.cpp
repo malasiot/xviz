@@ -1,4 +1,5 @@
-#include "material.hpp"
+#include <xviz/qt/scene/material.hpp>
+
 #include <xviz/scene/material.hpp>
 #include <xviz/scene/light.hpp>
 

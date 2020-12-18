@@ -1,4 +1,6 @@
-#include "renderer.hpp"
+#include <xviz/qt/scene/renderer.hpp>
+#include <xviz/qt/scene/mesh_data.hpp>
+#include <xviz/qt/scene/material.hpp>
 
 #include <xviz/scene/scene.hpp>
 #include <xviz/scene/node.hpp>
@@ -12,9 +14,8 @@
 #include <QImage>
 #include <QOpenGLTexture>
 
-#include "mesh_data.hpp"
-#include "material.hpp"
-#include "../resource_loader.hpp"
+#include <xviz/qt/resource_loader.hpp>
+
 #include "../qt_graphics_helpers.hpp"
 
 #define POSITION_LOCATION    0
@@ -96,8 +97,8 @@ void Renderer::render(const xviz::CameraPtr &cam) {
     glCullFace(GL_BACK) ;
     glFrontFace(GL_CCW) ;
 
-//    glEnable (GL_BLEND);
- //   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable (GL_BLEND);
+   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     Vector4f bg_clr = cam->bgColor() ;
 

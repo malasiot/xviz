@@ -1,4 +1,4 @@
-#include "axis.hpp"
+#include <xviz/qt/chart/axis.hpp>
 
 #include <cmath>
 using namespace std ;

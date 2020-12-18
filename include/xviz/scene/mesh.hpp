@@ -92,11 +92,8 @@ public:
 */
     PrimitiveType ptype() const { return ptype_ ; }
 
-    // it is a simple triangle mesh with per-pertex attributes
-    bool isSimpleIndexed() const ;
-
     // primitive shape factories
-/*
+
     static MeshPtr createWireCube(const Eigen::Vector3f &hs) ;
     static MeshPtr createSolidCube(const Eigen::Vector3f &hs) ;
 
@@ -113,19 +110,13 @@ public:
 
     static MeshPtr createCapsule(float radius, float height, size_t slices, size_t head_stacks, size_t body_stacks) ;
 
-    static MeshPtr makePointCloud(const cvx::util::PointList3f &pts) ;
-    static MeshPtr makePointCloud(const cvx::util::PointList3f &coords, const cvx::util::PointList3f &clrs) ;
+    static MeshPtr makePointCloud(const std::vector<Eigen::Vector3f> &pts) ;
+    static MeshPtr makePointCloud(const std::vector<Eigen::Vector3f> &coords,
+                                  const std::vector<Eigen::Vector3f> &clrs) ;
 
     void computeNormals() ;
     void computeBoundingBox(Eigen::Vector3f &bmin, Eigen::Vector3f &bmax) const ;
     void makeOctree() ;
-
-//    bool intersect(const cvx::viz::Ray &ray, float &t) const override ;
-
-    // create a new mesh without indices
-    static MeshPtr flatten(const MeshPtr &src) ;
-*/
-    // get underlying OpenGL buffer data
 
 private:
 

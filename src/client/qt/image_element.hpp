@@ -2,7 +2,7 @@
 #define XVIZ_QT_IMAGE_ELEMENT_HPP
 
 #include "ui_element_factory.hpp"
-#include "image_widget.hpp"
+#include <xviz/qt/image_widget.hpp>
 
 #include <QUrl>
 #include <QNetworkAccessManager>

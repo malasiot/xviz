@@ -1,4 +1,5 @@
-#include "main_window.hpp"
+#include <xviz/qt/main_window.hpp>
+
 #include "ui_element_factory.hpp"
 
 #include <QHBoxLayout>

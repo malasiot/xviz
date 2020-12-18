@@ -2,7 +2,7 @@
 #define XVIZ_QT_SCENE_ELEMENT_HPP
 
 #include "ui_element_factory.hpp"
-#include "scene/viewer.hpp"
+#include <xviz/qt/scene/viewer.hpp>
 
 #include <QUrl>
 #include <QNetworkAccessManager>

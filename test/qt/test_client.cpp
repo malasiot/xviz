@@ -3,10 +3,10 @@
 #include <QCommandLineOption>
 #include <QSurfaceFormat>
 
-#include "client.hpp"
+#include <xviz/qt/ws_client.hpp>
 
-#include "main_window.hpp"
-#include "resource_loader.hpp"
+#include <xviz/qt/main_window.hpp>
+#include <xviz/qt/resource_loader.hpp>
 
 #include <thread>
 #include <iostream>

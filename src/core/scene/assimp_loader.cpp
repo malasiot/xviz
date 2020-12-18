@@ -571,6 +571,7 @@ void Scene::load(const std::string &fname, int options, float scale) {
     const aiScene *sc = aiImportFile(fname.c_str(),
     aiProcess_GenNormals
   | aiProcess_Triangulate
+  | aiProcess_FixInfacingNormals
   | aiProcess_JoinIdenticalVertices
   | aiProcess_SortByPType
   | aiProcess_OptimizeMeshes

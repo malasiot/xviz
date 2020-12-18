@@ -2,7 +2,7 @@
 #define XVIZ_QT_CHART_ELEMENT_HPP
 
 #include "ui_element_factory.hpp"
-#include "chart/chart_widget.hpp"
+#include <xviz/qt/chart/chart_widget.hpp>
 #include <QUrl>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>

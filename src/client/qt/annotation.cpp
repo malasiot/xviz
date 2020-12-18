@@ -1,4 +1,4 @@
-#include "annotation.hpp"
+#include <xviz/qt/annotation.hpp>
 #include "qt_graphics_helpers.hpp"
 
 void AnnotationPainter::paint(QPainter &c, const xviz::Matrix2d &m) {

@@ -1,4 +1,5 @@
-#include "bar_chart.hpp"
+#include <xviz/qt/chart/bar_chart.hpp>
+
 #include "../qt_graphics_helpers.hpp"
 #include <limits>
 #include <QPainterPath>

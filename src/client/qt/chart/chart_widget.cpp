@@ -1,5 +1,5 @@
-#include "chart_widget.hpp"
-#include "../annotation.hpp"
+#include <xviz/qt/chart/chart_widget.hpp>
+#include <xviz/qt/annotation.hpp>
 #include <QPainter>
 
 using namespace std ;

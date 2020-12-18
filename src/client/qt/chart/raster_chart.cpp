@@ -1,4 +1,4 @@
-#include "raster_chart.hpp"
+#include <xviz/qt/chart/raster_chart.hpp>
 
 QRasterChart::QRasterChart(const xviz::RasterChart *rc): Chart(rc) {
 

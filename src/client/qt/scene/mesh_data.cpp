@@ -1,4 +1,4 @@
-#include "mesh_data.hpp"
+#include <xviz/qt/scene/mesh_data.hpp>
 
 #define POSITION_LOCATION    0
 #define NORMALS_LOCATION    1

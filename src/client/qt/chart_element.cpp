@@ -1,8 +1,9 @@
 #include "chart_element.hpp"
 #include "qt_graphics_helpers.hpp"
-#include "chart/line_chart.hpp"
-#include "chart/bar_chart.hpp"
-#include "chart/raster_chart.hpp"
+
+#include <xviz/qt/chart/line_chart.hpp>
+#include <xviz/qt/chart/bar_chart.hpp>
+#include <xviz/qt/chart/raster_chart.hpp>
 
 #include <xviz/chart.hpp>
 #include <xviz/line_chart.hpp>

@@ -1,4 +1,4 @@
-#include "trackball.hpp"
+#include <xviz/qt/scene/trackball.hpp>
 
 #include <xviz/scene/scene.hpp>
 #include <xviz/scene/camera.hpp>

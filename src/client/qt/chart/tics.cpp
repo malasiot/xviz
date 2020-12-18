@@ -1,4 +1,4 @@
-#include "tics.hpp"
+#include <xviz/qt/chart/tics.hpp>
 #include <cmath>
 
 using namespace std ;

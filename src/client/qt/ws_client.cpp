@@ -1,4 +1,4 @@
-#include "client.hpp"
+#include <xviz/qt/ws_client.hpp>
 #include <QtCore/QDebug>
 #include <QtCore/QJsonObject>
 #include <QtCore/QJsonArray>

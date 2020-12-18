@@ -1,4 +1,4 @@
-#include "image_widget.hpp"
+#include <xviz/qt/image_widget.hpp>
 
 #include <QTimer>
 #include <QToolButton>

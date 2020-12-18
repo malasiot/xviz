@@ -1,4 +1,5 @@
-#include "viewer.hpp"
+#include <xviz/qt/scene/viewer.hpp>
+
 #include <xviz/scene/scene.hpp>
 #include <xviz/scene/light.hpp>
 #include <xviz/scene/node.hpp>
@@ -7,7 +8,7 @@
 using namespace std ;
 using namespace Eigen ;
 
-SceneViewer::SceneViewer(QWidget *parent, const xviz::ScenePtr &scene): QOpenGLWidget(parent), scene_(scene) {
+SceneViewer::SceneViewer(const xviz::ScenePtr &scene, QWidget *parent): QOpenGLWidget(parent), scene_(scene) {
     setFocusPolicy(Qt::StrongFocus) ;
 
     //scene_.reset(new xviz::Scene) ;

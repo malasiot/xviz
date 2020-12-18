@@ -1,4 +1,4 @@
-#include "color_ramp.hpp"
+#include <xviz/qt/chart/color_ramp.hpp>
 
 #include <QFontMetrics>
 

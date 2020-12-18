@@ -1,4 +1,4 @@
-#include "resource_loader.hpp"
+#include <xviz/qt/resource_loader.hpp>
 
 #include <QNetworkReply>
 #include <QFile>

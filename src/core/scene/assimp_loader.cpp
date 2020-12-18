@@ -4,6 +4,7 @@
 #include <xviz/scene/mesh.hpp>
 #include <xviz/scene/light.hpp>
 #include <xviz/scene/material.hpp>
+#include <xviz/scene/geometry.hpp>
 
 #include <xviz/optional.hpp>
 
@@ -267,7 +268,7 @@ bool AssimpImporter::importMeshes(const aiScene *sc) {
         }
 #endif
         meshes_[mesh] = smesh ;
-        scene_.addMesh(smesh) ;
+        scene_.addGeometry(GeometryPtr(new MeshGeometry(smesh))) ;
     }
 
     return true ;

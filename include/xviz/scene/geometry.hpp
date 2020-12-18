@@ -22,7 +22,7 @@ protected:
 
 class MeshGeometry: public Geometry {
 public:
-    MeshGeometry(const MeshPtr &mesh, float s) ;
+    MeshGeometry(const MeshPtr &mesh) ;
 
     bool intersect(const Ray &ray, float &t) const override ;
 

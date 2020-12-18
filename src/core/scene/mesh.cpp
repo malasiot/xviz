@@ -1,9 +1,61 @@
 #include <xviz/scene/mesh.hpp>
 
+#include <xviz/scene/detail/octree.hpp>
+
+#include <fstream>
+
 using namespace Eigen ;
 using namespace std ;
 
 namespace xviz {
+
+
+static MeshPtr flatten(const std::vector<Vector3f> &vertices, const std::vector<uint32_t> &vtx_indices,
+    const std::vector<Vector3f> &normals, const std::vector<uint32_t> &nrm_indices,
+                       const std::vector<Vector2f> &uvs = {}, const std::vector<uint32_t> &uv_indices = {}) {
+
+    // check if we need to flatten otherwise return src mesh
+
+    MeshPtr dst(new Mesh(Mesh::Triangles)) ;
+
+    auto &dst_vertices = dst->vertices() ;
+    auto &dst_normals = dst->normals() ;
+    auto &dst_uvs = dst->texCoords(0) ;
+
+    size_t n_indices = vtx_indices.size() ;
+
+    for( uint i=0 ; i<n_indices ; i++) {
+
+        uint32_t vidx = vtx_indices[i] ;
+        const Vector3f &pos = vertices[vidx] ;
+        dst_vertices.push_back(pos) ;
+
+        if ( !nrm_indices.empty() ) {
+            uint32_t nidx = nrm_indices[i] ;
+            const Vector3f &normal = normals[nidx] ;
+            dst_normals.push_back(normal) ;
+        } else if ( !normals.empty() ) {
+            const Vector3f &norm = normals[vidx] ;
+            dst_normals.push_back(norm) ;
+        }
+
+        if ( !uv_indices.empty() ) {
+            uint32_t nidx = uv_indices[i] ;
+            const Vector2f &uv = uvs[nidx] ;
+            dst_uvs.push_back(uv) ;
+        } else if ( !uvs.empty() ) {
+            const Vector2f &uv = uvs[vidx] ;
+            dst_uvs.push_back(uv) ;
+        }
+    }
+
+    return dst ;
+}
+
+Mesh::~Mesh()
+{
+
+}
 
 MeshPtr Mesh::createWireCube(const Vector3f &hs) {
 
@@ -226,7 +278,7 @@ MeshPtr Mesh::createSolidCylinder(float radius, float height, size_t slices, siz
 
         vtx_indices.push_back(i+1) ;
         vtx_indices.push_back(0) ;
-        vtx_indices.indices().push_back(i == slices-1 ? 1 : i+2) ;
+        vtx_indices.push_back(i == slices-1 ? 1 : i+2) ;
 
         nrm_indices.push_back(0) ;
         nrm_indices.push_back(0) ;
@@ -253,7 +305,7 @@ MeshPtr Mesh::createSolidCylinder(float radius, float height, size_t slices, siz
 
             vtx_indices.push_back((j-1)*slices + i + 1) ;
             vtx_indices.push_back((j)*slices + pn + 1) ;
-            vtx_indices.indices().push_back((j)*slices + i + 1) ;
+            vtx_indices.push_back((j)*slices + i + 1) ;
 
             nrm_indices.push_back(i + 1) ;
             nrm_indices.push_back(pn + 1) ;
@@ -326,7 +378,7 @@ MeshPtr Mesh::createCapsule(float radius, float height, size_t slices, size_t he
             size_t pn = ( i == slices - 1 ) ? 0 : i+1 ;
             vtx_indices.push_back((j-1)*slices + i) ;
             vtx_indices.push_back((j-1)*slices + pn) ;
-            vtx_indices.indices().push_back((j)*slices + pn) ;
+            vtx_indices.push_back((j)*slices + pn) ;
 
             vtx_indices.push_back((j-1)*slices + i) ;
             vtx_indices.push_back((j)*slices + pn) ;
@@ -379,39 +431,38 @@ static Vector3f normal_triangle(const Vector3f &v1, const Vector3f &v2, const Ve
     return  n1.cross(n2).normalized() ;
 
 }
+
 void Mesh::computeNormals() {
-    assert( hasIndices() ) ;
 
     size_t n = vertices().size() ;
     normals_.resize(n) ;
 
-    for( int i=0 ; i<n ; i++ ) normals_.data()[i] = Vector3f::Zero() ;
+    for( uint i=0 ; i<n ; i++ ) normals_.data()[i] = Vector3f::Zero() ;
 
-    for( int i=0 ; i<vertices().indices().size() ; i+=3 )
+    for( uint i=0 ; i<indices_.size() ; i+=3 )
     {
-        uint idx0 = vertices().indices()[i] ;
-        uint idx1 = vertices().indices()[i+1] ;
-        uint idx2 = vertices().indices()[i+2] ;
+        uint idx0 = indices_[i] ;
+        uint idx1 = indices_[i+1] ;
+        uint idx2 = indices_[i+2] ;
         Vector3f n = normal_triangle(vertices().data()[idx0], vertices().data()[idx1], vertices().data()[idx2]) ;
 
-        normals_.data()[idx0] += n ;
-        normals_.data()[idx1] += n ;
-        normals_.data()[idx2] += n ;
+        normals_[idx0] += n ;
+        normals_[idx1] += n ;
+        normals_[idx2] += n ;
     }
 
-    for( int i=0 ; i<n ; i++ ) normals_.data()[i].normalize() ;
+    for( uint i=0 ; i<n ; i++ ) normals_[i].normalize() ;
 }
 
 
 
 void Mesh::computeBoundingBox(Vector3f &vmin, Vector3f &vmax) const {
 
-    auto &&vertices = vertices_.data() ;
-    assert( !vertices.empty() ) ;
+    assert( !vertices_.empty() ) ;
 
-    vmin = vertices[0] ;
+    vmin = vertices_[0] ;
 
-    for( const Vector3f &v: vertices ) {
+    for( const Vector3f &v: vertices_ ) {
         vmin.x() = std::min(vmin.x(), v.x()) ;
         vmin.y() = std::min(vmin.y(), v.y()) ;
         vmin.z() = std::min(vmin.z(), v.z()) ;
@@ -421,24 +472,24 @@ void Mesh::computeBoundingBox(Vector3f &vmin, Vector3f &vmax) const {
     }
 }
 
-void Mesh::makeOctree()
-{
+void Mesh::makeOctree() {
     assert( this->ptype_ == Mesh::Triangles ) ;
-
-    octree_ = new detail::Octree(*this, 5) ;
+    octree_.reset(new detail::Octree(5)) ;
+    octree_->create(*this) ;
 }
 
 
 
 bool Mesh::intersect(const Ray &ray, float &t) const
 {
-    if ( octree_ == nullptr ) return false ;
+    if ( !octree_ ) return false ;
 
     uint tindex ;
     octree_->intersect(ray, tindex, t) ;
 
     return true ;
 }
+
 MeshPtr Mesh::createWireCylinder(float radius, float height, size_t slices, size_t stacks)
 {
     MeshPtr m(new Mesh(Lines)) ;
@@ -452,41 +503,41 @@ MeshPtr Mesh::createWireCylinder(float radius, float height, size_t slices, size
 
     z0 = 0.0;
 
+
     for( uint i=0 ; i<slices ; i++ ) {
-        m->vertices().data().push_back({cost[i]*radius, sint[i]*radius, z0}) ;
+        m->vertices().push_back({cost[i]*radius, sint[i]*radius, z0}) ;
     }
 
     for( uint i=0 ; i<slices ; i++ ) {
-        m->vertices().data().push_back({cost[i]*radius, sint[i]*radius, z0 + height}) ;
+        m->vertices().push_back({cost[i]*radius, sint[i]*radius, z0 + height}) ;
     }
 
     for( uint i=0 ; i<slices-1 ; i++ ) {
-        m->vertices().indices().push_back(i) ;
-        m->vertices().indices().push_back(i+1) ;
+        m->indices().push_back(i) ;
+        m->indices().push_back(i+1) ;
     }
-    m->vertices().indices().push_back(slices-1) ;
-    m->vertices().indices().push_back(0) ;
+    m->indices().push_back(slices-1) ;
+    m->indices().push_back(0) ;
 
     uint offset = slices ;
 
     for( uint i=0 ; i<slices-1 ; i++ ) {
-        m->vertices().indices().push_back(offset + i) ;
-        m->vertices().indices().push_back(offset + i+1) ;
+        m->indices().push_back(offset + i) ;
+        m->indices().push_back(offset + i+1) ;
     }
-    m->vertices().indices().push_back(offset + slices-1) ;
-    m->vertices().indices().push_back(offset) ;
+    m->indices().push_back(offset + slices-1) ;
+    m->indices().push_back(offset) ;
 
     for( uint i=0 ; i<slices ; i++ ) {
-
-        m->vertices().indices().push_back(i) ;
-        m->vertices().indices().push_back(i + offset) ;
+        m->indices().push_back(i) ;
+        m->indices().push_back(i + offset) ;
     }
 
     return m ;
 }
 
 
-static void exportToObj(const std::string &fname, const PointList3f &vertices, const PointList3f &normals, const std::vector<uint> &indices) {
+static void exportToObj(const std::string &fname, const std::vector<Vector3f> &vertices, const std::vector<Vector3f> &normals, const std::vector<uint> &indices) {
     ofstream strm(fname) ;
 
     for( uint i=0 ;i<vertices.size() ; i++ ) {
@@ -501,9 +552,11 @@ static void exportToObj(const std::string &fname, const PointList3f &vertices, c
         strm << "f " << indices[i] + 1 << ' ' << indices[i+1] +1<< ' ' << indices[i+2] + 1<< endl ;
     }
 }
+
 MeshPtr Mesh::createSolidSphere(float radius, size_t slices, size_t stacks) {
 
     MeshPtr m(new Mesh(Triangles)) ;
+
     int idx = 0;
     float x,y,z;
     int n_vertices ;
@@ -521,14 +574,14 @@ MeshPtr Mesh::createSolidSphere(float radius, size_t slices, size_t stacks) {
     makeCircleTable(sint1, cost1, -slices, false) ;
     makeCircleTable(sint2, cost2, stacks, true) ;
 
-    m->vertices().data().resize(n_vertices) ;
-    m->normals().data().resize(n_vertices) ;
+    m->vertices().resize(n_vertices) ;
+    m->normals().resize(n_vertices) ;
 
     /* top */
 
     auto &&vertices = m->vertices().data() ;
     auto &&normals = m->normals().data() ;
-    auto &&indices = m->vertices().indices() ;
+    auto &&indices = m->indices() ;
 
     vertices[0] = { 0.f, 0.f, radius } ;
     normals[0] = { 0.f, 0.f, 1.0f } ;

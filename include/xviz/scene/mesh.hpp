@@ -2,11 +2,14 @@
 #define XVIZ_SCENE_MESH_HPP
 
 #include <xviz/scene/scene_fwd.hpp>
+#include <xviz/scene/camera.hpp>
+#include <xviz/scene/detail/octree.hpp>
 #include <vector>
 
 #include <Eigen/Geometry>
 
 namespace xviz {
+
 
 const int MAX_TEXTURES = 2 ;
 
@@ -18,7 +21,7 @@ public:
     using indices_t = std::vector<uint32_t> ;
 
     Mesh(PrimitiveType t): ptype_(t) {}
-     ~Mesh() = default;
+    ~Mesh() ;
 
     using vb3_t = std::vector<Eigen::Vector3f> ;
     using vb2_t = std::vector<Eigen::Vector2f> ;
@@ -118,6 +121,9 @@ public:
     void computeBoundingBox(Eigen::Vector3f &bmin, Eigen::Vector3f &bmax) const ;
     void makeOctree() ;
 
+    bool intersect(const Ray &ray, float &t) const;
+
+
 private:
 
     vb3_t vertices_, normals_, colors_ ;
@@ -127,12 +133,9 @@ private:
 //    std::vector<Bone> skeleton_ ;
 //    Eigen::Affine3f skeleton_inverse_global_transform_ = Eigen::Affine3f::Identity() ;
 
-    PrimitiveType ptype_ ;
-//    detail::Octree *octree_ = nullptr ;
 
-//    void makeMeshData()  ;
-
-//    std::shared_ptr<detail::MeshData> data_ = nullptr ;
+    PrimitiveType ptype_ = Triangles ;
+    std::unique_ptr<detail::Octree> octree_ = nullptr ;
 
 };
 

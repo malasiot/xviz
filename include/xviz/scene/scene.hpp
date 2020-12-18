@@ -25,8 +25,8 @@ public:
         nodes_.push_back(node) ;
     }
 
-    void addMesh(MeshPtr mesh) {
-        meshes_.push_back(mesh) ;
+    void addGeometry(GeometryPtr geom) {
+        geometries_.push_back(geom) ;
     }
 
     void addMaterial(MaterialPtr mat) {
@@ -37,7 +37,7 @@ public:
         lights_.push_back(l) ;
     }
 
-    const std::vector<MeshPtr> &meshes() const { return meshes_ ; }
+    const std::vector<GeometryPtr> &geometries() const { return geometries_ ; }
     const std::vector<NodePtr> &nodes() const { return nodes_ ; }
     const std::vector<MaterialPtr> &materials() const { return materials_ ; }
     const std::vector<LightPtr> &lights() const { return lights_ ; }
@@ -57,7 +57,7 @@ public:
 private:
 
     std::vector<NodePtr> nodes_ ;
-    std::vector<MeshPtr> meshes_ ;
+    std::vector<GeometryPtr> geometries_ ;
     std::vector<MaterialPtr> materials_ ;
     std::vector<LightPtr> lights_ ;
 };

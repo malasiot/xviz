@@ -1,4 +1,4 @@
-#include "intersect.hpp"
+#include <xviz/scene/detail/intersect.hpp>
 
 using namespace Eigen ;
 

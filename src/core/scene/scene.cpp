@@ -57,8 +57,8 @@ msg::Scene *Scene::write(const Scene &scene) {
     // write meshes
 
     uint64_t id = 0 ;
-    std::map<MeshPtr, uint64_t> mesh_map ;
-    for( const MeshPtr &mesh: scene.meshes() ) {
+    std::map<GeometryPtr, uint64_t> mesh_map ;
+    for( const GeometryPtr &geom: scene.geometries() ) {
         msg::Mesh *msg_mesh = msg_scene->add_meshes() ;
         mesh_map[mesh] = id ;
         msg_mesh->set_id(id++) ;

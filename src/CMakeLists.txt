@@ -42,7 +42,8 @@ set(XVIZ_LIB_SOURCES
     core/scene/material.cpp
     core/scene/geometry.cpp
     core/scene/intersect.cpp
-    core/scene/intersect.hpp
+    core/scene/octree.cpp
+
 
     ${XVIZ_INCLUDE_DIR}/server.hpp
     ${XVIZ_INCLUDE_DIR}/channel.hpp
@@ -64,6 +65,8 @@ set(XVIZ_LIB_SOURCES
     ${XVIZ_INCLUDE_DIR}/scene/material.hpp
     ${XVIZ_INCLUDE_DIR}/scene/camera.hpp
     ${XVIZ_INCLUDE_DIR}/scene/geometry.hpp
+    ${XVIZ_INCLUDE_DIR}/scene/detail/octree.hpp
+    ${XVIZ_INCLUDE_DIR}/scene/detail/intersect.hpp
 )
 
 protobuf_generate_cpp(PROTO_SRC PROTO_HDR messages/core.proto messages/session.proto messages/style.proto messages/drawable.proto messages/scene.proto)

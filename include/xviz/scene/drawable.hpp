@@ -11,18 +11,18 @@ namespace xviz {
 class Drawable {
 public:
 
-    Drawable(const MeshPtr &geom, const MaterialPtr &material):
+    Drawable(const GeometryPtr &geom, const MaterialPtr &material):
         geometry_(geom), material_(material) {}
 
-    MeshPtr geometry() const { return geometry_ ; }
+    GeometryPtr geometry() const { return geometry_ ; }
     MaterialPtr material() const { return material_ ; }
 
     void setMaterial(MaterialPtr mat) { material_ = mat ; }
-    void setGeometry(MeshPtr geom) { geometry_ = geom ; }
+    void setGeometry(GeometryPtr geom) { geometry_ = geom ; }
 
 private:
 
-    MeshPtr geometry_ ;
+    GeometryPtr geometry_ ;
     MaterialPtr material_ ;
 };
 

@@ -32,6 +32,9 @@ public:
     void setName(const std::string &name) { name_ = name ; }
 
     void addDrawable(const Drawable &d) { drawables_.emplace_back(d) ; }
+    void addDrawable(const GeometryPtr &geom, const MaterialPtr &material) {
+        drawables_.emplace_back(geom, material) ;
+    }
 
     void addChild(const NodePtr &n) {
         children_.push_back(n) ;

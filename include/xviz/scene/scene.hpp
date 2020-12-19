@@ -25,22 +25,16 @@ public:
         nodes_.push_back(node) ;
     }
 
-    void addGeometry(GeometryPtr geom) {
-        geometries_.push_back(geom) ;
-    }
-
-    void addMaterial(MaterialPtr mat) {
-        materials_.push_back(mat) ;
-    }
-
     void addLight(LightPtr l) {
-        lights_.push_back(l) ;
+        NodePtr node(new Node) ;
+        node->setLight(l) ;
+        nodes_.push_back(node) ;
     }
 
-    const std::vector<GeometryPtr> &geometries() const { return geometries_ ; }
+    const std::vector<Geometry *> geometries() const ;
     const std::vector<NodePtr> &nodes() const { return nodes_ ; }
-    const std::vector<MaterialPtr> &materials() const { return materials_ ; }
-    const std::vector<LightPtr> &lights() const { return lights_ ; }
+    const std::vector<Material *> materials() const ;
+    const std::vector<LightPtr> lights() const ;
 
     void visitNodes(const std::function<void(const Node &n)> &f) const{
         for( const auto &node: nodes_ ) {
@@ -57,8 +51,6 @@ public:
 private:
 
     std::vector<NodePtr> nodes_ ;
-    std::vector<GeometryPtr> geometries_ ;
-    std::vector<MaterialPtr> materials_ ;
     std::vector<LightPtr> lights_ ;
 };
 

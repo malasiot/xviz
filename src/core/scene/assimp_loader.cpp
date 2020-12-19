@@ -14,6 +14,7 @@
 
 #include <Eigen/Dense>
 #include <iostream>
+#include <unordered_map>
 
 using namespace std ;
 using namespace Eigen ;
@@ -34,7 +35,7 @@ public:
 
     Scene &scene_ ;
 
-    map<const aiMesh *, MeshPtr> meshes_ ;
+    map<const aiMesh *, GeometryPtr> meshes_ ;
     map<const aiMaterial *, MaterialPtr> materials_ ;
     map<string, LightPtr> lights_ ;
     map<string, CameraPtr> cameras_ ;
@@ -164,7 +165,7 @@ bool AssimpImporter::importMaterials(const string &mpath, const aiScene *sc) {
         const aiMaterial *material = sc->mMaterials[m] ;
         MaterialPtr smat = importMaterial(sc, material, mpath) ;
         materials_[material] = smat ;
-        scene_.addMaterial(smat) ;
+ //       scene_.addMaterial(smat) ;
     }
 
     return true ;
@@ -177,11 +178,11 @@ bool AssimpImporter::importMeshes(const aiScene *sc) {
 
         //   if ( mesh->mPrimitiveTypes != aiPrimitiveType_TRIANGLE ) continue ;
 
-        MeshPtr smesh ;
+        GeometryPtr smesh ;
 
-        if ( mesh->mPrimitiveTypes == aiPrimitiveType_TRIANGLE ) smesh.reset(new Mesh(Mesh::Triangles)) ;
-        else if ( mesh->mPrimitiveTypes == aiPrimitiveType_LINE ) smesh.reset(new Mesh(Mesh::Lines)) ;
-        else if ( mesh->mPrimitiveTypes == aiPrimitiveType_POINT ) smesh.reset(new Mesh(Mesh::Points)) ;
+        if ( mesh->mPrimitiveTypes == aiPrimitiveType_TRIANGLE ) smesh.reset(new Geometry(Geometry::Triangles)) ;
+        else if ( mesh->mPrimitiveTypes == aiPrimitiveType_LINE ) smesh.reset(new Geometry(Geometry::Lines)) ;
+        else if ( mesh->mPrimitiveTypes == aiPrimitiveType_POINT ) smesh.reset(new Geometry(Geometry::Points)) ;
         else continue ;
 
         if ( mesh->HasPositions() ) {
@@ -268,7 +269,6 @@ bool AssimpImporter::importMeshes(const aiScene *sc) {
         }
 #endif
         meshes_[mesh] = smesh ;
-        scene_.addGeometry(GeometryPtr(new MeshGeometry(smesh))) ;
     }
 
     return true ;
@@ -332,7 +332,7 @@ bool AssimpImporter::importLights(const aiScene *sc) {
         if ( slight ) {
             slight->name_ = light->mName.C_Str() ;
             lights_[slight->name_] = slight ;
-            scene_.addLight(slight) ;
+//            scene_.addLight(slight) ;
         }
     }
 
@@ -473,11 +473,11 @@ bool AssimpImporter::importNodes(Node *pnode, const struct aiScene *sc, const st
 
         const aiMesh* mesh = sc->mMeshes[nd->mMeshes[n]];
 
-        map<const aiMesh *, MeshPtr>::const_iterator mit = meshes_.find(mesh) ;
+        map<const aiMesh *, GeometryPtr>::const_iterator mit = meshes_.find(mesh) ;
 
         if ( mit == meshes_.end() ) continue ;
 
-        MeshPtr geom = mit->second ;
+        GeometryPtr geom = mit->second ;
 
         const aiMaterial* material = sc->mMaterials[mesh->mMaterialIndex];
 
@@ -488,9 +488,7 @@ bool AssimpImporter::importNodes(Node *pnode, const struct aiScene *sc, const st
         if ( cit != materials_.end() )
             mat = cit->second ;
 
-        Drawable dr(geom, mat) ;
-
-        snode->addDrawable(dr) ;
+        snode->addDrawable(geom, mat) ;
     }
 
     auto lit = lights_.find(nname) ;
@@ -518,7 +516,7 @@ bool AssimpImporter::importNodes(Node *pnode, const struct aiScene *sc, const st
 #if 0
 bool AssimpImporter::findSkeletonHierarchies() {
     for( auto lp: meshes_ ) {
-        MeshPtr &mesh = lp.second ;
+        MeshPtr &Mesh = lp.second ;
         if ( mesh->hasSkeleton() ) {
             auto &skeleton = mesh->skeleton() ;
             std::set<Node *> nodes ;
@@ -600,6 +598,7 @@ void Scene::load(const aiScene *sc, const std::string &fname, int options, float
     }
 
 }
+
 
 
 }

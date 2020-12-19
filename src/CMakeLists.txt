@@ -36,7 +36,6 @@ set(XVIZ_LIB_SOURCES
 
     core/scene/node.cpp
     core/scene/scene.cpp
-    core/scene/mesh.cpp
     core/scene/assimp_loader.cpp
     core/scene/camera.cpp
     core/scene/material.cpp
@@ -60,7 +59,6 @@ set(XVIZ_LIB_SOURCES
     ${XVIZ_INCLUDE_DIR}/scene/node.hpp
     ${XVIZ_INCLUDE_DIR}/scene/scene.hpp
     ${XVIZ_INCLUDE_DIR}/scene/scene_fwd.hpp
-    ${XVIZ_INCLUDE_DIR}/scene/mesh.hpp
     ${XVIZ_INCLUDE_DIR}/scene/drawable.hpp
     ${XVIZ_INCLUDE_DIR}/scene/material.hpp
     ${XVIZ_INCLUDE_DIR}/scene/camera.hpp

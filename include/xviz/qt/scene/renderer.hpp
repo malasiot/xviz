@@ -4,7 +4,7 @@
 #include <map>
 #include <Eigen/Geometry>
 #include <xviz/scene/scene_fwd.hpp>
-
+#include <xviz/scene/material.hpp>
 #include <QOpenGLFunctions>
 
 #include "material.hpp"
@@ -31,7 +31,7 @@ public:
 
 private slots:
 
-    void uploadTexture(QImage im, xviz::MaterialPtr material, int slot) ;
+    void uploadTexture(QImage im, const xviz::Material *material, int slot) ;
 #if 0
     // Draws text on top of the scene using given font and color
     void text(const std::string &text, float x, float y, const Font &f, const Eigen::Vector3f &clr) ;
@@ -81,17 +81,18 @@ private:
 
     using TextureData = std::array<QOpenGLTexture *, 4> ;
 
-    std::map<xviz::Mesh *, std::unique_ptr<MeshData>> meshes_ ;
-    std::map<xviz::MaterialPtr, MaterialProgramPtr> materials_ ;
+    std::map<const xviz::Geometry *, std::unique_ptr<MeshData>> meshes_ ;
+    std::map<const xviz::Material *, MaterialProgramPtr> materials_ ;
     std::vector<MaterialProgramPtr> programs_ ;
-    std::map<xviz::Material *, TextureData> textures_ ;
+    std::map<const xviz::Material *, TextureData> textures_ ;
 
 private:
     void render(const xviz::NodePtr &node, const Eigen::Matrix4f &tf);
     void render(const xviz::Drawable &geom, const Eigen::Matrix4f &mat);
-    void drawMeshData(const MeshData &data, xviz::MeshPtr mesh);
+    void drawMeshData(const MeshData &data, xviz::GeometryPtr mesh);
     void setLights(const MaterialProgramPtr &material);
     void setLights(const xviz::NodePtr &node, const Eigen::Affine3f &parent_tf, const MaterialProgramPtr &mat);
+    void setupTexture(const xviz::Material *mat, const xviz::Texture2D *texture, uint slot);
 } ;
 
 #endif

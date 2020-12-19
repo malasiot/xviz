@@ -58,6 +58,9 @@ public:
 class PhongMaterial: public Material {
 public:
 
+    PhongMaterial() = default ;
+    PhongMaterial(const Eigen::Vector4f &diffuse): diffuse_clr_(diffuse) {}
+
     void setAmbientColor(const Eigen::Vector4f &a) { ambient_ = a ; }
     void setDiffuseColor(const Eigen::Vector4f &d) { diffuse_clr_ = d ; }
     void setSpecularColor(const Eigen::Vector4f &s) { specular_clr_ = s; }

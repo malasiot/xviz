@@ -1,7 +1,7 @@
 #ifndef XVIZ_QT_SCENE_MESH_DATA_HPP
 #define XVIZ_QT_SCENE_MESH_DATA_HPP
 
-#include <xviz/scene/mesh.hpp>
+#include <xviz/scene/geometry.hpp>
 
 #include <QOpenGLFunctions>
 #include <QOpenGLBuffer>
@@ -11,7 +11,7 @@ class MeshData {
 public:
 
     MeshData() ;
-    MeshData(const xviz::Mesh &mesh) ;
+    MeshData(const xviz::Geometry &mesh) ;
 
     static const int max_textures_ = 4 ;
 

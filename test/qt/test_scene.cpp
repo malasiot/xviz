@@ -3,6 +3,8 @@
 #include <xviz/scene/scene.hpp>
 #include <xviz/scene/light.hpp>
 
+#include <xviz/qt/resource_loader.hpp>
+
 #include <QMainWindow>
 #include <QApplication>
 
@@ -14,6 +16,7 @@ int main(int argc, char **argv)
 {
     ScenePtr scene(new Scene) ;
 
+    ResourceLoader::instance().setLocalPath("/home/malasiot/Downloads/");
     // scene->load("/home/malasiot/Downloads/greek_column.obj", nullptr, true) ;
      scene->load("/home/malasiot/Downloads/cube.obj") ;
   //  scene->load("/home/malasiot/Downloads/bunny.obj") ;
@@ -26,7 +29,7 @@ int main(int argc, char **argv)
 */
     DirectionalLight *dl = new DirectionalLight(Vector3f(0.5, 0.5, 1)) ;
     dl->diffuse_color_ = Vector3f(1, 1, 1) ;
-    scene->addLight(LightPtr(dl)) ;
+ //   scene->addLight(LightPtr(dl)) ;
 
     QApplication app(argc, argv);
 

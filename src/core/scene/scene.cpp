@@ -1,6 +1,8 @@
 #include <xviz/scene/scene.hpp>
 #include <xviz/scene/node.hpp>
-#include <xviz/scene/mesh.hpp>
+#include <xviz/scene/geometry.hpp>
+
+#include <unordered_set>
 
 #include "scene.pb.h"
 
@@ -16,7 +18,7 @@ Vector3f Scene::geomCenter() const {
     visitNodes([&](const Node &node){
         Affine3f tf = node.globalTransform() ;
         for ( const auto &d: node.drawables() ) {
-            MeshPtr mesh = d.geometry() ;
+            GeometryPtr mesh = d.geometry() ;
 
             for( const Vector3f &v: mesh->vertices() ) {
                 Vector3f p = tf * v ;
@@ -37,7 +39,7 @@ float Scene::geomRadius(const Vector3f &center) const {
     visitNodes([&](const Node &node){
         Affine3f tf = node.globalTransform() ;
         for ( const auto &d: node.drawables() ) {
-            MeshPtr mesh = d.geometry() ;
+            GeometryPtr mesh = d.geometry() ;
 
             for( const Vector3f &v: mesh->vertices() ) {
                 Vector3f p = tf * v ;
@@ -50,6 +52,41 @@ float Scene::geomRadius(const Vector3f &center) const {
     return sqrt(max_dist) ;
 }
 
+static void get_materials(const Scene *scene, unordered_set<Material *> &material_map) {
+    scene->visitNodes([&](const Node &n) {
+        for( const auto &dr: n.drawables() ) {
+            MaterialPtr material = dr.material() ;
+            material_map.emplace(material.get()) ;
+        }
+    });
+}
+
+const std::vector<Material *> Scene::materials() const {
+    unordered_set<Material *> material_map ;
+
+    visitNodes([&](const Node &n) {
+        for( const auto &dr: n.drawables() ) {
+            MaterialPtr material = dr.material() ;
+            material_map.emplace(material.get()) ;
+        }
+    });
+
+    return {material_map.begin(), material_map.end()} ;
+}
+
+const std::vector<Geometry *> Scene::geometries() const {
+    unordered_set<Geometry *> geometry_map ;
+
+    visitNodes([&](const Node &n) {
+        for( const auto &dr: n.drawables() ) {
+            GeometryPtr geom = dr.geometry() ;
+            geometry_map.emplace(geom.get()) ;
+        }
+    });
+
+
+    return { geometry_map.begin(), geometry_map.end() } ;
+}
 
 msg::Scene *Scene::write(const Scene &scene) {
     msg::Scene *msg_scene = new msg::Scene ;
@@ -57,47 +94,48 @@ msg::Scene *Scene::write(const Scene &scene) {
     // write meshes
 
     uint64_t id = 0 ;
-    std::map<GeometryPtr, uint64_t> mesh_map ;
-    for( const GeometryPtr &geom: scene.geometries() ) {
+    std::map<const Geometry *, uint64_t> mesh_map ;
+    for( const Geometry *geom: scene.geometries() ) {
         msg::Mesh *msg_mesh = msg_scene->add_meshes() ;
-        mesh_map[mesh] = id ;
+
+        mesh_map[geom] = id ;
         msg_mesh->set_id(id++) ;
-        switch ( mesh->ptype() ) {
-        case Mesh::Lines:
+        switch ( geom->ptype() ) {
+        case Geometry::Lines:
             msg_mesh->set_type(msg::Mesh_PrimitiveType_LINES) ;
             break ;
-        case Mesh::Points:
+        case Geometry::Points:
             msg_mesh->set_type(msg::Mesh_PrimitiveType_POINTS) ;
             break ;
-        case Mesh::Triangles:
+        case Geometry::Triangles:
             msg_mesh->set_type(msg::Mesh_PrimitiveType_TRIANGLES) ;
             break ;
         }
-        const auto &indices = mesh->indices() ;
+        const auto &indices = geom->indices() ;
         for( uint i: indices )
             msg_mesh->add_indices(i) ;
-        if ( !mesh->vertices().empty() ) {
+        if ( !geom->vertices().empty() ) {
             msg::VertexAttributeBuffer *buffer = msg_mesh->add_attributes() ;
             buffer->set_type(msg::VertexAttributeBuffer_Type_VERTICES) ;
-            for( const auto &v: mesh->vertices() ) {
+            for( const auto &v: geom->vertices() ) {
                 buffer->add_data(v.x()) ;
                 buffer->add_data(v.y()) ;
                 buffer->add_data(v.z()) ;
             }
         }
-        if ( !mesh->normals().empty() ) {
+        if ( !geom->normals().empty() ) {
             msg::VertexAttributeBuffer *buffer = msg_mesh->add_attributes() ;
             buffer->set_type(msg::VertexAttributeBuffer_Type_NORMALS) ;
-            for( const auto &v: mesh->normals() ) {
+            for( const auto &v: geom->normals() ) {
                 buffer->add_data(v.x()) ;
                 buffer->add_data(v.y()) ;
                 buffer->add_data(v.z()) ;
             }
         }
-        if ( !mesh->colors().empty() ) {
+        if ( !geom->colors().empty() ) {
             msg::VertexAttributeBuffer *buffer = msg_mesh->add_attributes() ;
             buffer->set_type(msg::VertexAttributeBuffer_Type_COLORS) ;
-            for( const auto &v: mesh->colors() ) {
+            for( const auto &v: geom->colors() ) {
                 buffer->add_data(v.x()) ;
                 buffer->add_data(v.y()) ;
                 buffer->add_data(v.z()) ;
@@ -105,10 +143,10 @@ msg::Scene *Scene::write(const Scene &scene) {
         }
 
         for ( uint i=0 ; i<MAX_TEXTURES ; i++ ) {
-            if ( !mesh->texCoords(i).empty() ) {
+            if ( !geom->texCoords(i).empty() ) {
                 msg::VertexAttributeBuffer *buffer = msg_mesh->add_attributes() ;
                 buffer->set_type(msg::VertexAttributeBuffer_Type_UV) ;
-                for( const auto &v: mesh->texCoords(i) ) {
+                for( const auto &v: geom->texCoords(i) ) {
                     buffer->add_data(v.x()) ;
                     buffer->add_data(v.y()) ;
                 }
@@ -119,12 +157,12 @@ msg::Scene *Scene::write(const Scene &scene) {
     // write materials
 
     id = 0 ;
-    std::map<MaterialPtr, uint64_t> material_map ;
-    for( const MaterialPtr &material: scene.materials() ) {
+    std::map<const Material *, uint64_t> material_map ;
+    for( const Material *material: scene.materials() ) {
         msg::Material *material_msg = msg_scene->add_material() ;
         material_msg->set_id(id) ;
         material_map[material] = id++ ;
-        if ( const PhongMaterial *mat = dynamic_cast<const PhongMaterial *>(material.get())) {
+        if ( const PhongMaterial *mat = dynamic_cast<const PhongMaterial *>(material)) {
             msg::PhongMaterial *msg_phong = new msg::PhongMaterial ;
             msg_phong->add_ambient(mat->ambientColor().x()) ;
             msg_phong->add_ambient(mat->ambientColor().y()) ;
@@ -174,8 +212,8 @@ msg::Scene *Scene::write(const Scene &scene) {
 
         for ( const Drawable &d: node->drawables() ) {
             msg::Drawable *msg_dr = node_msg->add_drawables() ;
-            msg_dr->set_mesh_id(mesh_map[d.geometry()]);
-            msg_dr->set_material_id(material_map[d.material()]) ;
+            msg_dr->set_mesh_id(mesh_map[d.geometry().get()]);
+            msg_dr->set_material_id(material_map[d.material().get()]) ;
         }
     }
 
@@ -203,25 +241,25 @@ Scene *Scene::read(const msg::Scene &msg) {
 
     // read meshes
 
-    map<uint64_t, MeshPtr> mesh_map ;
+    map<uint64_t, GeometryPtr> mesh_map ;
 
     for ( const msg::Mesh &mesh_msg: msg.meshes() ) {
-        Mesh::PrimitiveType ptype ;
+        Geometry::PrimitiveType ptype ;
         switch ( mesh_msg.type() ) {
         case msg::Mesh_PrimitiveType_LINES:
-            ptype = Mesh::Lines ;
+            ptype = Geometry::Lines ;
             break ;
         case msg::Mesh_PrimitiveType_POINTS:
-            ptype = Mesh::Points ;
+            ptype = Geometry::Points ;
             break ;
         case msg::Mesh_PrimitiveType_TRIANGLES:
-            ptype = Mesh::Triangles ;
+            ptype = Geometry::Triangles ;
             break ;
         }
-        MeshPtr mesh(new Mesh(ptype)) ;
+        GeometryPtr mesh(new Geometry(ptype)) ;
 
         mesh_map[mesh_msg.id()] = mesh ;
-        scene->addMesh(mesh) ;
+//        scene->addGeometry(GeometryPtr(new MeshGeometry(Mesh))) ;
 
         for ( const msg::VertexAttributeBuffer &msg_buffer: mesh_msg.attributes()) {
             uint tidx = 0 ;
@@ -258,7 +296,7 @@ Scene *Scene::read(const msg::Scene &msg) {
             PhongMaterial *m = new PhongMaterial ;
             MaterialPtr mat(m) ;
             material_map[material.id()] = mat ;
-            scene->addMaterial(mat) ;
+    //        scene->addMaterial(mat) ;
             const msg::PhongMaterial &phong_msg = material.phong_material();
             m->setAmbientColor(parseVector4(phong_msg.ambient())) ;
             m->setDiffuseColor(parseVector4(phong_msg.diffuse())) ;
@@ -290,12 +328,10 @@ Scene *Scene::read(const msg::Scene &msg) {
         node->setTransform(Affine3f(mat)) ;
 
         for( const msg::Drawable &msg_dr: node_msg.drawables() ) {
-            MeshPtr mesh = mesh_map[msg_dr.mesh_id()] ;
+            GeometryPtr mesh = mesh_map[msg_dr.mesh_id()] ;
             MaterialPtr material = material_map[msg_dr.material_id()] ;
-            node->addDrawable(Drawable(mesh, material)) ;
+            node->addDrawable(mesh, material) ;
         }
-
-
     }
 
     // make hierarchy

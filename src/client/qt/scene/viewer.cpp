@@ -15,7 +15,7 @@ SceneViewer::SceneViewer(const xviz::ScenePtr &scene, QWidget *parent): QOpenGLW
    // scene_->load("/home/malasiot/Downloads/BoxTextured.gltf", xviz::Scene::IMPORT_LIGHTS);
 
     xviz::DirectionalLight *dl = new xviz::DirectionalLight(Vector3f(0.5, 0.5, 1)) ;
-    dl->diffuse_color_ = Vector3f(1, 1, 1) ;
+    dl->diffuse_color_ = Vector3f(0.5, 0.5, 0.5) ;
     xviz::LightPtr light(dl) ;
 
     xviz::NodePtr node(new xviz::Node) ;

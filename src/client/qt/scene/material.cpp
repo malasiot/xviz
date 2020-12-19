@@ -274,8 +274,7 @@ PhongMaterialProgram::PhongMaterialProgram(int flags): flags_(flags)
 
 }
 
-void PhongMaterialProgram::applyParams(const xviz::MaterialPtr &mat)
-{
+void PhongMaterialProgram::applyParams(const xviz::MaterialPtr &mat) {
     const xviz::PhongMaterial *material = dynamic_cast<const xviz::PhongMaterial *>(mat.get());
     if ( material == nullptr ) return ;
 
@@ -298,8 +297,7 @@ void MaterialProgram::applyBoneTransform(uint idx, const Matrix4f &tf)
     setUniform(name.str().c_str(), tf) ;
 }
 
-void MaterialProgram::applyDefaultPerspective(const Matrix4f &cam, const Matrix4f &view, const Matrix4f &model)
-{
+void MaterialProgram::applyDefaultPerspective(const Matrix4f &cam, const Matrix4f &view, const Matrix4f &model) {
     Matrix4f mvp =  cam * view * model;
     Matrix4f mv =   view * model;
 

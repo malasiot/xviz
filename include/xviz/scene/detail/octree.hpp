@@ -12,7 +12,7 @@ using std::vector ;
 
 namespace xviz {
 
-class Mesh ;
+class Geometry ;
 
 namespace detail {
 
@@ -35,19 +35,19 @@ public:
 
     ~Octree() { delete root_; }
 
-    void create(const Mesh &mesh) ;
+    void create(const Geometry &Mesh) ;
 
-    void insert(const Mesh &m, uint32_t tindex, const Vector3f &v0, const Vector3f &v1, const Vector3f &v2);
+    void insert(const Geometry &m, uint32_t tindex, const Vector3f &v0, const Vector3f &v1, const Vector3f &v2);
 
     bool intersect(const Ray &ray, uint32_t &tindex, float &t);
 
 private:
-    void insertTriangle( const Mesh &m, OctreeNode *node, const Vector3f &center, const Vector3f &hs, uint depth,
+    void insertTriangle( const Geometry &m, OctreeNode *node, const Vector3f &center, const Vector3f &hs, uint depth,
                          uint32_t tindex, const Vector3f &v0, const Vector3f &v1, const Vector3f &v2);
 
     bool intersect(OctreeNode *node, const Ray &r, const Vector3f &center, const Vector3f &hs, uint32_t &tindex, float &mint);
 
-    void getTriangleVertices(const Mesh &mesh, uint32_t tindex, Vector3f &v0, Vector3f &v1, Vector3f &v2);
+    void getTriangleVertices(const Geometry &Mesh, uint32_t tindex, Vector3f &v0, Vector3f &v1, Vector3f &v2);
 
     static const Vector3f offsets_[8] ;
 
@@ -55,7 +55,7 @@ private:
 
     uint max_depth_ = 5, max_count_ = 100 ;
     OctreeNode* root_;
-    const Mesh *mesh_ = nullptr;
+    const Geometry *mesh_ = nullptr;
 
 
 };

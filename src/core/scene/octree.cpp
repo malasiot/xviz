@@ -1,5 +1,5 @@
 #include <xviz/scene/detail/octree.hpp>
-#include <xviz/scene/mesh.hpp>
+#include <xviz/scene/geometry.hpp>
 
 #include <xviz/scene/detail/intersect.hpp>
 
@@ -19,7 +19,7 @@ OctreeNode::~OctreeNode()
 const Vector3f Octree::offsets_[8] = { { -0.5, 0.5, -0.5 }, {0.5, 0.5, -0.5}, { -0.5, -0.5, -0.5 }, { 0.5, -0.5, -0.5 },
                                        { -0.5, 0.5, 0.5 }, {0.5, 0.5, 0.5}, { -0.5, -0.5, 0.5 }, { 0.5, -0.5, 0.5 } } ;
 
-void Octree::getTriangleVertices(const Mesh &m, uint tindex, Eigen::Vector3f &v0, Eigen::Vector3f &v1, Eigen::Vector3f &v2) {
+void Octree::getTriangleVertices(const Geometry &m, uint tindex, Eigen::Vector3f &v0, Eigen::Vector3f &v1, Eigen::Vector3f &v2) {
     uint i0 = m.indices()[tindex] ;
     uint i1 = m.indices()[tindex+1] ;
     uint i2 = m.indices()[tindex+2] ;
@@ -28,13 +28,13 @@ void Octree::getTriangleVertices(const Mesh &m, uint tindex, Eigen::Vector3f &v0
     v2 = m.vertices()[i2] ;
 }
 
-void Octree::create(const Mesh &mesh) {
-  //  vertices_ = mesh.vertices(), indices_ = mesh.indices() ;
+void Octree::create(const Geometry &Mesh) {
+  //  vertices_ = Mesh.vertices(), indices_ = Mesh.indices() ;
 
-    mesh_ = &mesh ;
+    mesh_ = &Mesh ;
 
     Vector3f bmin, bmax ;
-    mesh.computeBoundingBox(bmin, bmax) ;
+    Mesh.computeBoundingBox(bmin, bmax) ;
 
     // to handle planar objects (i,e one dimension is zero)
     Vector3f sz = bmax - bmin ;
@@ -44,12 +44,12 @@ void Octree::create(const Mesh &mesh) {
     center_ = (bmin + bmax)/2.0 ;
     hs_ = Vector3f( hs, hs, hs ) ;
 
-    for( uint i=0 ; i<mesh.indices().size() ; i+=3 ) {
+    for( uint i=0 ; i<Mesh.indices().size() ; i+=3 ) {
         Vector3f v0, v1, v2 ;
 
-        getTriangleVertices(mesh, i, v0, v1, v2) ;
+        getTriangleVertices(Mesh, i, v0, v1, v2) ;
 
-        insert(mesh, i, v0, v1, v2) ;
+        insert(Mesh, i, v0, v1, v2) ;
     }
 
 
@@ -60,7 +60,7 @@ Octree::Octree(uint max_depth, uint max_count):
 
 }
 
-void Octree::insertTriangle(const Mesh &m, OctreeNode *node, const Eigen::Vector3f &center, const Eigen::Vector3f &hs, uint depth, uint32_t tindex,
+void Octree::insertTriangle(const Geometry &m, OctreeNode *node, const Eigen::Vector3f &center, const Eigen::Vector3f &hs, uint depth, uint32_t tindex,
                             const Eigen::Vector3f &v0, const Eigen::Vector3f &v1, const Eigen::Vector3f &v2) {
 
     if ( node->is_leaf_ ) {
@@ -94,7 +94,7 @@ void Octree::insertTriangle(const Mesh &m, OctreeNode *node, const Eigen::Vector
 }
 
 
-void Octree::insert(const Mesh &m, uint32_t tindex, const Eigen::Vector3f &v0, const Eigen::Vector3f &v1, const Eigen::Vector3f &v2) {
+void Octree::insert(const Geometry &m, uint32_t tindex, const Eigen::Vector3f &v0, const Eigen::Vector3f &v1, const Eigen::Vector3f &v2) {
     insertTriangle(m, root_, center_, hs_, 0,  tindex, v0, v1, v2) ;
 }
 

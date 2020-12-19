@@ -50,12 +50,14 @@ set( QT_CLIENT_SOURCES
     ${XVIZ_INCLUDE_DIR}/qt/scene/renderer.hpp
     ${XVIZ_INCLUDE_DIR}/qt/scene/mesh_data.hpp
     ${XVIZ_INCLUDE_DIR}/qt/scene/material.hpp
+    ${XVIZ_INCLUDE_DIR}/qt/scene/offscreen.hpp
 
     scene/viewer.cpp
     scene/trackball.cpp
     scene/renderer.cpp
     scene/mesh_data.cpp
     scene/material.cpp
+    scene/offscreen.cpp
 
     image_element.cpp
     image_element.hpp

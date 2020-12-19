@@ -10,7 +10,7 @@
 #include <QOpenGLFunctions>
 #include <QOpenGLVertexArrayObject>
 
-MeshData::MeshData(const xviz::Mesh &mesh)
+MeshData::MeshData(const xviz::Geometry &mesh)
 {
     QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
     // Create the VAO
@@ -19,10 +19,10 @@ MeshData::MeshData(const xviz::Mesh &mesh)
 
     if ( vao_->create() ) vao_->bind();
 
-    const xviz::Mesh::vb3_t &vertices = mesh.vertices() ;
-    const xviz::Mesh::vb3_t &normals = mesh.normals() ;
-    const xviz::Mesh::vb3_t &colors = mesh.colors() ;
-    const xviz::Mesh::indices_t &indices = mesh.indices() ;
+    const xviz::Geometry::vb3_t &vertices = mesh.vertices() ;
+    const xviz::Geometry::vb3_t &normals = mesh.normals() ;
+    const xviz::Geometry::vb3_t &colors = mesh.colors() ;
+    const xviz::Geometry::indices_t &indices = mesh.indices() ;
 
     elem_count_ = vertices.size() ;
     indices_ = indices.size() ;
@@ -69,7 +69,7 @@ MeshData::MeshData(const xviz::Mesh &mesh)
 
 
 /*
-    const std::vector<Mesh::BoneWeight> weights = mesh.weights() ;
+    const std::vector<Mesh::BoneWeight> weights = Mesh.weights() ;
     if ( !weights.empty() ) {
         glGenBuffers(1, &weights_);
         glBindBuffer(GL_ARRAY_BUFFER, weights_);

@@ -5,7 +5,7 @@
 #include <xviz/scene/scene.hpp>
 #include <xviz/scene/node.hpp>
 #include <xviz/scene/drawable.hpp>
-#include <xviz/scene/mesh.hpp>
+#include <xviz/scene/geometry.hpp>
 #include <xviz/scene/camera.hpp>
 #include <xviz/scene/light.hpp>
 #include <xviz/scene/material.hpp>
@@ -32,10 +32,28 @@ Renderer::Renderer(int flags) {
 
 }
 
+void Renderer::setupTexture(const xviz::Material *mat, const xviz::Texture2D *texture, uint slot) {
+    auto &loader = ResourceLoader::instance() ;
+    if ( texture ) {
+        QObject::connect(&loader, &ResourceLoader::downloaded, this, [&](const QByteArray &data){
+            QImage im ;
+            im.loadFromData(data) ;
+            uploadTexture(im, mat, slot);
+        });
+
+        xviz::Image image = texture->image() ;
+
+        if ( image.type() == xviz::ImageType::Uri )
+            loader.fetch(QString::fromStdString(image.uri())) ;
+        else {
+            QImage qim = qImageFromImage(image) ;
+            uploadTexture(qim, mat, slot) ;
+        }
+    }
+}
+
 void Renderer::init(const xviz::ScenePtr &scene) {
     initializeOpenGLFunctions() ;
-
-    auto &loader = ResourceLoader::instance() ;
 
     xviz::PhongMaterial *mat = new xviz::PhongMaterial() ;
     mat->setDiffuseColor({0.5, 0.5, 0.5, 1.0}) ;
@@ -44,38 +62,27 @@ void Renderer::init(const xviz::ScenePtr &scene) {
 
     scene_ = scene ;
 
-    for ( const xviz::MeshPtr &mesh: scene->meshes() ) {
-        MeshData *data = new MeshData(*mesh) ;
-        meshes_.emplace(make_pair(mesh.get(), data)) ;
+    for ( const xviz::Geometry *geom: scene->geometries() ) {
+        MeshData *data = new MeshData(*geom) ;
+        meshes_.emplace(make_pair(geom, data)) ;
     }
 
-    for ( const xviz::MaterialPtr &mat: scene->materials() ) {
+    for ( const xviz::Material *mat: scene->materials() ) {
 
-        if ( const xviz::PhongMaterial *material = dynamic_cast<const xviz::PhongMaterial *>(mat.get())) {
+        textures_[mat] = {nullptr} ;
+
+        if ( const xviz::PhongMaterial *material = dynamic_cast<const xviz::PhongMaterial *>(mat)) {
             int flags = 0 ;
 
-            textures_[(xviz::Material *)material] = {nullptr} ;
-
             if ( material->diffuseTexture() ) {
-                flags |= PhongMaterialProgram::HAS_DIFFUSE_TEXTURE ;
-                const xviz::Texture2D *texture = material->diffuseTexture() ;
-
-                QObject::connect(&loader, &ResourceLoader::downloaded, this, [&](const QByteArray &data){
-                    QImage im ;
-                    im.loadFromData(data) ;
-                    uploadTexture(im, mat, 0);
-                });
-
-                xviz::Image image = texture->image() ;
-
-                if ( image.type() == xviz::ImageType::Uri )
-                    loader.fetch(QString::fromStdString(image.uri())) ;
-                else {
-                    QImage qim = qImageFromImage(image) ;
-                    uploadTexture(qim, mat, 0) ;
-                }
+                 flags |= PhongMaterialProgram::HAS_DIFFUSE_TEXTURE ;
+                 setupTexture(mat, material->diffuseTexture(), 0);
             }
-            if ( material->specularTexture() ) flags |= PhongMaterialProgram::HAS_SPECULAR_TEXTURE ;
+
+            if ( material->specularTexture() ) {
+                 flags |= PhongMaterialProgram::HAS_SPECULAR_TEXTURE ;
+                 setupTexture(mat, material->specularTexture(), 1);
+            }
 
             MaterialProgramPtr prog = PhongMaterialProgram::instance(flags) ;
 
@@ -123,7 +130,7 @@ void Renderer::render(const xviz::CameraPtr &cam) {
 
 }
 
-void Renderer::uploadTexture(QImage im, xviz::MaterialPtr mat, int slot) {
+void Renderer::uploadTexture(QImage im, const xviz::Material *mat, int slot) {
     QOpenGLTexture *texture = new QOpenGLTexture(im);
     texture->setMinificationFilter(QOpenGLTexture::Linear);
     texture->setMagnificationFilter(QOpenGLTexture::Linear);
@@ -131,7 +138,7 @@ void Renderer::uploadTexture(QImage im, xviz::MaterialPtr mat, int slot) {
     texture->setWrapMode(QOpenGLTexture::DirectionT, QOpenGLTexture::Repeat) ;
     texture->generateMipMaps();
 
-    textures_[mat.get()][slot] = texture ;
+    textures_[mat][slot] = texture ;
 }
 
 
@@ -185,7 +192,7 @@ void Renderer::setLights(const MaterialProgramPtr &material) {
 
 void Renderer::render(const xviz::Drawable &geom, const Matrix4f &mat)
 {
-    xviz::MeshPtr mesh = geom.geometry() ;
+    xviz::GeometryPtr mesh = geom.geometry() ;
     if ( !mesh ) return ;
 
     auto it = meshes_.find(mesh.get()) ;
@@ -198,7 +205,7 @@ void Renderer::render(const xviz::Drawable &geom, const Matrix4f &mat)
     MaterialProgramPtr prog ;
 
     if ( material ) {
-        auto mit = materials_.find(material) ;
+        auto mit = materials_.find(material.get()) ;
         if ( mit == materials_.end() ) return ;
         prog = mit->second ;
     } else {
@@ -225,8 +232,8 @@ void Renderer::render(const xviz::Drawable &geom, const Matrix4f &mat)
 
 
 
- //   if ( mesh && mesh->hasSkeleton() )
- //       setPose(mesh, material) ;
+ //   if ( Mesh && Mesh->hasSkeleton() )
+ //       setPose(Mesh, material) ;
 
 #if 0
 
@@ -254,12 +261,12 @@ void Renderer::render(const xviz::Drawable &geom, const Matrix4f &mat)
      glUseProgram(0) ;
 }
 
-void Renderer::drawMeshData(const MeshData &data, xviz::MeshPtr mesh) {
+void Renderer::drawMeshData(const MeshData &data, xviz::GeometryPtr mesh) {
 
     data.vao_->bind() ;
 
     if ( mesh ) {
-        if ( mesh->ptype() == xviz::Mesh::Triangles ) {
+        if ( mesh->ptype() == xviz::Geometry::Triangles ) {
             if ( data.index_ ) {
                 // bind index buffer if you want to render indexed data
                 data.index_->bind() ;
@@ -271,10 +278,10 @@ void Renderer::drawMeshData(const MeshData &data, xviz::MeshPtr mesh) {
             else
                 glDrawArrays(GL_TRIANGLES, 0, data.elem_count_) ;
         }
-        else if ( mesh->ptype() == xviz::Mesh::Lines ) {
+        else if ( mesh->ptype() == xviz::Geometry::Lines ) {
             glDrawArrays(GL_LINES, 0, data.elem_count_) ;
         }
-        else if ( mesh->ptype() == xviz::Mesh::Points ) {
+        else if ( mesh->ptype() == xviz::Geometry::Points ) {
             glDrawArrays(GL_POINTS, 0, data.elem_count_) ;
         }
 

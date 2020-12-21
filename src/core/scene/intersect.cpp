@@ -4,6 +4,9 @@ using namespace Eigen ;
 
 namespace xviz { namespace detail {
 
+
+AABB::~AABB() {}
+
 bool rayIntersectsAABB(const Ray &r, const AABB &box, float &t) {
     float tmin, tmax, tymin, tymax, tzmin, tzmax;
 
@@ -409,5 +412,6 @@ bool triangleIntersectsBox(const Eigen::Vector3f &tv0, const Eigen::Vector3f &tv
 
     return true; /* box and triangle overlaps */
 }
+
 
 }}

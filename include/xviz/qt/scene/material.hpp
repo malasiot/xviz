@@ -82,5 +82,50 @@ private:
 };
 
 
+class ConstantMaterialProgram: public MaterialProgram {
+public:
+
+    ConstantMaterialProgram(int flags) ;
+
+    void applyParams(const xviz::MaterialPtr &mat) override ;
+
+    void applyTransform(const Eigen::Matrix4f &cam, const Eigen::Matrix4f &view, const Eigen::Matrix4f &model) override {
+        applyDefaultPerspective(cam, view, model) ;
+    }
+
+    void applyLight(uint idx, const xviz::LightPtr &light, const Eigen::Affine3f &tf) override {
+    }
+
+    static MaterialProgramPtr instance(int flags) {
+        static std::map<int, MaterialProgramPtr> s_materials ;
+        return materialSingleton<ConstantMaterialProgram>(s_materials, flags) ;
+    }
+
+private:
+
+    int flags_ = 0;
+};
+
+
+class PerVertexColorMaterialProgram: public MaterialProgram {
+public:
+
+    PerVertexColorMaterialProgram(int flags) ;
+
+    void applyParams(const xviz::MaterialPtr &mat) override ;
+
+    void applyTransform(const Eigen::Matrix4f &cam, const Eigen::Matrix4f &view, const Eigen::Matrix4f &model) override {
+        applyDefaultPerspective(cam, view, model) ;
+    }
+
+    void applyLight(uint idx, const xviz::LightPtr &light, const Eigen::Affine3f &tf) override {
+    }
+
+    static MaterialProgramPtr instance(int flags) {
+        static std::map<int, MaterialProgramPtr> s_materials ;
+        return materialSingleton<PerVertexColorMaterialProgram>(s_materials, flags) ;
+    }
+};
+
 
 #endif

@@ -2,10 +2,11 @@
 #include <xviz/scene/geometry.hpp>
 
 #include <xviz/scene/detail/intersect.hpp>
-
+#include <iostream>
 
 using Eigen::Vector3f ;
 using std::vector ;
+using namespace std;
 
 namespace xviz { namespace detail {
 
@@ -19,22 +20,22 @@ OctreeNode::~OctreeNode()
 const Vector3f Octree::offsets_[8] = { { -0.5, 0.5, -0.5 }, {0.5, 0.5, -0.5}, { -0.5, -0.5, -0.5 }, { 0.5, -0.5, -0.5 },
                                        { -0.5, 0.5, 0.5 }, {0.5, 0.5, 0.5}, { -0.5, -0.5, 0.5 }, { 0.5, -0.5, 0.5 } } ;
 
-void Octree::getTriangleVertices(const Geometry &m, uint tindex, Eigen::Vector3f &v0, Eigen::Vector3f &v1, Eigen::Vector3f &v2) {
-    uint i0 = m.indices()[tindex] ;
-    uint i1 = m.indices()[tindex+1] ;
-    uint i2 = m.indices()[tindex+2] ;
+void Octree::getTriangleVertices(const Geometry &m, const uint32_t tindex[3], Eigen::Vector3f &v0, Eigen::Vector3f &v1, Eigen::Vector3f &v2) {
+    uint i0 = tindex[0] ;
+    uint i1 = tindex[1] ;
+    uint i2 = tindex[2] ;
     v0 = m.vertices()[i0] ;
     v1 = m.vertices()[i1] ;
     v2 = m.vertices()[i2] ;
 }
 
-void Octree::create(const Geometry &Mesh) {
+void Octree::create(const Geometry &mesh) {
   //  vertices_ = Mesh.vertices(), indices_ = Mesh.indices() ;
 
-    mesh_ = &Mesh ;
+    mesh_ = &mesh ;
 
     Vector3f bmin, bmax ;
-    Mesh.computeBoundingBox(bmin, bmax) ;
+    mesh.computeBoundingBox(bmin, bmax) ;
 
     // to handle planar objects (i,e one dimension is zero)
     Vector3f sz = bmax - bmin ;
@@ -44,12 +45,18 @@ void Octree::create(const Geometry &Mesh) {
     center_ = (bmin + bmax)/2.0 ;
     hs_ = Vector3f( hs, hs, hs ) ;
 
-    for( uint i=0 ; i<Mesh.indices().size() ; i+=3 ) {
+    uint32_t tidx[3] ;
+
+    for( uint i=0 ; i<mesh.indices().size() ; i+=3 ) {
+        tidx[0] = mesh.indices()[i] ;
+        tidx[1] = mesh.indices()[i+1] ;
+        tidx[2] = mesh.indices()[i+2] ;
+
         Vector3f v0, v1, v2 ;
 
-        getTriangleVertices(Mesh, i, v0, v1, v2) ;
+        getTriangleVertices(mesh, tidx, v0, v1, v2) ;
 
-        insert(Mesh, i, v0, v1, v2) ;
+        insert(mesh, tidx, v0, v1, v2) ;
     }
 
 
@@ -60,20 +67,20 @@ Octree::Octree(uint max_depth, uint max_count):
 
 }
 
-void Octree::insertTriangle(const Geometry &m, OctreeNode *node, const Eigen::Vector3f &center, const Eigen::Vector3f &hs, uint depth, uint32_t tindex,
+void Octree::insertTriangle(const Geometry &m, OctreeNode *node, const Eigen::Vector3f &center, const Eigen::Vector3f &hs, uint depth, const uint32_t tindex[3],
                             const Eigen::Vector3f &v0, const Eigen::Vector3f &v1, const Eigen::Vector3f &v2) {
 
     if ( node->is_leaf_ ) {
-        if ( node->data_.size() < max_count_ || depth == max_depth_ ) { // we have reach deepest layer, just store triangle index
-            node->data_.push_back(tindex) ;
+        if ( node->triangles_.size() < max_count_ || depth == max_depth_ ) { // we have reach deepest layer, just store triangle index
+            node->triangles_.emplace_back(tindex) ;
         } else { //
             node->is_leaf_ = false; // make this node internal so that when we reinsert data it will spread to child nodes
-            for( uint32_t idx: node->data_ ) {
+            for( const OctreeNode::Triangle &t: node->triangles_ ) {
                 Vector3f v0, v1, v2 ;
-                getTriangleVertices(m, idx, v0, v1, v2) ;
-                insertTriangle(m, node, center, hs, depth, idx, v0, v1, v2) ;
+                getTriangleVertices(m, t.tidx_, v0, v1, v2) ;
+                insertTriangle(m, node, center, hs, depth, t.tidx_, v0, v1, v2) ;
             }
-            node->data_.clear() ;
+            node->triangles_.clear() ;
             insertTriangle(m, node, center, hs, depth, tindex, v0, v1, v2) ;
         }
     } else {
@@ -94,11 +101,11 @@ void Octree::insertTriangle(const Geometry &m, OctreeNode *node, const Eigen::Ve
 }
 
 
-void Octree::insert(const Geometry &m, uint32_t tindex, const Eigen::Vector3f &v0, const Eigen::Vector3f &v1, const Eigen::Vector3f &v2) {
+void Octree::insert(const Geometry &m, const uint32_t tindex[3], const Eigen::Vector3f &v0, const Eigen::Vector3f &v1, const Eigen::Vector3f &v2) {
     insertTriangle(m, root_, center_, hs_, 0,  tindex, v0, v1, v2) ;
 }
 
-bool Octree::intersect(OctreeNode *node, const Ray &r, const Eigen::Vector3f &center, const Eigen::Vector3f &hs, uint &tindex, float &mint) {
+bool Octree::intersect(OctreeNode *node, const Ray &r, const Eigen::Vector3f &center, const Eigen::Vector3f &hs, uint32_t tindex[3], float &mint) {
 
     // first cheap test with octree node AABB
 
@@ -109,37 +116,47 @@ bool Octree::intersect(OctreeNode *node, const Ray &r, const Eigen::Vector3f &ce
 
     if ( node->is_leaf_ ) { // reached a leaf node, check ray/triangle intersections
 
-        for( uint idx: node->data_ ) {
+        bool found = false ;
+
+        for( const OctreeNode::Triangle &tr: node->triangles_ ) {
 
             Vector3f v0, v1, v2 ;
-            getTriangleVertices(*mesh_, idx, v0, v1, v2) ;
+            getTriangleVertices(*mesh_, tr.tidx_, v0, v1, v2) ;
 
-            if ( rayIntersectsTriangle(r, v0, v1, v2, true, t) ) {
-                if ( t < mint ) {
-                    mint = t ;
-                    tindex = t ;
-                }
+            if ( rayIntersectsTriangle(r, v0, v1, v2, true, t) && t < mint ) {
 
-                return true ;
-
+                tindex[0] = tr.tidx_[0] ;
+                tindex[1] = tr.tidx_[1] ;
+                tindex[2] = tr.tidx_[2] ;
+                found = true ;
+                cout << t << ' ' << mint << ' ' << tindex[0] << ' ' << tindex[1] << ' ' << tindex[2] << endl ;
+                mint = t ;
             }
         }
 
-    } else { // recurse on child nodes
+        return found ;
 
+    } else { // recurse on child nodes
+        bool found = false ;
         for( uint i=0 ; i<8 ; i++ ) {
             if ( node->children_[i] != nullptr ) {
                 Vector3f child_center  = center  + Vector3f((offsets_[i].array() * hs.array())) ;
-                intersect(node->children_[i], r, child_center, hs/2, tindex, mint ) ;
+
+                bool res = intersect(node->children_[i], r, child_center, hs/2, tindex, mint ) ;
+                if ( res ) {
+                    found = true ;
+                }
             }
         }
+
+        return found ;
     }
 
     return false ;
 
 }
 
-bool Octree::intersect(const Ray &ray, uint &tindex, float &t) {
+bool Octree::intersect(const Ray &ray, uint tindex[3], float &t) {
     t = std::numeric_limits<float>::max() ;
     return intersect(root_, ray, center_, hs_, tindex, t) ;
 }

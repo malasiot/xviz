@@ -42,7 +42,7 @@ set(XVIZ_LIB_SOURCES
     core/scene/geometry.cpp
     core/scene/intersect.cpp
     core/scene/octree.cpp
-
+    core/scene/raycaster.cpp
 
     ${XVIZ_INCLUDE_DIR}/server.hpp
     ${XVIZ_INCLUDE_DIR}/channel.hpp
@@ -63,6 +63,7 @@ set(XVIZ_LIB_SOURCES
     ${XVIZ_INCLUDE_DIR}/scene/material.hpp
     ${XVIZ_INCLUDE_DIR}/scene/camera.hpp
     ${XVIZ_INCLUDE_DIR}/scene/geometry.hpp
+    ${XVIZ_INCLUDE_DIR}/scene/raycaster.hpp
     ${XVIZ_INCLUDE_DIR}/scene/detail/octree.hpp
     ${XVIZ_INCLUDE_DIR}/scene/detail/intersect.hpp
 )

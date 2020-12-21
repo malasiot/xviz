@@ -52,6 +52,39 @@ void Renderer::setupTexture(const xviz::Material *mat, const xviz::Texture2D *te
     }
 }
 
+void Renderer::instantiateMaterial(const xviz::Material *mat) {
+
+    if ( materials_.count(mat) ) return ;
+
+    textures_[mat] = {nullptr} ;
+
+    if ( const xviz::PhongMaterial *material = dynamic_cast<const xviz::PhongMaterial *>(mat)) {
+        int flags = 0 ;
+
+        if ( material->diffuseTexture() ) {
+             flags |= PhongMaterialProgram::HAS_DIFFUSE_TEXTURE ;
+             setupTexture(mat, material->diffuseTexture(), 0);
+        }
+
+        if ( material->specularTexture() ) {
+             flags |= PhongMaterialProgram::HAS_SPECULAR_TEXTURE ;
+             setupTexture(mat, material->specularTexture(), 1);
+        }
+
+        MaterialProgramPtr prog = PhongMaterialProgram::instance(flags) ;
+        materials_.emplace(make_pair(mat, prog)) ;
+    } else if ( const xviz::ConstantMaterial *material = dynamic_cast<const xviz::ConstantMaterial *>(mat)) {
+        int flags = 0 ;
+        MaterialProgramPtr prog = ConstantMaterialProgram::instance(flags) ;
+        materials_.emplace(make_pair(mat, prog)) ;
+    } else if ( const xviz::PerVertexColorMaterial *material = dynamic_cast<const xviz::PerVertexColorMaterial *>(mat)) {
+        int flags = 0 ;
+        MaterialProgramPtr prog = PerVertexColorMaterialProgram::instance(flags) ;
+        materials_.emplace(make_pair(mat, prog)) ;
+    }
+
+}
+
 void Renderer::init(const xviz::ScenePtr &scene) {
     initializeOpenGLFunctions() ;
 
@@ -69,26 +102,7 @@ void Renderer::init(const xviz::ScenePtr &scene) {
 
     for ( const xviz::Material *mat: scene->materials() ) {
 
-        textures_[mat] = {nullptr} ;
-
-        if ( const xviz::PhongMaterial *material = dynamic_cast<const xviz::PhongMaterial *>(mat)) {
-            int flags = 0 ;
-
-            if ( material->diffuseTexture() ) {
-                 flags |= PhongMaterialProgram::HAS_DIFFUSE_TEXTURE ;
-                 setupTexture(mat, material->diffuseTexture(), 0);
-            }
-
-            if ( material->specularTexture() ) {
-                 flags |= PhongMaterialProgram::HAS_SPECULAR_TEXTURE ;
-                 setupTexture(mat, material->specularTexture(), 1);
-            }
-
-            MaterialProgramPtr prog = PhongMaterialProgram::instance(flags) ;
-
-            materials_.emplace(make_pair(mat, prog)) ;
-        }
-
+        instantiateMaterial(mat) ;
     }
 }
 
@@ -96,12 +110,26 @@ Renderer::~Renderer() {
 
 }
 
+void Renderer::setupCulling(const xviz::Material *mat) {
+    switch ( mat->side() ) {
+    case xviz::Material::Side::Front:
+        glEnable(GL_CULL_FACE) ;
+        glCullFace(GL_BACK) ;
+        break ;
+    case xviz::Material::Side::Back:
+        glEnable(GL_CULL_FACE) ;
+        glCullFace(GL_FRONT) ;
+        break ;
+    case xviz::Material::Side::Both:
+        glDisable(GL_CULL_FACE) ;
+        break ;
+    }
+}
+
 void Renderer::render(const xviz::CameraPtr &cam) {
     glEnable(GL_DEPTH_TEST) ;
     glDepthFunc(GL_LESS);
 
-    glEnable(GL_CULL_FACE) ;
-    glCullFace(GL_BACK) ;
     glFrontFace(GL_CCW) ;
 
     glEnable (GL_BLEND);
@@ -202,6 +230,8 @@ void Renderer::render(const xviz::Drawable &geom, const Matrix4f &mat)
 
     xviz::MaterialPtr material = geom.material() ;
 
+    instantiateMaterial(material.get()) ;
+
     MaterialProgramPtr prog ;
 
     if ( material ) {
@@ -212,6 +242,8 @@ void Renderer::render(const xviz::Drawable &geom, const Matrix4f &mat)
         prog = default_prog_ ;
         material = default_material_ ;
     }
+
+    setupCulling(material.get()) ;
 
     prog->use() ;
     prog->applyParams(material) ;

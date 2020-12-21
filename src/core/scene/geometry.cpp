@@ -1,5 +1,6 @@
 #include <xviz/scene/mesh.hpp>
 #include <xviz/scene/geometry.hpp>
+#include <xviz/scene/raycaster.hpp>
 #include <xviz/scene/detail/octree.hpp>
 #include <xviz/scene/detail/intersect.hpp>
 
@@ -12,8 +13,8 @@ namespace xviz {
 
 
 static Geometry flatten(const std::vector<Vector3f> &vertices, const std::vector<uint32_t> &vtx_indices,
-    const std::vector<Vector3f> &normals, const std::vector<uint32_t> &nrm_indices,
-                       const std::vector<Vector2f> &uvs = {}, const std::vector<uint32_t> &uv_indices = {}) {
+                        const std::vector<Vector3f> &normals, const std::vector<uint32_t> &nrm_indices,
+                        const std::vector<Vector2f> &uvs = {}, const std::vector<uint32_t> &uv_indices = {}) {
 
     // check if we need to flatten otherwise return src Mesh
 
@@ -74,7 +75,7 @@ Geometry Geometry::createSolidCube(const Vector3f &hs) {
 
     std::vector<Vector3f> normals{{ 0.0, 0.0, 1.0 }, {0.0, 0.0, -1.0}, { 0.0, 1.0, 0.0 }, {1.0, 0.0, 0.0}, {0.0, -1.0, 0.0}, { -1.0, 0.0, 0.0}} ;
     std::vector<Vector3f> vertices = {{ -hs.x(), +hs.y(), +hs.z() }, { +hs.x(), +hs.y(), +hs.z() }, { +hs.x(), -hs.y(), +hs.z() }, { -hs.x(), -hs.y(), +hs.z() },
-    { -hs.x(), +hs.y(), -hs.z() }, { +hs.x(), +hs.y(), -hs.z() }, { +hs.x(), -hs.y(), -hs.z() }, { -hs.x(), -hs.y(), -hs.z() } } ;
+                                      { -hs.x(), +hs.y(), -hs.z() }, { +hs.x(), +hs.y(), -hs.z() }, { +hs.x(), -hs.y(), -hs.z() }, { -hs.x(), -hs.y(), -hs.z() } } ;
 
     std::vector<uint32_t> vtx_indices {  1, 0, 3,  7, 4, 5,  4, 0, 1,  5, 1, 2,  2, 3, 7,  0, 4, 7,  1, 3, 2,  7, 5, 6,  4, 1, 5,  5, 2, 6,  2, 7, 6, 0, 7, 3};
     std::vector<uint32_t> nrm_indices {  0, 0, 0,  1, 1, 1,  2, 2, 2,  3, 3, 3,  4, 4, 4,  5, 5, 5,  0, 0, 0,  1, 1, 1,  2, 2, 2,  3, 3, 3,  4, 4, 4, 5, 5, 5};
@@ -403,9 +404,9 @@ Geometry Geometry::createCapsule(float radius, float height, size_t slices, size
 }
 
 Geometry Geometry::makePointCloud(const std::vector<Vector3f> &pts) {
-     Geometry m(Points) ;
-     m.vertices() = pts ;
-     return m ;
+    Geometry m(Points) ;
+    m.vertices() = pts ;
+    return m ;
 }
 
 Geometry Geometry::makePointCloud(const std::vector<Vector3f>  &coords, const std::vector<Vector3f>  &clrs) {
@@ -456,9 +457,12 @@ void Geometry::computeNormals() {
 
 void Geometry::computeBoundingBox(Vector3f &vmin, Vector3f &vmax) const {
 
+    const float max_v = std::numeric_limits<float>::max() ;
+    const float min_v = -max_v ;
+
     assert( !vertices_.empty() ) ;
 
-    vmin = vertices_[0] ;
+    vmin = vmax = vertices_[0] ;
 
     for( const Vector3f &v: vertices_ ) {
         vmin.x() = std::min(vmin.x(), v.x()) ;
@@ -470,22 +474,52 @@ void Geometry::computeBoundingBox(Vector3f &vmin, Vector3f &vmax) const {
     }
 }
 
-void Geometry::makeOctree() {
-    assert( this->ptype_ == Geometry::Triangles ) ;
-    octree_.reset(new detail::Octree(5)) ;
-    octree_->create(*this) ;
-}
 
-
-
-bool Geometry::intersect(const Ray &ray, float &t) const
+bool Geometry::intersectTriangles(const Ray &ray, uint32_t t_idx[3], float &bestt) const
 {
-    if ( !octree_ ) return false ;
+    float mint = std::numeric_limits<float>::max() ;
+    bool hit = false ;
 
-    uint tindex ;
-    octree_->intersect(ray, tindex, t) ;
 
-    return true ;
+    if ( !indices_.empty() ) {
+        for( uint i=0, ti =0 ; i<indices_.size() ; i+=3, ti++ ) {
+            uint32_t idx0 = indices_[i] ;
+            uint32_t idx1 = indices_[i+1] ;
+            uint32_t idx2 = indices_[i+2] ;
+
+            const Vector3f &v0 = vertices_[idx0] ;
+            const Vector3f &v1 = vertices_[idx1] ;
+            const Vector3f &v2 = vertices_[idx2] ;
+
+            float t ;
+            if ( detail::rayIntersectsTriangle(ray, v0, v1, v2, true, t)  && t < mint  ) {
+                mint = t ;
+                bestt = t ;
+                t_idx[0] = idx0 ; t_idx[1] = idx1 ; t_idx[2] = idx2 ;
+                hit = true ;
+            }
+        }
+    } else {
+        for( uint i=0, ti =0 ; i<vertices_.size() ; i+=3, ti++ ) {
+            uint32_t idx0 = i ;
+            uint32_t idx1 = i+1 ;
+            uint32_t idx2 = i+2 ;
+
+            const Vector3f &v0 = vertices_[idx0] ;
+            const Vector3f &v1 = vertices_[idx1] ;
+            const Vector3f &v2 = vertices_[idx2] ;
+
+            float t ;
+            if ( detail::rayIntersectsTriangle(ray, v0, v1, v2, true, t)  && t < mint  ) {
+                mint = t ;
+                bestt = t ;
+                t_idx[0] = idx0 ; t_idx[1] = idx1 ; t_idx[2] = idx2 ;
+                hit = true ;
+            }
+        }
+    }
+
+    return hit ;
 }
 
 Geometry Geometry::createWireCylinder(float radius, float height, size_t slices, size_t stacks)
@@ -654,7 +688,7 @@ Geometry Geometry::createSolidSphere(float radius, size_t slices, size_t stacks)
     indices[idx++] = offset ;
     indices[idx++] = n_vertices-1 ;
 
-//    exportToObj("/tmp/Mesh.obj", vertices, normals, indices) ;
+    //    exportToObj("/tmp/Mesh.obj", vertices, normals, indices) ;
 
     return m ;
 }

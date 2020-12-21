@@ -93,6 +93,8 @@ private:
     void setLights(const MaterialProgramPtr &material);
     void setLights(const xviz::NodePtr &node, const Eigen::Affine3f &parent_tf, const MaterialProgramPtr &mat);
     void setupTexture(const xviz::Material *mat, const xviz::Texture2D *texture, uint slot);
+    void setupCulling(const xviz::Material *mat);
+    void instantiateMaterial(const xviz::Material *mat);
 } ;
 
 #endif

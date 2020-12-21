@@ -4,6 +4,9 @@
 #include <vector>
 #include <xviz/scene/scene_fwd.hpp>
 #include <xviz/scene/node.hpp>
+#include <xviz/scene/camera.hpp>
+#include <xviz/scene/raycaster.hpp>
+
 #include <assimp/cimport.h>
 
 namespace xviz {

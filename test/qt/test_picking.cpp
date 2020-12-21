@@ -5,6 +5,7 @@
 #include <xviz/scene/light.hpp>
 
 #include <random>
+#include <iostream>
 
 #include <QMainWindow>
 #include <QApplication>
@@ -86,14 +87,61 @@ NodePtr randomBox(ScenePtr &scene, const string &name, const Vector3f &hs, const
     return box_node ;
 }
 
+class PickingViewer: public SceneViewer {
+public:
+    PickingViewer(ScenePtr scene, QWidget *parent = nullptr): SceneViewer(scene, parent),
+    ray_caster_(scene) {
+        setMouseTracking(true);
+   //    ray_caster_.buildOctrees();
+        highlight_.reset(new ConstantMaterial({1, 0, 0, 1})) ;
+
+    }
+
+    void mouseMoveEvent(QMouseEvent *event) override {
+        int x = event->x() ;
+        int y = event->y() ;
+
+        Ray ray = camera_->getRay(x, y) ;
+
+        RayCastResult result ;
+        if ( ray_caster_.intersect(ray, result) ) {
+            cout << result.node_->name() << ' '
+                 << result.triangle_idx_[0] << ' ' <<
+                    result.triangle_idx_[1] << ' ' << result.triangle_idx_[2] << endl ;
+            if ( result.drawable_ != selected_ ) {
+                if ( old_ ) selected_->setMaterial(old_) ;
+                selected_ = result.drawable_ ;
+                old_ = selected_->material() ;
+                selected_->setMaterial(highlight_) ;
+                update() ;
+            }
+        } else {
+            if ( selected_ ) {
+                selected_->setMaterial(old_) ;
+                update() ;
+            }
+        }
+
+        SceneViewer::mouseMoveEvent(event) ;
+    }
+
+
+private:
+    RayCaster ray_caster_ ;
+    xviz::MaterialPtr highlight_, old_;
+    Drawable *selected_ ;
+};
+
 int main(int argc, char **argv)
 {
     ScenePtr scene(new Scene) ;
 
+    scene->load("/home/malasiot/Downloads/2CylinderEngine.glb");
+
     for( uint i=0 ; i<10 ; i++ ) {
         Vector4f clr(0.5, rnd_uniform(0.0, 1.0), rnd_uniform(0.0, 1.0), 1.0) ;
         stringstream strm ;
-        strm << "box" << i << endl ;
+        strm << "box" << i ;
 
         randomBox(scene, strm.str(), Vector3f(0.04, rnd_uniform(0.1, 0.15), 0.04), clr);
     }
@@ -115,7 +163,7 @@ int main(int argc, char **argv)
       QSurfaceFormat::setDefaultFormat(format);
 
     QMainWindow window ;
-    window.setCentralWidget(new SceneViewer(scene)) ;
+    window.setCentralWidget(new PickingViewer(scene)) ;
     window.resize(512, 512) ;
     window.show() ;
 

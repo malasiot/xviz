@@ -51,7 +51,15 @@ private:
 
 class Material {
 public:
+    enum class Side { Front, Back, Both } ;
+
     virtual ~Material() = default ;
+
+    void setSide(Side s) { side_ = s ; }
+    Side side() const { return side_ ; }
+
+private:
+    Side side_ = Side::Front ;
 };
 
 
@@ -86,6 +94,25 @@ private:
     float shininess_  = 1.0 ;
 };
 
+class ConstantMaterial: public Material {
+public:
+    ConstantMaterial(const Eigen::Vector4f &clr): clr_(clr) {}
+
+    const Eigen::Vector4f &color() const { return clr_ ; }
+
+private:
+    Eigen::Vector4f clr_ ;
+};
+
+class PerVertexColorMaterial: public Material {
+public:
+    PerVertexColorMaterial(float opacity = 1.0): opacity_(opacity) {}
+
+    float opacity() const { return opacity_ ; }
+
+private:
+    float opacity_ = 1.0;
+};
 
 }
 #endif

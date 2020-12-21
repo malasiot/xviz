@@ -48,6 +48,7 @@ public:
     Node *parent() const { return parent_ ; }
 
     const std::vector<Drawable> &drawables() const { return drawables_ ; }
+    std::vector<Drawable> &drawables() { return drawables_ ; }
 
     const std::vector<NodePtr> &children() const { return children_ ; }
 

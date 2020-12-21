@@ -9,6 +9,7 @@ namespace xviz { namespace detail {
 class AABB
 {
     public:
+    ~AABB()  ;
     AABB(const Eigen::Vector3f &b0, const Eigen::Vector3f &b1) {
         bounds_[0] = b0 ;
         bounds_[1] = b1;

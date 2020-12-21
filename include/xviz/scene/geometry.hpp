@@ -6,6 +6,7 @@
 
 namespace xviz {
 
+class RayCastResult ;
 
 const int MAX_TEXTURES = 2 ;
 
@@ -118,10 +119,12 @@ public:
 
     void computeNormals() ;
     void computeBoundingBox(Eigen::Vector3f &bmin, Eigen::Vector3f &bmax) const ;
-    void makeOctree() ;
 
-    virtual bool intersect(const Ray &ray, float &t) const;
+    virtual bool hasCheapIntersectionTest() const { return false ; }
+    virtual bool intersect(const Ray &, float &) const { return false ; }
 
+    // this is the expensive test visiting all triangles of the geometry
+    bool intersectTriangles(const Ray &, uint32_t tidx[3], float &t) const ;
 
 private:
 
@@ -134,7 +137,7 @@ private:
 
 
     PrimitiveType ptype_ = Triangles ;
-    std::unique_ptr<detail::Octree> octree_ = nullptr ;
+
 
 };
 
@@ -147,7 +150,8 @@ public:
 
     Eigen::Vector3f halfExtents() const { return half_extents_ ; }
 
-    bool intersect(const Ray &ray, float &t) const override ;
+    bool hasCheapIntersectionTest() const override { return true ; }
+    bool intersect(const Ray &, float &) const override ;
 
 private:
 
@@ -164,7 +168,8 @@ public:
     size_t slices() const { return slices_ ; }
     size_t stacks() const { return stacks_ ; }
 
-    bool intersect(const Ray &ray, float &t) const override ;
+    bool hasCheapIntersectionTest() const override { return true ; }
+    bool intersect(const Ray &, float &) const override ;
 
 private:
 
@@ -185,7 +190,8 @@ public:
     size_t slices() const { return slices_ ; }
     size_t stacks() const { return stacks_ ; }
 
-  //  bool hit(const Ray &ray, Eigen::Vector3f &pos) const override ;
+    bool hasCheapIntersectionTest() const override { return true ; }
+    bool intersect(const Ray &, float &) const override ;
 
 private:
 
@@ -200,7 +206,8 @@ public:
     float radius() const { return radius_ ; }
     float height() const { return height_ ; }
 
- //   bool hit(const Ray &ray, Eigen::Vector3f &pos) const override ;
+    bool hasCheapIntersectionTest() const override { return true ; }
+    bool intersect(const Ray &, float &) const override ;
 
 private:
     float radius_, height_ ;

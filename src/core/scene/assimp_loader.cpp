@@ -29,7 +29,7 @@ namespace impl {
 
 class AssimpImporter {
 public:
-    AssimpImporter(Scene &sc, int options, float scale): scene_(sc), options_(options), scale_(scale) {}
+    AssimpImporter(Scene &sc, int options): scene_(sc), options_(options) {}
 
     MaterialPtr importMaterial(const aiScene *sc, const struct aiMaterial *mtl, const string &model_path) ;
 
@@ -41,7 +41,6 @@ public:
     map<string, CameraPtr> cameras_ ;
     map<string, NodePtr> node_map_ ;
     int options_ ;
-    float scale_ ;
 
     bool importMaterials(const string &mpath, const aiScene *sc);
     bool importMeshes(const aiScene *sc);
@@ -190,7 +189,7 @@ bool AssimpImporter::importMeshes(const aiScene *sc) {
             smesh->vertices().resize(n) ;
 
             for(int i = 0; i < n; ++i)
-                smesh->vertices().data()[i] = Vector3f(scale_ * mesh->mVertices[i].x, scale_ * mesh->mVertices[i].y, scale_ * mesh->mVertices[i].z) ;
+                smesh->vertices().data()[i] = Vector3f(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z) ;
         }
 
         if ( mesh->HasNormals() ) {
@@ -506,7 +505,8 @@ bool AssimpImporter::importNodes(Node *pnode, const struct aiScene *sc, const st
             return false ;
     }
 
-    scene_.addNode(snode) ;
+    if ( snode->parent() == nullptr )
+        scene_.addNode(snode) ;
 
     return true ;
 }
@@ -565,7 +565,7 @@ bool AssimpImporter::import(const aiScene *sc, const std::string &fname) {
 
 }
 
-void Scene::load(const std::string &fname, int options, float scale) {
+void Scene::load(const std::string &fname, int options) {
   //  const aiScene *sc = aiImportFile(fname.c_str(), aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_FlipUVs | aiProcess_TransformUVCoords);
     const aiScene *sc = aiImportFile(fname.c_str(),
     aiProcess_GenNormals
@@ -581,14 +581,14 @@ void Scene::load(const std::string &fname, int options, float scale) {
         throw SceneLoaderException(aiGetErrorString(), fname) ;
     }
 
-    load(sc, fname, options, scale) ;
+    load(sc, fname, options) ;
 
     aiReleaseImport(sc) ;
 }
 
-void Scene::load(const aiScene *sc, const std::string &fname, int options, float scale) {
+void Scene::load(const aiScene *sc, const std::string &fname, int options) {
 
-    impl::AssimpImporter importer(*this, options, scale) ;
+    impl::AssimpImporter importer(*this, options) ;
 
     bool res = importer.import(sc, fname) ;
 

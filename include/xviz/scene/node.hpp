@@ -63,6 +63,13 @@ public:
 
     LightPtr light() const { return light_ ; }
 
+
+    void addLightNode(LightPtr l) {
+        NodePtr node(new Node) ;
+        node->setLight(l) ;
+        addChild(node) ;
+    }
+
     Eigen::Affine3f globalTransform() const {
         if ( parent_ ) return parent_->globalTransform() * mat_ ;
         else return mat_ ;
@@ -70,12 +77,24 @@ public:
 
     NodePtr makeChildNode(const MeshPtr &geom, const MaterialPtr &mat) ;
 
-    static void visit(const NodePtr &parent, const std::function<void(const Node&)> &f) {
+    const std::vector<Geometry *> geometries() const ;
+    const std::vector<Material *> materials() const ;
+    const std::vector<LightPtr> lights() const ;
+
+    void visitNodes(const std::function<void(const NodePtr &n)> &f) const{
+        for( const auto &node: children_ ) {
+            if ( !node->parent() ) Node::visit(node, f) ;
+        }
+    }
+
+    static void visit(const NodePtr &parent, const std::function<void(const NodePtr&)> &f) {
         for( const auto &c: parent->children() ) {
             Node::visit(c, f) ;
         }
-        f(*parent) ;
+        f(parent) ;
     }
+
+    void addScene(const ScenePtr &other);
 
 private:
 

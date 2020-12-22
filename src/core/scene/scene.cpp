@@ -15,9 +15,9 @@ Vector3f Scene::geomCenter() const {
     Vector3f center {0, 0, 0} ;
     uint count = 0 ;
 
-    visitNodes([&](const Node &node){
-        Affine3f tf = node.globalTransform() ;
-        for ( const auto &d: node.drawables() ) {
+    visitNodes([&](const NodePtr &node){
+        Affine3f tf = node->globalTransform() ;
+        for ( const auto &d: node->drawables() ) {
             GeometryPtr mesh = d.geometry() ;
 
             for( const Vector3f &v: mesh->vertices() ) {
@@ -36,9 +36,9 @@ Vector3f Scene::geomCenter() const {
 float Scene::geomRadius(const Vector3f &center) const {
     float max_dist = 0.0 ;
 
-    visitNodes([&](const Node &node){
-        Affine3f tf = node.globalTransform() ;
-        for ( const auto &d: node.drawables() ) {
+    visitNodes([&](const NodePtr &node){
+        Affine3f tf = node->globalTransform() ;
+        for ( const auto &d: node->drawables() ) {
             GeometryPtr mesh = d.geometry() ;
 
             for( const Vector3f &v: mesh->vertices() ) {
@@ -53,8 +53,8 @@ float Scene::geomRadius(const Vector3f &center) const {
 }
 
 static void get_materials(const Scene *scene, unordered_set<Material *> &material_map) {
-    scene->visitNodes([&](const Node &n) {
-        for( const auto &dr: n.drawables() ) {
+    scene->visitNodes([&](const NodePtr &n) {
+        for( const auto &dr: n->drawables() ) {
             MaterialPtr material = dr.material() ;
             material_map.emplace(material.get()) ;
         }
@@ -64,8 +64,8 @@ static void get_materials(const Scene *scene, unordered_set<Material *> &materia
 const std::vector<Material *> Scene::materials() const {
     unordered_set<Material *> material_map ;
 
-    visitNodes([&](const Node &n) {
-        for( const auto &dr: n.drawables() ) {
+    visitNodes([&](const NodePtr &n) {
+        for( const auto &dr: n->drawables() ) {
             MaterialPtr material = dr.material() ;
             material_map.emplace(material.get()) ;
         }
@@ -77,8 +77,8 @@ const std::vector<Material *> Scene::materials() const {
 const std::vector<Geometry *> Scene::geometries() const {
     unordered_set<Geometry *> geometry_map ;
 
-    visitNodes([&](const Node &n) {
-        for( const auto &dr: n.drawables() ) {
+    visitNodes([&](const NodePtr &n) {
+        for( const auto &dr: n->drawables() ) {
             GeometryPtr geom = dr.geometry() ;
             geometry_map.emplace(geom.get()) ;
         }

@@ -21,8 +21,8 @@ public:
 
     enum { IMPORT_ANIMATIONS = 0x1, IMPORT_SKELETONS = 0x2, IMPORT_LIGHTS = 0x4 } ;
 
-    void load(const std::string &fname, int flags = 0, float scale = 1.f ) ;
-    void load(const aiScene *sc, const std::string &fname, int flags = 0, float scale = 1.f) ;
+    void load(const std::string &fname, int flags = 0 ) ;
+    void load(const aiScene *sc, const std::string &fname, int flags = 0) ;
 
     void addNode(NodePtr node) {
         nodes_.push_back(node) ;
@@ -39,7 +39,7 @@ public:
     const std::vector<Material *> materials() const ;
     const std::vector<LightPtr> lights() const ;
 
-    void visitNodes(const std::function<void(const Node &n)> &f) const{
+    void visitNodes(const std::function<void(const NodePtr &n)> &f) const{
         for( const auto &node: nodes_ ) {
             if ( !node->parent() ) Node::visit(node, f) ;
         }
@@ -54,7 +54,7 @@ public:
 private:
 
     std::vector<NodePtr> nodes_ ;
-    std::vector<LightPtr> lights_ ;
+
 };
 
 class SceneLoaderException: public std::runtime_error {

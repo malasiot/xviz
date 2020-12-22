@@ -32,7 +32,8 @@ bool RayCaster::intersect(const Ray &ray, RayCastResult &result)
     float mint = std::numeric_limits<float>::max() ;
     bool found = false ;
 
-    for( auto &node: scene_->nodes() ) {
+
+    scene_->visitNodes([&](const NodePtr &node) {
         Affine3f tf = node->globalTransform().inverse() ;
         Ray tr(ray, tf) ; // ray transform to local coordinate system
 
@@ -96,7 +97,7 @@ bool RayCaster::intersect(const Ray &ray, RayCastResult &result)
                 }
             }
         }
-    }
+    }) ;
 
     return found ;
 }

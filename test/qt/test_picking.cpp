@@ -118,6 +118,8 @@ public:
         } else {
             if ( selected_ ) {
                 selected_->setMaterial(old_) ;
+                selected_ = nullptr ;
+                old_ = nullptr ;
                 update() ;
             }
         }
@@ -129,14 +131,24 @@ public:
 private:
     RayCaster ray_caster_ ;
     xviz::MaterialPtr highlight_, old_;
-    Drawable *selected_ ;
+    Drawable *selected_ = nullptr ;
 };
 
 int main(int argc, char **argv)
 {
+    ScenePtr model(new Scene) ;
+    model->load("/home/malasiot/Downloads/2CylinderEngine.glb", 0);
+
     ScenePtr scene(new Scene) ;
 
-    scene->load("/home/malasiot/Downloads/2CylinderEngine.glb");
+    NodePtr modelNode(new Node) ;
+    Affine3f tr(Affine3f::Identity());
+    tr.scale(0.001f) ;
+    tr.translate(-model->geomCenter()) ;
+    modelNode->setTransform(tr) ;
+    modelNode->addScene(model) ;
+    modelNode->setName("model") ;
+    scene->addNode(modelNode) ;
 
     for( uint i=0 ; i<10 ; i++ ) {
         Vector4f clr(0.5, rnd_uniform(0.0, 1.0), rnd_uniform(0.0, 1.0), 1.0) ;

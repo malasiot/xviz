@@ -18,10 +18,7 @@ SceneViewer::SceneViewer(const xviz::ScenePtr &scene, QWidget *parent): QOpenGLW
     dl->diffuse_color_ = Vector3f(0.5, 0.5, 0.5) ;
     xviz::LightPtr light(dl) ;
 
-    xviz::NodePtr node(new xviz::Node) ;
-    node->setLight(light) ;
-    scene_->addNode(node) ;
-    scene_->addLight(light) ;
+    scene_->addLightNode(light) ;
 
     auto c = scene_->geomCenter() ;
     auto r = scene_->geomRadius(c) ;

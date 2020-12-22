@@ -23,9 +23,16 @@ public:
 
     using NodePtr = std::shared_ptr<Node> ;
 
+
+    enum { IMPORT_ANIMATIONS = 0x1, IMPORT_SKELETONS = 0x2, IMPORT_LIGHTS = 0x4 } ;
+
+    void load(const std::string &fname, int flags = 0 ) ;
+    void load(const aiScene *sc, const std::string &fname, int flags = 0) ;
+
+
     Node() { mat_.setIdentity() ; }
 
-    Eigen::Affine3f &matrix() { return mat_ ; }
+    const Eigen::Affine3f &transform() const { return mat_ ; }
 
     std::string name() const { return name_ ; }
 
@@ -45,12 +52,14 @@ public:
         mat_ = tr ;
     }
 
+
     Node *parent() const { return parent_ ; }
 
     const std::vector<Drawable> &drawables() const { return drawables_ ; }
     std::vector<Drawable> &drawables() { return drawables_ ; }
 
     const std::vector<NodePtr> &children() const { return children_ ; }
+    std::vector<NodePtr> &children() { return children_ ; }
 
     size_t numChildren() const { return children_.size() ; }
 
@@ -81,20 +90,42 @@ public:
     const std::vector<Material *> materials() const ;
     const std::vector<LightPtr> lights() const ;
 
-    void visitNodes(const std::function<void(const NodePtr &n)> &f) const{
-        for( const auto &node: children_ ) {
-            if ( !node->parent() ) Node::visit(node, f) ;
+    template<typename F>
+    void visit(F f) const {
+        for( const NodePtr &c: children() ) {
+            c->visit(f) ;
         }
+        f(*this) ;
     }
 
-    static void visit(const NodePtr &parent, const std::function<void(const NodePtr&)> &f) {
-        for( const auto &c: parent->children() ) {
-            Node::visit(c, f) ;
+    template<typename F>
+    void visit(F f) {
+        for( auto &c: children() ) {
+            c->visit(f) ;
         }
-        f(parent) ;
+        f(*this) ;
     }
 
-    void addScene(const ScenePtr &other);
+    std::vector<ConstNodePtr> getNodesRecursive() const {
+        std::vector<ConstNodePtr> nodes ;
+        visit([&](const Node &n) {
+            nodes.push_back(n.shared_from_this()) ;
+        }) ;
+        return nodes ;
+    }
+
+    std::vector<NodePtr> getNodesRecursive() {
+        std::vector<NodePtr> nodes ;
+        visit([&](Node &n) {
+            nodes.push_back(n.shared_from_this()) ;
+        }) ;
+        return nodes ;
+    }
+
+
+    Eigen::Vector3f geomCenter() const ;
+    float geomRadius(const Eigen::Vector3f &center) const ;
+
 
 private:
 

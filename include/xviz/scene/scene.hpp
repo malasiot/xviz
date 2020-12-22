@@ -15,45 +15,14 @@ namespace msg {
 class Scene ;
 }
 
-class Scene {
+class Scene: public Node {
 public:
     Scene() = default ;
-
-    enum { IMPORT_ANIMATIONS = 0x1, IMPORT_SKELETONS = 0x2, IMPORT_LIGHTS = 0x4 } ;
-
-    void load(const std::string &fname, int flags = 0 ) ;
-    void load(const aiScene *sc, const std::string &fname, int flags = 0) ;
-
-    void addNode(NodePtr node) {
-        nodes_.push_back(node) ;
-    }
-
-    void addLight(LightPtr l) {
-        NodePtr node(new Node) ;
-        node->setLight(l) ;
-        nodes_.push_back(node) ;
-    }
-
-    const std::vector<Geometry *> geometries() const ;
-    const std::vector<NodePtr> &nodes() const { return nodes_ ; }
-    const std::vector<Material *> materials() const ;
-    const std::vector<LightPtr> lights() const ;
-
-    void visitNodes(const std::function<void(const NodePtr &n)> &f) const{
-        for( const auto &node: nodes_ ) {
-            if ( !node->parent() ) Node::visit(node, f) ;
-        }
-    }
-
-    Eigen::Vector3f geomCenter() const ;
-    float geomRadius(const Eigen::Vector3f &center) const ;
 
     static msg::Scene *write(const Scene &scene) ;
     static Scene *read(const msg::Scene &msg) ;
 
 private:
-
-    std::vector<NodePtr> nodes_ ;
 
 };
 

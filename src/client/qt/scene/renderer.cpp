@@ -151,9 +151,8 @@ void Renderer::render(const xviz::CameraPtr &cam) {
 
     proj_ = cam->getViewMatrix() ;
 
-    for ( const xviz::NodePtr &node: scene_->nodes() ) {
-        if ( node->parent() == nullptr )
-            render(node, Matrix4f::Identity()) ;
+    for ( const xviz::NodePtr &node: scene_->children() ) {
+       render(node, scene_->transform().matrix()) ;
     }
 
 }
@@ -172,7 +171,7 @@ void Renderer::uploadTexture(QImage im, const xviz::Material *mat, int slot) {
 
 void Renderer::render(const xviz::NodePtr &node, const Matrix4f &tf) {
 
-    Matrix4f mat = node->matrix().matrix(),
+    Matrix4f mat = node->transform().matrix(),
             tr = tf * mat ; // accumulate transform
 
     const auto &drawables = node->drawables() ;
@@ -191,7 +190,7 @@ void Renderer::render(const xviz::NodePtr &node, const Matrix4f &tf) {
 
 void Renderer::setLights(const xviz::NodePtr &node, const Affine3f &parent_tf, const MaterialProgramPtr &mat)
 {
-    Affine3f tf = parent_tf * node->matrix() ;
+    Affine3f tf = parent_tf * node->transform() ;
 
     xviz::LightPtr l = node->light() ;
 
@@ -212,9 +211,8 @@ void Renderer::setLights(const MaterialProgramPtr &material) {
     Isometry3f mat ;
     mat.setIdentity() ;
 
-    for( const xviz::NodePtr &node: scene_->nodes() )
-        if ( node->parent() == nullptr )
-            setLights(node, mat, material) ;
+    for( const xviz::NodePtr &node: scene_->children() )
+        setLights(node, mat, material) ;
 }
 
 

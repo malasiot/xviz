@@ -80,9 +80,9 @@ NodePtr randomBox(ScenePtr &scene, const string &name, const Vector3f &hs, const
     MaterialPtr mat(material) ;
     box_node->addDrawable(geom, mat) ;
 
-    box_node->matrix() = getRandTransform(0) ;
+    box_node->setTransform(getRandTransform(0)) ;
 
-    scene->addNode(box_node) ;
+    scene->addChild(box_node) ;
 
     return box_node ;
 }
@@ -136,19 +136,17 @@ private:
 
 int main(int argc, char **argv)
 {
-    ScenePtr model(new Scene) ;
+    NodePtr model(new Node) ;
     model->load("/home/malasiot/Downloads/2CylinderEngine.glb", 0);
-
-    ScenePtr scene(new Scene) ;
-
-    NodePtr modelNode(new Node) ;
     Affine3f tr(Affine3f::Identity());
     tr.scale(0.001f) ;
     tr.translate(-model->geomCenter()) ;
-    modelNode->setTransform(tr) ;
-    modelNode->addScene(model) ;
-    modelNode->setName("model") ;
-    scene->addNode(modelNode) ;
+    model->setTransform(tr) ;
+    model->setName("model") ;
+
+    ScenePtr scene(new Scene) ;
+
+    scene->addChild(model) ;
 
     for( uint i=0 ; i<10 ; i++ ) {
         Vector4f clr(0.5, rnd_uniform(0.0, 1.0), rnd_uniform(0.0, 1.0), 1.0) ;
@@ -160,7 +158,7 @@ int main(int argc, char **argv)
 
     DirectionalLight *dl = new DirectionalLight(Vector3f(0.5, 0.5, 1)) ;
     dl->diffuse_color_ = Vector3f(1, 1, 1) ;
-    scene->addLight(LightPtr(dl)) ;
+    scene->addLightNode(LightPtr(dl)) ;
 
     QApplication app(argc, argv);
 

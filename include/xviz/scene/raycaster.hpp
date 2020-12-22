@@ -16,7 +16,6 @@ struct RayCastResult {
     NodePtr node_ ;
     Drawable *drawable_ = nullptr ;
 
-
     float t_ ; // distance from ray origin to geometry hit
 
     Eigen::Vector3f pt_ ; // intersection point

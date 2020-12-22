@@ -33,7 +33,7 @@ bool RayCaster::intersect(const Ray &ray, RayCastResult &result)
     bool found = false ;
 
 
-    scene_->visitNodes([&](const NodePtr &node) {
+    for( NodePtr node: scene_->getNodesRecursive() ) {
         Affine3f tf = node->globalTransform().inverse() ;
         Ray tr(ray, tf) ; // ray transform to local coordinate system
 
@@ -97,7 +97,7 @@ bool RayCaster::intersect(const Ray &ray, RayCastResult &result)
                 }
             }
         }
-    }) ;
+    } ;
 
     return found ;
 }

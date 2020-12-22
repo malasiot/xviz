@@ -22,6 +22,7 @@ typedef std::shared_ptr<Scene> ScenePtr ;
 
 class Node ;
 typedef std::shared_ptr<Node> NodePtr ;
+typedef std::shared_ptr<const Node> ConstNodePtr ;
 
 class Drawable ;
 typedef std::shared_ptr<Drawable> DrawablePtr ;

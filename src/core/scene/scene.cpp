@@ -11,13 +11,13 @@ using namespace std ;
 
 namespace xviz {
 
-Vector3f Scene::geomCenter() const {
+Vector3f Node::geomCenter() const {
     Vector3f center {0, 0, 0} ;
     uint count = 0 ;
 
-    visitNodes([&](const NodePtr &node){
-        Affine3f tf = node->globalTransform() ;
-        for ( const auto &d: node->drawables() ) {
+    visit([&](const Node &node){
+        Affine3f tf = node.globalTransform() ;
+        for ( const auto &d: node.drawables() ) {
             GeometryPtr mesh = d.geometry() ;
 
             for( const Vector3f &v: mesh->vertices() ) {
@@ -33,12 +33,12 @@ Vector3f Scene::geomCenter() const {
     return center ;
 }
 
-float Scene::geomRadius(const Vector3f &center) const {
+float Node::geomRadius(const Vector3f &center) const {
     float max_dist = 0.0 ;
 
-    visitNodes([&](const NodePtr &node){
-        Affine3f tf = node->globalTransform() ;
-        for ( const auto &d: node->drawables() ) {
+    visit([&](const Node &node){
+        Affine3f tf = node.globalTransform() ;
+        for ( const auto &d: node.drawables() ) {
             GeometryPtr mesh = d.geometry() ;
 
             for( const Vector3f &v: mesh->vertices() ) {
@@ -52,20 +52,11 @@ float Scene::geomRadius(const Vector3f &center) const {
     return sqrt(max_dist) ;
 }
 
-static void get_materials(const Scene *scene, unordered_set<Material *> &material_map) {
-    scene->visitNodes([&](const NodePtr &n) {
-        for( const auto &dr: n->drawables() ) {
-            MaterialPtr material = dr.material() ;
-            material_map.emplace(material.get()) ;
-        }
-    });
-}
-
-const std::vector<Material *> Scene::materials() const {
+const std::vector<Material *> Node::materials() const {
     unordered_set<Material *> material_map ;
 
-    visitNodes([&](const NodePtr &n) {
-        for( const auto &dr: n->drawables() ) {
+    visit([&](const Node &n) {
+        for( const auto &dr: n.drawables() ) {
             MaterialPtr material = dr.material() ;
             material_map.emplace(material.get()) ;
         }
@@ -74,11 +65,11 @@ const std::vector<Material *> Scene::materials() const {
     return {material_map.begin(), material_map.end()} ;
 }
 
-const std::vector<Geometry *> Scene::geometries() const {
+const std::vector<Geometry *> Node::geometries() const {
     unordered_set<Geometry *> geometry_map ;
 
-    visitNodes([&](const NodePtr &n) {
-        for( const auto &dr: n->drawables() ) {
+    visit([&](const Node &n) {
+        for( const auto &dr: n.drawables() ) {
             GeometryPtr geom = dr.geometry() ;
             geometry_map.emplace(geom.get()) ;
         }
@@ -197,36 +188,40 @@ msg::Scene *Scene::write(const Scene &scene) {
 
     id = 0 ;
 
-    std::map<NodePtr, msg::Node *> node_map ;
-    for( const NodePtr &node: scene.nodes() ) {
-        msg::Node *node_msg = msg_scene->add_nodes() ;
-        node_msg->set_name(node->name()) ;
-        node_msg->set_id(id++) ;
-        node_map[node] = node_msg ;
+    std::map<const Node *, msg::Node *> node_map ;
 
-        auto mat = node->matrix().matrix() ;
+    scene.visit([&] ( const Node &node ) {
+
+        msg::Node *node_msg = msg_scene->add_nodes() ;
+        node_msg->set_name(node.name()) ;
+        node_msg->set_id(id++) ;
+        node_map[&node] = node_msg ;
+
+        auto mat = node.transform().matrix() ;
 
         for ( uint i=0 ; i<4 ; i++ )
             for( uint j=0 ; j<4 ; j++ )
                 node_msg->add_mat(mat(i, j)) ;
 
-        for ( const Drawable &d: node->drawables() ) {
+        for ( const Drawable &d: node.drawables() ) {
             msg::Drawable *msg_dr = node_msg->add_drawables() ;
             msg_dr->set_mesh_id(mesh_map[d.geometry().get()]);
             msg_dr->set_material_id(material_map[d.material().get()]) ;
         }
-    }
+    }) ;
 
     // create hierarchy
 
-    for( const NodePtr &node: scene.nodes() ) {
-        msg::Node *node_msg = node_map[node] ;
+    scene.visit([&] ( const Node &node ) {
+        msg::Node *node_msg = node_map[&node] ;
 
-        for( const NodePtr &child: node->children() ) {
-            msg::Node *msg_child = node_map[child] ;
+        for( const NodePtr &child: node.children() ) {
+            msg::Node *msg_child = node_map[child.get()] ;
             node_msg->add_children(msg_child->id()) ;
         }
-    }
+
+    }) ;
+
 
     return msg_scene ;
 }
@@ -315,7 +310,7 @@ Scene *Scene::read(const msg::Scene &msg) {
     for( const msg::Node &node_msg: msg.nodes() ) {
         NodePtr node(new Node) ;
         node_map[node_msg.id()] = node ;
-        scene->addNode(node) ;
+        scene->addChild(node) ;
 
         node->setName(node_msg.name()) ;
 

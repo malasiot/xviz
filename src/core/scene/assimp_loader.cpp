@@ -29,11 +29,11 @@ namespace impl {
 
 class AssimpImporter {
 public:
-    AssimpImporter(Scene &sc, int options): scene_(sc), options_(options) {}
+    AssimpImporter(Node &sc, int options): scene_(sc), options_(options) {}
 
     MaterialPtr importMaterial(const aiScene *sc, const struct aiMaterial *mtl, const string &model_path) ;
 
-    Scene &scene_ ;
+    Node &scene_ ;
 
     map<const aiMesh *, GeometryPtr> meshes_ ;
     map<const aiMaterial *, MaterialPtr> materials_ ;
@@ -460,7 +460,7 @@ bool AssimpImporter::importNodes(Node *pnode, const struct aiScene *sc, const st
             m.c1, m.c2, m.c3, m.c4,
             m.d1, m.d2, m.d3, m.d4 ;
 
-    snode->matrix() = tf.eval() ;
+    snode->setTransform(Affine3f(tf)) ;
 
     string nname(nd->mName.C_Str()) ;
     snode->setName(nname);
@@ -506,7 +506,7 @@ bool AssimpImporter::importNodes(Node *pnode, const struct aiScene *sc, const st
     }
 
     if ( snode->parent() == nullptr )
-        scene_.addNode(snode) ;
+        scene_.addChild(snode) ;
 
     return true ;
 }
@@ -565,7 +565,7 @@ bool AssimpImporter::import(const aiScene *sc, const std::string &fname) {
 
 }
 
-void Scene::load(const std::string &fname, int options) {
+void Node::load(const std::string &fname, int options) {
   //  const aiScene *sc = aiImportFile(fname.c_str(), aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_FlipUVs | aiProcess_TransformUVCoords);
     const aiScene *sc = aiImportFile(fname.c_str(),
     aiProcess_GenNormals
@@ -586,7 +586,7 @@ void Scene::load(const std::string &fname, int options) {
     aiReleaseImport(sc) ;
 }
 
-void Scene::load(const aiScene *sc, const std::string &fname, int options) {
+void Node::load(const aiScene *sc, const std::string &fname, int options) {
 
     impl::AssimpImporter importer(*this, options) ;
 

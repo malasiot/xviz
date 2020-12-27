@@ -43,6 +43,9 @@ set(XVIZ_LIB_SOURCES
     core/scene/intersect.cpp
     core/scene/octree.cpp
     core/scene/raycaster.cpp
+    core/scene/drawable.cpp
+    core/scene/node_helpers.cpp
+
 
     ${XVIZ_INCLUDE_DIR}/server.hpp
     ${XVIZ_INCLUDE_DIR}/channel.hpp

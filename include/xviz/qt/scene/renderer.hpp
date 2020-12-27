@@ -5,14 +5,17 @@
 #include <Eigen/Geometry>
 #include <xviz/scene/scene_fwd.hpp>
 #include <xviz/scene/material.hpp>
-#include <QOpenGLFunctions>
+
+#include <QOpenGLFunctions_3_3_Core>
 
 #include "material.hpp"
 
+
 class MeshData ;
 class QOpenGLTexture ;
+class ShadowMap ;
 
-class Renderer: public QObject, protected QOpenGLFunctions {
+class Renderer: public QObject, protected QOpenGLFunctions_3_3_Core {
     Q_OBJECT
 public:
 
@@ -29,6 +32,9 @@ public:
 
     void render(const xviz::CameraPtr &scene) ;
 
+    void setDefaultFBO(GLuint fbo) {
+        default_fbo_ = fbo ;
+    }
 private slots:
 
     void uploadTexture(QImage im, const xviz::Material *material, int slot) ;
@@ -65,17 +71,12 @@ private:
 
     Eigen::Matrix4f perspective_, proj_, ls_mat_ ;
 
-    MaterialProgramPtr default_prog_ ;
+
     xviz::MaterialPtr default_material_ ;
 
     float znear_, zfar_ ;
-//    MaterialInstancePtr default_material_ ;
 
     uint light_index_ = 0 ;
-
-    //OpenGLShaderProgram::Ptr line_shader_ ;
-    GLuint line_vao_, line_vbo_, line_idx_vbo_ ;
-    GLint line_width_range_[2] ;
 
     int flags_ ;
 
@@ -85,16 +86,35 @@ private:
     std::map<const xviz::Material *, MaterialProgramPtr> materials_ ;
     std::vector<MaterialProgramPtr> programs_ ;
     std::map<const xviz::Material *, TextureData> textures_ ;
+    GLuint default_fbo_ ;
+
+    QOpenGLShaderProgram shadow_map_shader_, shadow_map_debug_shader_ ;
+    std::unique_ptr<ShadowMap> shadow_map_ ;
+
+    const uint32_t shadow_map_width_ = 1024 ;
+    const uint32_t shadow_map_height_ = 1024 ;
+
 
 private:
     void render(const xviz::NodePtr &node, const Eigen::Matrix4f &tf);
     void render(const xviz::Drawable &geom, const Eigen::Matrix4f &mat);
-    void drawMeshData(const MeshData &data, xviz::GeometryPtr mesh);
+    void drawMeshData(const MeshData &data, xviz::GeometryPtr mesh, bool solid=false);
     void setLights(const MaterialProgramPtr &material);
     void setLights(const xviz::NodePtr &node, const Eigen::Affine3f &parent_tf, const MaterialProgramPtr &mat);
     void setupTexture(const xviz::Material *mat, const xviz::Texture2D *texture, uint slot);
     void setupCulling(const xviz::Material *mat);
-    void instantiateMaterial(const xviz::Material *mat);
+    MaterialProgramPtr instantiateMaterial(const xviz::Material *mat, int flags);
+    void setPose(const xviz::GeometryPtr &mesh, const MaterialProgramPtr &mat);
+    void renderShadowMaps();
+    void renderScene(const xviz::LightPtr &l, const Eigen::Affine3f &light_mat);
+    void render(const xviz::Drawable &dr, const Eigen::Affine3f &mat, const xviz::LightPtr &l, const Eigen::Affine3f &lmat);
+    void initShadowMapRenderer() ;
+    void renderShadowMap(const xviz::LightPtr &l);
+    void setupShadows(const xviz::LightPtr &light);
+    void renderShadowDebug();
+    void renderQuad();
+
+    const MeshData *fetchMeshData(xviz::GeometryPtr &geom);
 } ;
 
 #endif

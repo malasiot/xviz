@@ -17,6 +17,15 @@ struct Light {
     virtual ~Light() {}
 
     std::string name_ ;
+    bool casts_shadows_ = false ;
+
+    float shadow_cam_left_ = -5 ;
+    float shadow_cam_right_ = 5 ;
+    float shadow_cam_top_ = -5 ;
+    float shadow_cam_bottom_ = 5 ;
+    float shadow_cam_near_ = 0.01 ;
+    float shadow_cam_far_ = 500.f ;
+    float shadow_bias_ = 0.0 ;
 };
 
 struct AmbientLight: public Light {
@@ -37,10 +46,12 @@ struct PointLight: public Light {
 };
 
 struct DirectionalLight: public Light {
-    DirectionalLight(const Eigen::Vector3f &dir): direction_(dir) {}
+    DirectionalLight(const Eigen::Vector3f &position, const Eigen::Vector3f &target = {0, 0, 0}):
+        position_(position), target_(target) {}
 
-    Eigen::Vector3f direction_ ;
+    Eigen::Vector3f position_, target_ ; // to correclty casts shadows set this to an absolute position (in this case the light direction is the normalised value)
     Eigen::Vector3f diffuse_color_, specular_color_, ambient_color_ ;
+
 };
 
 struct SpotLight: public Light {

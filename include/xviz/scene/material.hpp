@@ -58,8 +58,12 @@ public:
     void setSide(Side s) { side_ = s ; }
     Side side() const { return side_ ; }
 
+    bool skinning() const { return skinning_ ; }
+    void setSkinning(bool sk) { skinning_ = sk ; }
+
 private:
     Side side_ = Side::Front ;
+    bool skinning_ = false ;
 };
 
 

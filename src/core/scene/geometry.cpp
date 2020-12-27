@@ -419,6 +419,50 @@ Geometry Geometry::makePointCloud(const std::vector<Vector3f>  &coords, const st
     return m ;
 }
 
+Geometry Geometry::makePlane(const float width, const float height, uint32_t nx, uint32_t ny)
+{
+    float stepx = width/nx ;
+    float stepy = height/ny ;
+
+    float stepu = 1.0/nx ;
+    float stepv = 1.0/ny ;
+
+    Vector3f c(-width/2, 0, -height/2) ;
+
+    Geometry geom ;
+
+    for( uint i=0 ; i<ny+1 ; i++ )
+        for( uint j=0 ; j<nx+1 ; j++ ) {
+            Vector3f v =  c + Vector3f(j* stepx, 0, i*stepy) ;
+            Vector2f uv(j*stepu, 1.0f - i*stepv) ;
+
+            geom.vertices().push_back(v) ;
+            geom.texCoords(0).push_back(uv) ;
+            geom.normals().push_back({0, 1, 0}) ;
+        }
+
+    for ( uint i = 0; i < ny; i ++ ) {
+        for ( uint j = 0; j < nx ; j++ ) {
+            uint32_t a = j + (nx+1) * i;
+            uint32_t b = j + (nx+1) * ( i + 1 );
+            uint32_t c = ( j + 1 ) + (nx+1) * ( i + 1 );
+            uint32_t d = ( j + 1 ) + (nx+1) * i;
+
+            geom.indices().push_back(a) ;
+            geom.indices().push_back(b) ;
+            geom.indices().push_back(d) ;
+
+            geom.indices().push_back(b) ;
+            geom.indices().push_back(c) ;
+            geom.indices().push_back(d) ;
+        }
+
+    }
+
+    return geom ;
+}
+
+
 
 
 static Vector3f normal_triangle(const Vector3f &v1, const Vector3f &v2, const Vector3f &v3)
@@ -514,6 +558,49 @@ bool Geometry::intersectTriangles(const Ray &ray, uint32_t t_idx[3], float &best
                 mint = t ;
                 bestt = t ;
                 t_idx[0] = idx0 ; t_idx[1] = idx1 ; t_idx[2] = idx2 ;
+                hit = true ;
+            }
+        }
+    }
+
+    return hit ;
+}
+
+bool Geometry::intersectLines(const Ray &ray, uint32_t t_idx[2], float thresh_sq, float &bestt) const
+{
+    float mint = std::numeric_limits<float>::max() ;
+    bool hit = false ;
+
+
+    if ( !indices_.empty() ) {
+        for( uint i=0, ti =0 ; i<indices_.size() ; i+=2, ti++ ) {
+            uint32_t idx0 = indices_[i] ;
+            uint32_t idx1 = indices_[i+1] ;
+
+            const Vector3f &v0 = vertices_[idx0] ;
+            const Vector3f &v1 = vertices_[idx1] ;
+
+            float t ;
+            if ( detail::rayIntersectsLine(ray, v0, v1, thresh_sq, t)  && t < mint  ) {
+                mint = t ;
+                bestt = t ;
+                t_idx[0] = idx0 ; t_idx[1] = idx1 ;
+                hit = true ;
+            }
+        }
+    } else {
+        for( uint i=0, ti =0 ; i<vertices_.size() ; i+=3, ti++ ) {
+            uint32_t idx0 = i ;
+            uint32_t idx1 = i+1 ;
+
+            const Vector3f &v0 = vertices_[idx0] ;
+            const Vector3f &v1 = vertices_[idx1] ;
+
+            float t ;
+            if ( detail::rayIntersectsLine(ray, v0, v1, thresh_sq, t)  && t < mint  ) {
+                mint = t ;
+                bestt = t ;
+                t_idx[0] = idx0 ; t_idx[1] = idx1 ;
                 hit = true ;
             }
         }

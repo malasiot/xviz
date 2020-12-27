@@ -14,18 +14,24 @@ SceneViewer::SceneViewer(const xviz::ScenePtr &scene, QWidget *parent): QOpenGLW
     //scene_.reset(new xviz::Scene) ;
    // scene_->load("/home/malasiot/Downloads/BoxTextured.gltf", xviz::Scene::IMPORT_LIGHTS);
 
-    xviz::DirectionalLight *dl = new xviz::DirectionalLight(Vector3f(0.5, 0.5, 1)) ;
-    dl->diffuse_color_ = Vector3f(0.5, 0.5, 0.5) ;
+    xviz::DirectionalLight *dl = new xviz::DirectionalLight(Vector3f(0, 1, 0)) ;
+    dl->diffuse_color_ = Vector3f(0.5, 0, 0) ;
+    dl->casts_shadows_ = true;
     xviz::LightPtr light(dl) ;
 
-    scene_->addLightNode(light) ;
+  //  scene_->addLightNode(light) ;
 
     auto c = scene_->geomCenter() ;
     auto r = scene_->geomRadius(c) ;
     initCamera(c, r, UpAxis::YAxis) ;
 
-  //  scene_->addLight(xviz::LightPtr(dl)) ;
-    //   cout << "ok" << endl ;
+
+    QTimer *timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(updateAnimation()));
+
+    et_.start() ;
+    timer->start(30);
+
 }
 
 void SceneViewer::initCamera(const Vector3f &c, float r, UpAxis axis) {
@@ -119,6 +125,7 @@ void SceneViewer::wheelEvent(QWheelEvent *event) {
 
 
 void SceneViewer::initializeGL() {
+
     if ( scene_ )
         rdr_.init(scene_) ;
 
@@ -138,7 +145,7 @@ void SceneViewer::resizeGL(int w, int h) {
 void SceneViewer::paintGL()
 {
     if ( !scene_ ) return ;
-
+    rdr_.setDefaultFBO(defaultFramebufferObject());
     rdr_.render(camera_) ;
 #if 0
     if ( draw_axes_ ) {
@@ -166,12 +173,11 @@ void SceneViewer::updateAnimation() {
 
     float elapsed = et_.elapsed() ;
 
-    if ( anim_cb_ != nullptr )
-        anim_cb_(elapsed) ;
-    else
-        onUpdate(elapsed) ;
+    scene_->updateAnimations(elapsed) ;
 
-    et_.restart() ;
+    onUpdate(elapsed) ;
+
+//    et_.restart() ;
 
     update() ;
 

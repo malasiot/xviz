@@ -10,12 +10,13 @@
 class MaterialProgram ;
 using MaterialProgramPtr = std::shared_ptr<MaterialProgram> ;
 
+enum MaterialProgramFlags { ENABLE_SKINNING = 1, ENABLE_SHADOWS = 2, HAS_DIFFUSE_TEXTURE = 4, HAS_SPECULAR_TEXTURE = 8 } ;
 
-template<class T>
-MaterialProgramPtr materialSingleton(std::map<int, MaterialProgramPtr> &instances, int flags) {
+template<class T, typename ...Args>
+MaterialProgramPtr materialSingleton(std::map<int, MaterialProgramPtr> &instances, int flags, Args... args) {
     auto it = instances.find(flags) ;
     if ( it == instances.end() ) {
-        std::shared_ptr<T> instance(new T(flags)) ;
+        std::shared_ptr<T> instance(new T(flags, args...)) ;
         instances.emplace(flags, instance) ;
         return instance ;
     } else {
@@ -23,13 +24,20 @@ MaterialProgramPtr materialSingleton(std::map<int, MaterialProgramPtr> &instance
     }
 }
 
+
+struct MaterialInstanceParams {
+    uint num_shadow_lights_ =0 ;
+    int flags = 0 ;
+};
+
 class MaterialProgram {
 public:
 
     virtual void applyParams(const xviz::MaterialPtr &mat) = 0 ;
     virtual void applyTransform(const Eigen::Matrix4f &cam, const Eigen::Matrix4f &view, const Eigen::Matrix4f &model) {}
-    virtual void applyLight(uint idx, const xviz::LightPtr &light, const Eigen::Affine3f &tf) {}
+    virtual void applyLight(const xviz::LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat) {}
     virtual void applyBoneTransform(uint idx, const Eigen::Matrix4f &tf) ;
+
 
     void setUniform(const char *name, float v) ;
     void setUniform(const char *name, int v) ;
@@ -45,8 +53,7 @@ public:
 protected:
 
     void applyDefaultPerspective(const Eigen::Matrix4f &cam, const Eigen::Matrix4f &view, const Eigen::Matrix4f &model) ;
-    void applyDefaultLight(uint idx, const xviz::LightPtr &light, const Eigen::Affine3f &tf) ;
-    void applyDefaultShadow(const Eigen::Matrix4f &ls, float bias);
+    void applyDefaultLight(const xviz::LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat) ;
 
 protected:
 
@@ -56,9 +63,9 @@ protected:
 
 using MaterialProgramPtr = std::shared_ptr<MaterialProgram> ;
 
+
 class PhongMaterialProgram: public MaterialProgram {
 public:
-    enum Flags { HAS_DIFFUSE_TEXTURE = 1, HAS_SPECULAR_TEXTURE = 2 } ;
 
     PhongMaterialProgram(int flags) ;
 
@@ -68,9 +75,10 @@ public:
         applyDefaultPerspective(cam, view, model) ;
     }
 
-    void applyLight(uint idx, const xviz::LightPtr &light, const Eigen::Affine3f &tf) override {
-        applyDefaultLight(idx, light, tf) ;
+    void applyLight(const xviz::LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat) override {
+        applyDefaultLight(light, tf, lsmat) ;
     }
+
     static MaterialProgramPtr instance(int flags) {
         static std::map<int, MaterialProgramPtr> s_materials ;
         return materialSingleton<PhongMaterialProgram>(s_materials, flags) ;
@@ -93,7 +101,8 @@ public:
         applyDefaultPerspective(cam, view, model) ;
     }
 
-    void applyLight(uint idx, const xviz::LightPtr &light, const Eigen::Affine3f &tf) override {
+    void applyLight(const xviz::LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat) override {
+         applyDefaultLight(light, tf, lsmat) ;
     }
 
     static MaterialProgramPtr instance(int flags) {
@@ -116,9 +125,6 @@ public:
 
     void applyTransform(const Eigen::Matrix4f &cam, const Eigen::Matrix4f &view, const Eigen::Matrix4f &model) override {
         applyDefaultPerspective(cam, view, model) ;
-    }
-
-    void applyLight(uint idx, const xviz::LightPtr &light, const Eigen::Affine3f &tf) override {
     }
 
     static MaterialProgramPtr instance(int flags) {

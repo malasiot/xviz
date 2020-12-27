@@ -51,18 +51,15 @@ public:
 
     void startAnimations() ;
 
-    void setAnimationCallback(std::function<void(float)> cb) {
-        anim_cb_ = cb ;
-    }
-
-    virtual void onUpdate(float delta) {}
-
 public slots:
 
     void updateAnimation() ;
 
 
 protected:
+
+    virtual void onUpdate(float delta) {}
+
     void mousePressEvent(QMouseEvent *event) override;
 
     void mouseReleaseEvent(QMouseEvent * event) override;
@@ -87,9 +84,6 @@ protected:
     float aradius_ ;
 
     QElapsedTimer et_ ;
-    std::function<void(float)> anim_cb_ = nullptr ;
-
-
 
 };
 

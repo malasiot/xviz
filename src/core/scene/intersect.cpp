@@ -1,6 +1,8 @@
 #include <xviz/scene/detail/intersect.hpp>
 
+#include <iostream>
 using namespace Eigen ;
+using namespace std ;
 
 namespace xviz { namespace detail {
 
@@ -270,7 +272,7 @@ inline bool axisTestZ0(float a, float b, float fa, float fb, const Vector3f &v0,
 }
 
 bool triangleInsideBox(const Eigen::Vector3f &tv0, const Eigen::Vector3f &tv1,
-                   const Eigen::Vector3f &tv2, const Eigen::Vector3f &boxcenter, const Eigen::Vector3f &boxhalfsize) {
+                       const Eigen::Vector3f &tv2, const Eigen::Vector3f &boxcenter, const Eigen::Vector3f &boxhalfsize) {
     Vector3f v0, v1, v2;
     float min, max ;
 
@@ -296,7 +298,7 @@ bool triangleInsideBox(const Eigen::Vector3f &tv0, const Eigen::Vector3f &tv1,
 }
 
 bool triangleOutsideBox(const Eigen::Vector3f &tv0, const Eigen::Vector3f &tv1,
-                   const Eigen::Vector3f &tv2, const Eigen::Vector3f &boxcenter, const Eigen::Vector3f &boxhalfsize) {
+                        const Eigen::Vector3f &tv2, const Eigen::Vector3f &boxcenter, const Eigen::Vector3f &boxhalfsize) {
 
     float min, max ;
     Vector3f v0 = tv0 - boxcenter;
@@ -323,7 +325,7 @@ bool triangleOutsideBox(const Eigen::Vector3f &tv0, const Eigen::Vector3f &tv1,
 }
 
 bool triangleIntersectsBox(const Eigen::Vector3f &tv0, const Eigen::Vector3f &tv1,
-                   const Eigen::Vector3f &tv2, const Eigen::Vector3f &boxcenter, const Eigen::Vector3f &boxhalfsize) {
+                           const Eigen::Vector3f &tv2, const Eigen::Vector3f &boxcenter, const Eigen::Vector3f &boxhalfsize) {
     /*    use separating axis theorem to test overlap between triangle and box */
     /*    need to test for overlap in these directions: */
     /*    1) the {x,y,z}-directions (actually, since we use the AABB of the triangle */
@@ -411,6 +413,42 @@ bool triangleIntersectsBox(const Eigen::Vector3f &tv0, const Eigen::Vector3f &tv
 
 
     return true; /* box and triangle overlaps */
+}
+
+bool rayIntersectsPoint(const Ray &ray, const Vector3f &p, float thresh_square, float &t) {
+    Vector3f o = ray.origin(), d = ray.dir(), po = p-o ;
+
+    float dist = d.cross(po).squaredNorm() ;
+    if ( dist < thresh_square ) return false ;
+
+    t = po.dot(d) ;
+    if ( t < 0 ) return false ;
+
+    return true ;
+}
+
+bool rayIntersectsLine(const Ray &ray, const Vector3f &p1, const Vector3f &p2, float thresh, float &t)
+{
+    Vector3f da = ray.dir();
+    Vector3f db = p2 - p1 ;
+    Vector3f dc = p1 - ray.origin() ;
+
+    Vector3f cab = da.cross(db) ;
+
+    if ( fabs(dc.dot(cab)) >= thresh ) return false ;
+
+    t = dc.cross(db).dot(cab) / cab.squaredNorm() ;
+
+    if ( t >= 0.0  )	{
+
+        Vector3f intersection = ray.origin() + t * da;
+
+        // See if this lies on the segment
+        if ( (intersection - p1).squaredNorm() + (intersection - p2).squaredNorm() - (p1 - p2).squaredNorm() <= thresh)
+            return true;
+    }
+
+    return false;
 }
 
 

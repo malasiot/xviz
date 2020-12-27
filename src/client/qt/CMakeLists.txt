@@ -58,6 +58,9 @@ set( QT_CLIENT_SOURCES
     scene/mesh_data.cpp
     scene/material.cpp
     scene/offscreen.cpp
+    scene/shadow_map.cpp
+#    scene/shadow_map_renderer.cpp
+    scene/util.cpp
 
     image_element.cpp
     image_element.hpp

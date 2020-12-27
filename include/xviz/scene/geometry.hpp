@@ -12,7 +12,6 @@ const int MAX_TEXTURES = 2 ;
 
 class Geometry {
 public:
-
     enum PrimitiveType { Triangles, Lines, Points } ;
 
     using indices_t = std::vector<uint32_t> ;
@@ -48,7 +47,7 @@ public:
     static const int MAX_BONES_PER_VERTEX = 4 ;
 
     struct BoneWeight {
-        int bone_[MAX_BONES_PER_VERTEX] ;
+        int32_t bone_[MAX_BONES_PER_VERTEX] ;
         float weight_[MAX_BONES_PER_VERTEX] ;
 
         BoneWeight() {
@@ -56,7 +55,7 @@ public:
             std::fill(weight_, weight_ + MAX_BONES_PER_VERTEX, 0.f) ;
         }
 
-        void add(int bone, float w) {
+        void add(int32_t bone, float w) {
             int idx = 0 ;
             while ( bone_[idx] != -1 && idx < MAX_BONES_PER_VERTEX ) ++idx ;
             bone_[idx] = bone ;
@@ -66,22 +65,30 @@ public:
         void normalize() {
             float w = 0.0 ;
 
-               for(int i=0 ; i<MAX_BONES_PER_VERTEX ; i++) {
-                   if ( bone_[i] < 0 ) break ;
-                   w += weight_[i] ;
-               }
+            for(int i=0 ; i<MAX_BONES_PER_VERTEX ; i++) {
+                if ( bone_[i] < 0 ) break ;
+                w += weight_[i] ;
+            }
 
-               if ( w == 0.0 ) return ;
+            if ( w == 0.0 ) return ;
 
-               for(int i=0 ; i<MAX_BONES_PER_VERTEX ; i++) {
-                   if ( bone_[i] < 0 ) break ;
-                   weight_[i] /= w  ;
-               }
+            for(int i=0 ; i<MAX_BONES_PER_VERTEX ; i++) {
+                if ( bone_[i] < 0 ) break ;
+                weight_[i] /= w  ;
+            }
         }
     };
 
+    struct Bone {
+        std::string name_ ;
+        Eigen::Affine3f offset_ ;
+        NodePtr node_ ;
+    };
+
     int numUVChannels() const { return MAX_TEXTURES ; }
-    /*
+
+    bool castsShadows() const { return casts_shadows_ ; }
+    void setCastsShadows(bool c) { casts_shadows_ = c ; }
 
     const std::vector<Bone> &skeleton() const { return skeleton_ ; }
     std::vector<Bone> &skeleton() { return skeleton_ ; }
@@ -92,7 +99,7 @@ public:
     std::vector<BoneWeight> &weights() { return weights_ ; }
 
     bool hasSkeleton() const { return !skeleton_.empty() ; }
-*/
+
     PrimitiveType ptype() const { return ptype_ ; }
 
     // primitive shape factories
@@ -115,7 +122,11 @@ public:
 
     static Geometry makePointCloud(const std::vector<Eigen::Vector3f> &pts) ;
     static Geometry makePointCloud(const std::vector<Eigen::Vector3f> &coords,
-                                  const std::vector<Eigen::Vector3f> &clrs) ;
+                                   const std::vector<Eigen::Vector3f> &clrs) ;
+
+    static Geometry makePlane(const float width, const float height, uint32_t nx=1 , uint32_t ny = 1) ;
+
+
 
     void computeNormals() ;
     void computeBoundingBox(Eigen::Vector3f &bmin, Eigen::Vector3f &bmax) const ;
@@ -125,27 +136,43 @@ public:
 
     // this is the expensive test visiting all triangles of the geometry
     bool intersectTriangles(const Ray &, uint32_t tidx[3], float &t) const ;
+    bool intersectLines(const Ray &, uint32_t tidx[2], float line_thresh_sq, float &t) const ;
+
+    void setVerticesUpdated(bool state) {
+        vertices_updated_ = state ;
+    }
+
+    void setNormalsUpdated(bool state) {
+        normals_updated_ = state ;
+    }
+
+    void setColorsUpdated(bool state) {
+        colors_updated_ = state ;
+    }
+
+    bool verticesUpdated() const { return vertices_updated_ ; }
+    bool normalsUpdated() const { return normals_updated_ ; }
+    bool colorsUpdated() const { return colors_updated_ ; }
 
 private:
 
     vb3_t vertices_, normals_, colors_ ;
     vb2_t tex_coords_[MAX_TEXTURES] ;
     indices_t indices_ ;
-   // std::vector<BoneWeight> weights_ ;
-//    std::vector<Bone> skeleton_ ;
-//    Eigen::Affine3f skeleton_inverse_global_transform_ = Eigen::Affine3f::Identity() ;
-
+    std::vector<BoneWeight> weights_ ;
+    std::vector<Bone> skeleton_ ;
+    Eigen::Affine3f skeleton_inverse_global_transform_ = Eigen::Affine3f::Identity() ;
+    bool casts_shadows_ = true ;
+    bool vertices_updated_ = false, normals_updated_ = false, colors_updated_ = false ;
 
     PrimitiveType ptype_ = Triangles ;
-
-
 };
 
 class BoxGeometry: public Geometry {
 public:
-    BoxGeometry(const Eigen::Vector3f &he): half_extents_(he), Geometry(std::move(Geometry::createSolidCube(he))) { }
-    BoxGeometry(float hx, float hy, float hz): half_extents_{hx, hy, hz},
-        Geometry(std::move(Geometry::createSolidCube(half_extents_))) { }
+    BoxGeometry(const Eigen::Vector3f &he): half_extents_(he),
+        Geometry(std::move(Geometry::createSolidCube(he))) { }
+
     ~BoxGeometry() {}
 
     Eigen::Vector3f halfExtents() const { return half_extents_ ; }

@@ -3,7 +3,7 @@
 #include <xviz/scene/scene.hpp>
 #include <xviz/scene/geometry.hpp>
 #include <xviz/scene/light.hpp>
-
+#include <xviz/scene/node_helpers.hpp>
 #include <random>
 
 #include <QMainWindow>
@@ -74,7 +74,7 @@ NodePtr randomBox(ScenePtr &scene, const string &name, const Vector3f &hs, const
 
     GeometryPtr geom(new BoxGeometry(hs)) ;
 
-    ConstantMaterial *material = new ConstantMaterial(clr) ;
+    PhongMaterial *material = new PhongMaterial(clr) ;
 
     MaterialPtr mat(material) ;
     box_node->addDrawable(geom, mat) ;
@@ -86,9 +86,42 @@ NodePtr randomBox(ScenePtr &scene, const string &name, const Vector3f &hs, const
     return box_node ;
 }
 
+class Viewer: public SceneViewer {
+
+public:
+    Viewer(ScenePtr scene): SceneViewer(scene) {
+
+    }
+
+    void onUpdate(float delta) override {
+        NodePtr node = scene_->findNodeByName("ground") ;
+        GeometryPtr geom = node->drawables()[0].geometry() ;
+        auto &vertices = geom->vertices() ;
+
+        for( int i=0 ; i<vertices.size() ; i++ ) {
+            vertices[i].y() -= 0.01 ;
+        }
+        geom->setVerticesUpdated(true) ;
+
+    }
+
+
+};
+
 int main(int argc, char **argv)
 {
     ScenePtr scene(new Scene) ;
+
+    scene->addChild(NodeHelpers::makeAxes(0.5)) ;
+
+    NodePtr ground(new Node) ;
+    ground->setName("ground");
+    ground->transform().translate(Vector3f{0, -0.1, 0}) ;
+    GeometryPtr plane(new Geometry(std::move(Geometry::makePlane(2, 2, 2, 2)))) ;
+    MaterialPtr planeMat(new ConstantMaterial({0.2, 0.2, 0.2, 1})) ;
+   // planeMat->setSide(Material::Side::Both) ;
+    ground->addDrawable(plane, planeMat) ;
+    scene->addChild(ground) ;
 
     for( uint i=0 ; i<10 ; i++ ) {
         Vector4f clr(0.5, rnd_uniform(0.0, 1.0), rnd_uniform(0.0, 1.0), 1.0) ;
@@ -98,25 +131,27 @@ int main(int argc, char **argv)
         randomBox(scene, strm.str(), Vector3f(0.04, rnd_uniform(0.1, 0.15), 0.04), clr);
     }
 
-    DirectionalLight *dl = new DirectionalLight(Vector3f(0.5, 0.5, 1)) ;
-    dl->diffuse_color_ = Vector3f(1, 1, 1) ;
+    DirectionalLight *dl = new DirectionalLight(Vector3f(1, 1, 0.5)) ;
+    dl->diffuse_color_ = Vector3f(0.52, 0.22, 0.22) ;
     scene->addLightNode(LightPtr(dl)) ;
+
+    xviz::DirectionalLight *dl2 = new xviz::DirectionalLight(Vector3f(0, 4, 0.1)) ;
+    dl2->diffuse_color_ = Vector3f(0.75, 1, 1) ;
+    dl2->shadow_cam_left_ = dl2->shadow_cam_top_ = -0.5 ;
+    dl2->shadow_cam_right_ = dl2->shadow_cam_bottom_ = 0.5 ;
+    dl2->shadow_cam_near_ = -0.1 ; dl2->shadow_cam_far_ = 10 ;
+    dl2->shadow_bias_ = 0.00005 ;
+    dl2->casts_shadows_ = true;
+    xviz::LightPtr light2(dl2) ;
+    scene->addLightNode(light2) ;
 
     QApplication app(argc, argv);
 
-    QSurfaceFormat format;
-      format.setDepthBufferSize(24);
-      format.setMajorVersion(3);
-      format.setMinorVersion(3);
-
-      format.setSamples(4);
-      format.setProfile(QSurfaceFormat::CoreProfile);
-
-      QSurfaceFormat::setDefaultFormat(format);
+    SceneViewer::initDefaultGLContext();
 
     QMainWindow window ;
-    window.setCentralWidget(new SceneViewer(scene)) ;
-    window.resize(512, 512) ;
+    window.setCentralWidget(new Viewer(scene)) ;
+    window.resize(1024, 1024) ;
     window.show() ;
 
     return app.exec();

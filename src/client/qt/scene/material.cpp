@@ -3,16 +3,11 @@
 #include <xviz/scene/material.hpp>
 #include <xviz/scene/light.hpp>
 
+#include "util.hpp"
+
 using namespace std ;
 using namespace Eigen ;
 
-QMatrix4x4 eigenToQt( const Eigen::Matrix4f& transform ) {
-  return QMatrix4x4(transform.data()).transposed();
-}
-
-QMatrix3x3 eigenToQt( const Matrix3f& transform ) {
-  return QMatrix3x3(transform.data()).transposed();
-}
 
 void MaterialProgram::setUniform(const char *name, float v)
 {
@@ -63,14 +58,16 @@ void MaterialProgram::setUniform(const char *name, const Matrix4f &v)
 }
 
 #include "shaders/common.vs.hpp"
-#include "shaders/phong_common.fs.hpp"
 #include "shaders/phong.fs.hpp"
+#include "shaders/shadows.fs.hpp"
 
 PhongMaterialProgram::PhongMaterialProgram(int flags): flags_(flags)
 {
     std::string vs_preproc("#version 330\n") ;
     vs_preproc.append("#define HAS_NORMALS\n") ;
     if ( flags & HAS_DIFFUSE_TEXTURE ) vs_preproc.append("#define HAS_UVs\n") ;
+    if ( flags & ENABLE_SKINNING ) vs_preproc.append("#define USE_SKINNING\n");
+    if ( flags & ENABLE_SHADOWS ) vs_preproc.append("#define HAS_SHADOWS\n") ;
 
     string vs_code = vs_preproc + vertex_shader_code ;
 
@@ -79,8 +76,15 @@ PhongMaterialProgram::PhongMaterialProgram(int flags): flags_(flags)
     if ( flags & HAS_DIFFUSE_TEXTURE )
         fs_preproc.append("#define HAS_DIFFUSE_MAP") ;
 
-    string fs_code = fs_preproc + phong_fragment_shader_common +
-            phong_fragment_shader;
+    if ( flags & ENABLE_SHADOWS )
+        fs_preproc.append("#define HAS_SHADOWS\n") ;
+
+    string fs_code = fs_preproc ;
+    fs_code += phong_fragment_shader_vars ;
+    if ( flags & ENABLE_SHADOWS )
+        fs_code += shadows_fragment_shader ;
+    fs_code += phong_fragment_shader_common ;
+    fs_code += phong_fragment_shader;
 
     prog_.addShaderFromSourceCode(QOpenGLShader::Vertex, vs_code.c_str()) ;
     prog_.addShaderFromSourceCode(QOpenGLShader::Fragment, fs_code.c_str()) ;
@@ -124,9 +128,9 @@ void MaterialProgram::applyDefaultPerspective(const Matrix4f &cam, const Matrix4
 }
 
 
-void MaterialProgram::applyDefaultLight(uint light_index, const xviz::LightPtr &light, const Affine3f &tf)
+void MaterialProgram::applyDefaultLight(const xviz::LightPtr &light, const Affine3f &tf, const Matrix4f &lsmat)
 {
-    QByteArray vname = QString("g_light_source[%1]").arg(light_index ++).toLatin1() ;
+    QByteArray vname("g_light_source") ;
 
     if ( const auto &alight = std::dynamic_pointer_cast<xviz::AmbientLight>(light) ) {
 
@@ -136,7 +140,7 @@ void MaterialProgram::applyDefaultLight(uint light_index, const xviz::LightPtr &
     else if ( const auto &dlight = std::dynamic_pointer_cast<xviz::DirectionalLight>(light) ) {
         setUniform(vname + ".light_type", 1) ;
         setUniform(vname + ".color", dlight->diffuse_color_) ;
-        setUniform(vname + ".direction", tf * dlight->direction_) ;
+        setUniform(vname + ".direction", tf * (dlight->position_ - dlight->target_).normalized()) ;
     }
     else if ( const auto &slight = std::dynamic_pointer_cast<xviz::SpotLight>(light) ) {
 
@@ -159,7 +163,15 @@ void MaterialProgram::applyDefaultLight(uint light_index, const xviz::LightPtr &
         setUniform(vname + ".quadratic_attenuation", plight->quadratic_attenuation_) ;
     }
 
+    setUniform("light_casts_shadows", light->casts_shadows_) ;
+
+    if ( light->casts_shadows_ ) {
+        setUniform("lsmat", Matrix4f(lsmat)) ;
+        setUniform("shadowMap", 4) ;
+        setUniform("shadowBias", light->shadow_bias_) ;
+    }
 }
+
 
 
 void MaterialProgram::use() {
@@ -171,10 +183,15 @@ void MaterialProgram::use() {
 ConstantMaterialProgram::ConstantMaterialProgram(int flags): flags_(flags)
 {
     std::string preproc("#version 330\n") ;
+    if ( flags & ENABLE_SKINNING ) preproc.append("#define USE_SKINNING\n");
+    if ( flags & ENABLE_SHADOWS ) preproc.append("#define HAS_SHADOWS\n") ;
 
     string vs_code = preproc + vertex_shader_code ;
 
-    string fs_code = preproc + constant_fragment_shader ;
+    string fs_code = preproc + constant_fragment_shader_vars ;
+    if ( flags & ENABLE_SHADOWS )
+            fs_code += shadows_fragment_shader ;
+    fs_code += constant_fragment_shader ;
 
     prog_.addShaderFromSourceCode(QOpenGLShader::Vertex, vs_code.c_str()) ;
     prog_.addShaderFromSourceCode(QOpenGLShader::Fragment, fs_code.c_str()) ;
@@ -194,6 +211,7 @@ void ConstantMaterialProgram::applyParams(const xviz::MaterialPtr &mat) {
 PerVertexColorMaterialProgram::PerVertexColorMaterialProgram(int flags) {
     std::string preproc("#version 330\n") ;
     preproc.append("#define HAS_COLORS");
+    if ( flags & ENABLE_SKINNING ) preproc.append("#define USE_SKINNING");
 
     string vs_code = preproc + vertex_shader_code ;
     string fs_code = preproc + per_vertex_color_fragment_shader ;

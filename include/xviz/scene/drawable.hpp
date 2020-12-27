@@ -20,6 +20,10 @@ public:
     void setMaterial(MaterialPtr mat) { material_ = mat ; }
     void setGeometry(GeometryPtr geom) { geometry_ = geom ; }
 
+    static Drawable makeAxes(float sz);
+    static Drawable makeGrid(float sz, uint32_t divisions, const Eigen::Vector4f &clr1={0.2, 0.2, 0.2, 1},
+                             const Eigen::Vector4f &clr2 = {0.8, 0.8, 0.8, 1});
+
 private:
 
     GeometryPtr geometry_ ;

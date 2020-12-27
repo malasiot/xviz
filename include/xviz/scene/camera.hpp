@@ -25,8 +25,8 @@ struct Ray
 
     Ray(const Ray &other, const Eigen::Affine3f &tr) ;
 
-    Eigen::Vector3f getOrigin() const { return orig_ ; }
-    Eigen::Vector3f getDir() const { return dir_ ; }
+    Eigen::Vector3f origin() const { return orig_ ; }
+    Eigen::Vector3f dir() const { return dir_ ; }
 
     Eigen::Vector3f orig_, dir_;
     Eigen::Vector3f invdir_ ;

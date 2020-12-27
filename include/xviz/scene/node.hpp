@@ -13,6 +13,8 @@
 
 #include <xviz/scene/scene_fwd.hpp>
 #include <xviz/scene/drawable.hpp>
+#include <xviz/scene/animation.hpp>
+
 namespace xviz {
 
 // a hieracrchy of nodes. each node applies a transformation to the attached geometries, cameras, lights
@@ -33,6 +35,7 @@ public:
     Node() { mat_.setIdentity() ; }
 
     const Eigen::Affine3f &transform() const { return mat_ ; }
+    Eigen::Affine3f &transform() { return mat_ ; }
 
     std::string name() const { return name_ ; }
 
@@ -88,7 +91,6 @@ public:
 
     const std::vector<Geometry *> geometries() const ;
     const std::vector<Material *> materials() const ;
-    const std::vector<LightPtr> lights() const ;
 
     template<typename F>
     void visit(F f) const {
@@ -122,10 +124,47 @@ public:
         return nodes ;
     }
 
+    void addAnimation(Animation *anim) { animations_.emplace_back(anim) ; }
+
+    void updateAnimations(float t) {
+        for( auto &a: animations_ )
+            a->update(t) ;
+
+        for( auto &c: children_ )
+            c->updateAnimations(t) ;
+    }
+
+    void startAnimations(float t) {
+        for( auto &a: animations_ )
+            a->start(t) ;
+
+        for( auto &c: children_ )
+            c->startAnimations(t) ;
+    }
+
+    void stopAnimations() {
+        for( auto &a: animations_ )
+            a->stop() ;
+
+        for( auto &c: children_ )
+            c->stopAnimations() ;
+    }
+
+    void updateTransforms(const std::map<std::string, Eigen::Isometry3f> &trs) {
+        for( const auto &tp: trs ) {
+            auto node = findNodeByName(tp.first) ;
+            if ( node ) {
+                node->setTransform(tp.second) ;
+            }
+        }
+    }
+
+
 
     Eigen::Vector3f geomCenter() const ;
     float geomRadius(const Eigen::Vector3f &center) const ;
 
+    NodePtr findNodeByName(const std::string &name) ;
 
 private:
 
@@ -139,6 +178,8 @@ private:
 
     LightPtr light_ ;
     std::vector<Drawable> drawables_ ;
+
+    std::vector<std::unique_ptr<Animation>> animations_ ;
 
     Node *parent_ = nullptr;
 };

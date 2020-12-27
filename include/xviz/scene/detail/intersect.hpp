@@ -35,5 +35,9 @@ bool triangleIntersectsBox(const Eigen::Vector3f &tv0, const Eigen::Vector3f &tv
 
 bool triangleOutsideBox(const Eigen::Vector3f &v0, const Eigen::Vector3f &v1,
                    const Eigen::Vector3f &v2, const Eigen::Vector3f &boxcenter, const Eigen::Vector3f &boxhalfsize) ;
+
+bool rayIntersectsPoint(const Ray &ray, const Eigen::Vector3f &p, float thresh, float &t) ;
+
+bool rayIntersectsLine(const Ray &ray, const Eigen::Vector3f &p1, const Eigen::Vector3f &p2, float thresh, float &t) ;
 }}
 #endif

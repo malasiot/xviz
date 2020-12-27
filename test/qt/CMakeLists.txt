@@ -12,3 +12,10 @@ target_link_libraries(test_offscreen xviz_qt_client)
 
 add_executable(test_picking test_picking.cpp )
 target_link_libraries(test_picking xviz_qt_client)
+
+add_executable(test_animation test_animation.cpp )
+target_link_libraries(test_animation xviz_qt_client)
+
+add_executable(test_skeleton test_skeleton.cpp )
+target_link_libraries(test_skeleton xviz_qt_client)
+

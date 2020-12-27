@@ -92,6 +92,8 @@ public:
     PickingViewer(ScenePtr scene, QWidget *parent = nullptr): SceneViewer(scene, parent),
     ray_caster_(scene) {
         setMouseTracking(true);
+        ray_caster_.setPointDistanceThreshold(0.05);
+        ray_caster_.setLineDistanceThreshold(0.05);
    //    ray_caster_.buildOctrees();
         highlight_.reset(new ConstantMaterial({1, 0, 0, 1})) ;
 
@@ -105,9 +107,16 @@ public:
 
         RayCastResult result ;
         if ( ray_caster_.intersect(ray, result) ) {
+            if ( result.drawable_->geometry()->ptype() == Geometry::Triangles ) {
             cout << result.node_->name() << ' '
                  << result.triangle_idx_[0] << ' ' <<
                     result.triangle_idx_[1] << ' ' << result.triangle_idx_[2] << endl ;
+            }
+            else if ( result.drawable_->geometry()->ptype() == Geometry::Lines ) {
+                cout << result.line_idx_[0] << ' ' <<
+                        result.line_idx_[1] << endl ;
+            }
+
             if ( result.drawable_ != selected_ ) {
                 if ( old_ ) selected_->setMaterial(old_) ;
                 selected_ = result.drawable_ ;
@@ -146,7 +155,7 @@ int main(int argc, char **argv)
 
     ScenePtr scene(new Scene) ;
 
-    scene->addChild(model) ;
+ //   scene->addChild(model) ;
 
     for( uint i=0 ; i<10 ; i++ ) {
         Vector4f clr(0.5, rnd_uniform(0.0, 1.0), rnd_uniform(0.0, 1.0), 1.0) ;
@@ -155,6 +164,33 @@ int main(int argc, char **argv)
 
         randomBox(scene, strm.str(), Vector3f(0.04, rnd_uniform(0.1, 0.15), 0.04), clr);
     }
+
+    GeometryPtr ptcloud(new Geometry(Geometry::Points)) ;
+    ptcloud->vertices().push_back({0, 0.1, 0}) ;
+    ptcloud->vertices().push_back({0.1, 0.1, -0.1}) ;
+
+    ptcloud->colors().push_back({1.0, 0.0, 0.0}) ;
+    ptcloud->colors().push_back({0.0, 0.0, 1.0}) ;
+
+    NodePtr cloudNode(new Node) ;
+    cloudNode->addDrawable(ptcloud, MaterialPtr(new PerVertexColorMaterial())) ;
+
+    scene->addChild(cloudNode) ;
+
+    GeometryPtr lines(new Geometry(Geometry::Lines)) ;
+    lines->vertices().push_back({0, 0.1, 0}) ;
+    lines->vertices().push_back({0.1, 0.1, -0.1}) ;
+    lines->vertices().push_back({0.2, -0.1, -0.3}) ;
+    lines->vertices().push_back({0.2, 0.4, -0.1}) ;
+
+    lines->indices() = {0, 1, 1, 2, 2, 3};
+
+
+    NodePtr lineNode(new Node) ;
+    lineNode->addDrawable(lines, MaterialPtr(new ConstantMaterial(Vector4f{0, 1, 0, 1}))) ;
+
+    scene->addChild(lineNode) ;
+
 
     DirectionalLight *dl = new DirectionalLight(Vector3f(0.5, 0.5, 1)) ;
     dl->diffuse_color_ = Vector3f(1, 1, 1) ;

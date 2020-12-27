@@ -1,5 +1,7 @@
 
 static const char *vertex_shader_code = R"(
+const int MAX_LIGHTS = 10;
+
 layout (location = 0) in vec3 vposition;
 out vec3 position;
 
@@ -26,6 +28,11 @@ layout (location = 5) in vec2 vuv;
 out vec2 uv;
 #endif
 
+#ifdef HAS_SHADOWS
+   uniform mat4 lsmat ;
+   out vec4 lspos ;
+#endif
+
 uniform mat4 model ;
 uniform mat4 mvp;
 uniform mat4 mv;
@@ -44,7 +51,7 @@ void main()
 #ifdef HAS_NORMALS
     vec3 normall = mat3(BoneTransform) * vnormal;
 #endif
-
+    gl_PointSize = 4.0;
 #else
     vec4 posl = vec4(vposition, 1.0);
 
@@ -68,5 +75,9 @@ void main()
     uv = vuv ;
 #endif
     position    = (mv * posl).xyz;
+    vec3 fpos = vec3(model * posl);
+#ifdef HAS_SHADOWS
+    lspos = lsmat * vec4(fpos, 1);
+#endif
 }
 )";

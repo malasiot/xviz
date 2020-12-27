@@ -3,7 +3,7 @@
 
 #include <xviz/scene/geometry.hpp>
 
-#include <QOpenGLFunctions>
+#include <QOpenGLExtraFunctions>
 #include <QOpenGLBuffer>
 #include <QOpenGLVertexArrayObject>
 
@@ -12,6 +12,7 @@ public:
 
     MeshData() ;
     MeshData(const xviz::Geometry &mesh) ;
+    void update(xviz::Geometry &geom);
 
     static const int max_textures_ = 4 ;
 
@@ -22,6 +23,7 @@ public:
     GLuint elem_count_, indices_  ;
 
     ~MeshData() ;
+
 } ;
 
 

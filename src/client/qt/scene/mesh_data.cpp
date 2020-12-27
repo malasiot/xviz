@@ -12,7 +12,7 @@
 
 MeshData::MeshData(const xviz::Geometry &mesh)
 {
-    QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
+    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
     // Create the VAO
 
     vao_ = new QOpenGLVertexArrayObject;
@@ -31,6 +31,7 @@ MeshData::MeshData(const xviz::Geometry &mesh)
     pos_->create();
     pos_->bind();
     pos_->allocate(&vertices[0], vertices.size() * sizeof(GLfloat) * 3) ;
+    pos_->setUsagePattern(QOpenGLBuffer::DynamicDraw);
     f->glEnableVertexAttribArray(POSITION_LOCATION);
     f->glVertexAttribPointer(POSITION_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     pos_->release() ;
@@ -40,6 +41,7 @@ MeshData::MeshData(const xviz::Geometry &mesh)
         normals_->create();
         normals_->bind();
         normals_->allocate(&normals[0], normals.size() * sizeof(GLfloat) * 3) ;
+        normals_->setUsagePattern(QOpenGLBuffer::DynamicDraw);
         f->glEnableVertexAttribArray(NORMALS_LOCATION);
         f->glVertexAttribPointer(NORMALS_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         normals_->release() ;
@@ -50,6 +52,7 @@ MeshData::MeshData(const xviz::Geometry &mesh)
         colors_->create();
         colors_->bind();
         colors_->allocate(&colors[0], colors.size() * sizeof(GLfloat) * 3) ;
+        colors_->setUsagePattern(QOpenGLBuffer::DynamicDraw);
         f->glEnableVertexAttribArray(COLORS_LOCATION);
         f->glVertexAttribPointer(COLORS_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         colors_->release() ;
@@ -61,26 +64,27 @@ MeshData::MeshData(const xviz::Geometry &mesh)
             tex_coords_[t]->create();
             tex_coords_[t]->bind();
             tex_coords_[t]->allocate(&mesh.texCoords(t)[0], mesh.texCoords(t).size() * sizeof(GLfloat) * 2) ;
+            tex_coords_[t]->setUsagePattern(QOpenGLBuffer::StaticDraw);
             f->glEnableVertexAttribArray(UV_LOCATION+t);
             f->glVertexAttribPointer(UV_LOCATION+t, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
             tex_coords_[t]->release() ;
         }
     }
 
-
-/*
-    const std::vector<Mesh::BoneWeight> weights = Mesh.weights() ;
+    const auto &weights = mesh.weights() ;
     if ( !weights.empty() ) {
-        glGenBuffers(1, &weights_);
-        glBindBuffer(GL_ARRAY_BUFFER, weights_);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(weights[0]) * weights.size(), weights.data(), GL_STATIC_DRAW);
-        glEnableVertexAttribArray(BONE_ID_LOCATION);
-        glVertexAttribIPointer(BONE_ID_LOCATION, 4, GL_INT, sizeof(Mesh::BoneWeight), (const GLvoid*)0);
+        weights_ = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+        weights_->create();
+        weights_->bind();
+        weights_->allocate(&weights[0], weights.size() * sizeof(xviz::Geometry::BoneWeight)) ;
 
-        glEnableVertexAttribArray(BONE_WEIGHT_LOCATION);
-        glVertexAttribPointer(BONE_WEIGHT_LOCATION, 4, GL_FLOAT, GL_FALSE, sizeof(Mesh::BoneWeight), (const GLvoid*)offsetof(Mesh::BoneWeight, weight_));
+        f->glEnableVertexAttribArray(BONE_ID_LOCATION);
+        f->glVertexAttribIPointer(BONE_ID_LOCATION, xviz::Geometry::MAX_BONES_PER_VERTEX, GL_INT, sizeof(xviz::Geometry::BoneWeight), (const GLvoid*)0);
+
+        f->glEnableVertexAttribArray(BONE_WEIGHT_LOCATION);
+        f->glVertexAttribPointer(BONE_WEIGHT_LOCATION, xviz::Geometry::MAX_BONES_PER_VERTEX, GL_FLOAT, GL_FALSE, sizeof(xviz::Geometry::BoneWeight), (const GLvoid*)offsetof(xviz::Geometry::BoneWeight, weight_));
     }
-*/
+
 #if 0
     glGenBuffers(1, &tf_);
     glBindBuffer(GL_ARRAY_BUFFER, tf_);
@@ -99,6 +103,41 @@ MeshData::MeshData(const xviz::Geometry &mesh)
 }
 
 
+void MeshData::update(xviz::Geometry &geom) {
+
+    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
+
+    const xviz::Geometry::vb3_t &vertices = geom.vertices() ;
+    const xviz::Geometry::vb3_t &normals = geom.normals() ;
+    const xviz::Geometry::vb3_t &colors = geom.colors() ;
+
+    if ( geom.verticesUpdated() ) {
+        pos_->bind();
+        pos_->write(0, &vertices[0], vertices.size() * sizeof(GLfloat) * 3);
+        f->glEnableVertexAttribArray(POSITION_LOCATION);
+        f->glVertexAttribPointer(POSITION_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        geom.setVerticesUpdated(false) ;
+    }
+
+    if ( !normals.empty() && geom.normalsUpdated() ) {
+        normals_->bind();
+        normals_->write(0, &normals[0], normals.size() * sizeof(GLfloat) * 3);
+        f->glEnableVertexAttribArray(NORMALS_LOCATION);
+        f->glVertexAttribPointer(NORMALS_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        geom.setNormalsUpdated(false) ;
+    }
+
+    if ( !colors.empty() && geom.colorsUpdated()) {
+        colors_->bind();
+        colors_->write(0, &colors[0], colors.size() * sizeof(GLfloat) * 3);
+
+        f->glEnableVertexAttribArray(COLORS_LOCATION);
+        f->glVertexAttribPointer(COLORS_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        geom.setColorsUpdated(false) ;
+    }
+
+}
+
 MeshData::~MeshData()
 {
     if ( pos_ ) delete pos_ ;
@@ -107,6 +146,8 @@ MeshData::~MeshData()
     for( uint i=0 ; i<max_textures_ ; i++ ) {
         if ( tex_coords_[i] ) delete tex_coords_[i] ;
     }
+
+    if ( weights_ ) delete weights_ ;
     if ( index_ )  delete index_ ;
 }
 

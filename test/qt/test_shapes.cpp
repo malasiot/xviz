@@ -131,7 +131,7 @@ int main(int argc, char **argv)
         randomBox(scene, strm.str(), Vector3f(0.04, rnd_uniform(0.1, 0.15), 0.04), clr);
     }
 
-    DirectionalLight *dl = new DirectionalLight(Vector3f(1, 1, 0.5)) ;
+    DirectionalLight *dl = new DirectionalLight(Vector3f(1, 4, 0.5)) ;
     dl->diffuse_color_ = Vector3f(0.52, 0.22, 0.22) ;
     scene->addLightNode(LightPtr(dl)) ;
 
@@ -143,7 +143,7 @@ int main(int argc, char **argv)
     dl2->shadow_bias_ = 0.00005 ;
     dl2->casts_shadows_ = true;
     xviz::LightPtr light2(dl2) ;
-    scene->addLightNode(light2) ;
+  //  scene->addLightNode(light2) ;
 
     QApplication app(argc, argv);
 

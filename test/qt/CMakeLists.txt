@@ -19,3 +19,5 @@ target_link_libraries(test_animation xviz_qt_client)
 add_executable(test_skeleton test_skeleton.cpp )
 target_link_libraries(test_skeleton xviz_qt_client)
 
+add_executable(test_robot test_robot.cpp )
+target_link_libraries(test_robot xviz_qt_client)

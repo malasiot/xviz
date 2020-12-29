@@ -43,7 +43,7 @@ vec4 phongIllumination(vec4 dc) {
     vec3 N = normalize(normal);
     vec4 finalColor = vec4(0, 0, 0, 1.0);
 
-    float shadow  = 1.0 ;
+    float shadow  = 0.0 ;
 
         vec3 L ;
         float att = 1.0 ;

@@ -189,7 +189,7 @@ class SphereGeometry: public Geometry {
 public:
     SphereGeometry(float radius, size_t slices = 12, size_t stacks = 10): radius_(radius), slices_(slices),
         stacks_(stacks),
-        Geometry(std::move(Geometry::createSolidSphere(radius_, slices, stacks))) { }
+        Geometry(std::move(Geometry::createSolidSphere(radius, slices, stacks))) { }
 
     float radius() const { return radius_ ; }
     size_t slices() const { return slices_ ; }
@@ -209,7 +209,7 @@ public:
 
     CylinderGeometry(float r, float h, size_t slices = 12, size_t stacks = 10): radius_(r), height_(h),
         slices_(slices), stacks_(stacks),
-        Geometry(std::move(Geometry::createSolidCylinder(radius_, height_, slices, stacks))) {}
+        Geometry(std::move(Geometry::createSolidCylinder(r, h, slices, stacks))) {}
 
     float radius() const { return radius_ ; }
     float height() const { return height_ ; }
@@ -218,7 +218,7 @@ public:
     size_t stacks() const { return stacks_ ; }
 
     bool hasCheapIntersectionTest() const override { return true ; }
-    bool intersect(const Ray &, float &) const override ;
+    bool intersect(const Ray &, float &) const override { return true ; } //todo
 
 private:
 

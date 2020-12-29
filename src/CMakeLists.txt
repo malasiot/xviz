@@ -1,8 +1,11 @@
 add_subdirectory(client/qt)
 
+
+FIND_PACKAGE(Bullet)
+
 include_directories(
-    ../3rdparty
-    ../3rdparty/asio/
+    3rdparty
+    3rdparty/asio/
      ${EIGEN3_INCLUDE_DIR}
      ${ASSIMP_INCLUDE_DIR}
 )
@@ -46,6 +49,11 @@ set(XVIZ_LIB_SOURCES
     core/scene/drawable.cpp
     core/scene/node_helpers.cpp
 
+    core/robot/urdf_loader.cpp
+    core/robot/urdf_robot.cpp
+    core/robot/robot_scene.cpp
+
+    3rdparty/pugi/pugixml.cpp
 
     ${XVIZ_INCLUDE_DIR}/server.hpp
     ${XVIZ_INCLUDE_DIR}/channel.hpp
@@ -71,8 +79,31 @@ set(XVIZ_LIB_SOURCES
     ${XVIZ_INCLUDE_DIR}/scene/detail/intersect.hpp
 )
 
+IF ( BULLET_FOUND )
+ADD_DEFINITIONS(-DBT_USE_DOUBLE_PRECISION=1)
+INCLUDE_DIRECTORIES(${BULLET_INCLUDE_DIRS})
+LIST(APPEND XVIZ_LIB_SOURCES
+    core/physics/world.cpp
+    core/physics/rigid_body.cpp
+    core/physics/constraints.cpp
+    core/physics/collision.cpp
+    core/physics/multi_body.cpp
+    core/physics/sensor.cpp
+    core/physics/soft_body.cpp
+
+    ${XVIZ_INCLUDE_DIR}/physics/world.hpp
+    ${XVIZ_INCLUDE_DIR}/physics/rigid_body.hpp
+    ${XVIZ_INCLUDE_DIR}/physics/collision.hpp
+    ${XVIZ_INCLUDE_DIR}/physics/convert.hpp
+    ${XVIZ_INCLUDE_DIR}/physics/constraints.hpp
+    ${XVIZ_INCLUDE_DIR}/physics/multi_body.hpp
+    ${XVIZ_INCLUDE_DIR}/physics/sensor.hpp
+    ${XVIZ_INCLUDE_DIR}/physics/soft_body.hpp
+)
+ENDIF( BULLET_FOUND )
+
 protobuf_generate_cpp(PROTO_SRC PROTO_HDR messages/core.proto messages/session.proto messages/style.proto messages/drawable.proto messages/scene.proto)
 set_source_files_properties(${PROTO_SRC} ${PROTO_HDR} PROPERTIES GENERATED TRUE)
 
 add_library(xviz ${XVIZ_LIB_SOURCES} ${PROTO_SRC} ${PROTO_HDR})
-target_link_libraries(xviz pthread ${PROTOBUF_LIBRARY} ${ASSIMP_LIBRARIES})
+target_link_libraries(xviz pthread ${PROTOBUF_LIBRARY} ${ASSIMP_LIBRARIES} ${BULLET_LIBRARIES})

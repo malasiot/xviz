@@ -252,7 +252,6 @@ Geometry Geometry::createWireCone(float radius, float height, size_t slices, siz
 
 Geometry Geometry::createSolidCylinder(float radius, float height, size_t slices, size_t stacks)
 {
-    Geometry m(Geometry::Triangles) ;
 
     float z0,z1;
 

@@ -13,4 +13,30 @@ NodePtr NodeHelpers::makeAxes(float sz) {
     return node ;
 }
 
+NodePtr NodeHelpers::makeBox(const Eigen::Vector3f &hs, const Eigen::Vector4f &clr) {
+    NodePtr node(new Node) ;
+    GeometryPtr geom(new Geometry(std::move(Geometry::createSolidCube(hs))));
+    MaterialPtr mat(new PhongMaterial(clr)) ;
+    node->addDrawable(geom, mat) ;
+    return node ;
+}
+
+NodePtr NodeHelpers::makeCylinder(float r, float h, const Eigen::Vector4f &clr)
+{
+    NodePtr node(new Node) ;
+    GeometryPtr geom(new Geometry(std::move(Geometry::createSolidCylinder(r, h, 12, 10))));
+    MaterialPtr mat(new PhongMaterial(clr)) ;
+    node->addDrawable(geom, mat) ;
+    return node ;
+}
+
+NodePtr NodeHelpers::makeSphere(float r, const Eigen::Vector4f &clr)
+{
+    NodePtr node(new Node) ;
+    GeometryPtr geom(new Geometry(std::move(Geometry::createSolidSphere(r, 12, 10))));
+    MaterialPtr mat(new PhongMaterial(clr)) ;
+    node->addDrawable(geom, mat) ;
+    return node ;
+}
+
 }

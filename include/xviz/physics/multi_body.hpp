@@ -1,0 +1,204 @@
+#pragma once
+
+#include <Eigen/Geometry>
+
+#include <xviz/physics/collision.hpp>
+#include <xviz/physics/convert.hpp>
+#include <xviz/robot/urdf_robot.hpp>
+
+#include <bullet/BulletDynamics/Featherstone/btMultiBodyJointMotor.h>
+
+namespace xviz {
+
+class PhysicsWorld ;
+class Joint ;
+class MultiBody ;
+
+class Link: public CollisionObject {
+
+public:
+
+    Link & setLocalInertialFrame(const Eigen::Isometry3f &f) {
+        local_inertial_frame_ = toBulletTransform(f);
+        return *this ;
+    }
+
+    std::string getName() const override {
+        return name_ ;
+    }
+
+    Eigen::Isometry3f getWorldTransform() const override ;
+
+private:
+
+    friend class MultiBody ;
+    friend struct MultiBodyData ;
+    friend class Joint ;
+
+    Link() {
+        local_inertial_frame_.setIdentity() ;
+    }
+
+    MultiBody *parent_ ;
+    float mass_ ;
+    std::string name_ ;
+    Link *parent_link_ = nullptr ;
+    Joint *parent_joint_ = nullptr ;
+    std::vector<Link *> child_links_ ;
+    std::vector<Joint *> child_joints_ ;
+    xviz::CollisionShapePtr shape_ ;
+    std::unique_ptr<btCollisionShape> proxy_ ;
+    std::unique_ptr<btMultiBodyLinkCollider> collider_ ;
+
+    btVector3 inertia_ ;
+    Eigen::Isometry3f origin_ ;
+    btTransform local_inertial_frame_ ;
+    int mb_index_ ;
+};
+
+
+enum JointType { RevoluteJoint, ContinuousJoint, PrismaticJoint, FixedJoint, SphericalJoint, FloatingJoint, PlanarJoint } ;
+
+class Joint {
+public:
+
+    Link *parentLink() const { return parent_link_ ; }
+    Link *childLink() const { return child_link_ ; }
+
+    Joint& setAxis(const Eigen::Vector3f &axis) {
+         axis_ = xviz::toBulletVector(axis) ;
+         return *this ;
+    }
+
+    Joint& setLimits(float l, float u) {
+         lower_ = l ;
+         upper_ = u ;
+         return *this ;
+    }
+
+    Joint& setFriction(float f) {
+        friction_ = f ;
+        return *this ;
+    }
+
+    Joint& setDamping(float d) {
+        damping_ = d ;
+        return *this ;
+    }
+
+    Joint& setMaxVelocity(float v) {
+        max_velocity_ = v ;
+        return *this ;
+    }
+
+    Joint& setMaxForce(float v) {
+        max_force_ = v ;
+        return *this ;
+    }
+
+    void setMotorMaxImpulse(float v) ;
+
+    void setMimicJointPosition() ;
+
+    float getPosition() ;
+    float getVelocity() ;
+    float getTorque() ;
+
+    void setPosition(float v) ;
+    void setVelocity(float v) ;
+    void setTorque(float v) ;
+
+    void setTargetVelocity(float v);
+    void setTargetPosition(float v);
+
+
+private:
+
+    friend class MultiBody ;
+    friend struct MultiBodyData ;
+
+    Joint() = default ;
+
+    std::string name_ ;
+    std:: string parent_, child_ ;
+    Link *parent_link_ = nullptr, *child_link_ = nullptr ;
+
+    JointType type_ ;
+    btVector3 axis_ = {1, 0, 0};
+    btTransform j2p_ ;
+    float lower_ = 0.f, upper_ = 0.f, friction_ = 0.f, damping_ = 0.f, max_force_ = 0.f, max_velocity_ = 0.f ;
+    btMultiBody *body_ = nullptr ;
+    btMultiBodyJointMotor* motor_ = nullptr ;
+    btScalar motor_max_force_ = btScalar(1000.0) ;
+    std::vector<Joint *> mimic_joints_ ; // child joints to be mimicked
+    float mimic_multiplier_ = 1.f, mimic_offset_ = 0.f ;
+};
+
+class MultiBody {
+public:
+
+    MultiBody() = default;
+
+    Link &addLink(const std::string &name, float mass, xviz::CollisionShapePtr cshape, const Eigen::Isometry3f &origin = Eigen::Isometry3f::Identity());
+
+    Joint &addJoint(const std::string &name, JointType type, const std::string &parent, const std::string &child, const Eigen::Isometry3f &j2p);
+
+    float getJointPosition(const std::string &name) ;
+    float getJointVelocity(const std::string &name) ;
+    float getJointTorque(const std::string &name) ;
+
+    void setJointPosition(const std::string &name, float v) ;
+    void setJointVelocity(const std::string &name, float v) ;
+    void setJointTorque(const std::string &name, float v) ;
+
+    void setTargetVelocity(const std::string &name, float v) ;
+    void setTargetPosition(const std::string &name, float v) ;
+
+    void setName(const std::string &name) ;
+    std::string name() const ;
+
+    Joint *findJoint(const std::string &name) ;
+
+    void loadURDF(xviz::URDFRobot &rb);
+
+    void getLinkTransforms(std::map<std::string, Eigen::Isometry3f> &names) const ;
+
+private:
+
+    friend class PhysicsWorld ;
+
+    btMultiBody *handle() const { return body_.get() ; }
+
+    void buildTree() ;
+
+    void create(PhysicsWorld &physics, const Eigen::Isometry3f &root_tr = Eigen::Isometry3f::Identity());
+
+    void buildCollisionObject(int link_idx, const btTransform &link_transform);
+
+    void buildJoints(int link_idx, const btTransform &parent_transform_in_world_space);
+
+    int findLink(const std::string &name);
+
+    int getJointIndex(const std::string &name);
+
+    void setMimic(const URDFJoint &joint, Joint &j);
+
+    void setUserIndex(uint idx) const ;
+
+    std::vector<Link> links_ ;
+    std::map<std::string, int> link_map_ ;
+    std::map<std::string, Joint> joints_ ;
+    std::unique_ptr<btMultiBody> body_ ;
+    std::vector<std::unique_ptr<btMultiBodyConstraint>> constraints_ ;
+    std::string name_ ;
+
+    Link *root_ ;
+
+
+
+};
+
+using MultiBodyPtr = std::shared_ptr<MultiBody>;
+
+} // namespace xviz
+

@@ -18,6 +18,7 @@ class Sampler2D {
 public:
     enum TextureMapMode { WRAP, CLAMP, DECAL } ;
 
+    Sampler2D() = default ;
     Sampler2D(TextureMapMode wrap_u, TextureMapMode wrap_v):
         wrap_u_(wrap_u), wrap_v_(wrap_v) {}
 

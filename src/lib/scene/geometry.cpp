@@ -268,6 +268,7 @@ Geometry Geometry::createSolidCylinder(float radius, float height, size_t slices
     vector<Vector3f> vertices, normals ;
     vector<uint32_t> vtx_indices, nrm_indices ;
 
+
     vertices.push_back({0, 0, z0}) ;
     normals.push_back({0, 0, -1}) ;
 
@@ -285,6 +286,7 @@ Geometry Geometry::createSolidCylinder(float radius, float height, size_t slices
         nrm_indices.push_back(0) ;
         nrm_indices.push_back(0) ;
     }
+
 
     // normals shared by all side vertices
 
@@ -792,5 +794,7 @@ bool SphereGeometry::intersect(const Ray &ray, float &t) const {
     return rayIntersectsSphere(ray, {0, 0, 0}, radius_, t) ;
 }
 
-
+bool CylinderGeometry::intersect(const Ray &ray, float &t) const {
+    return rayIntersectsCylinder(ray, radius_, height_, t) ;
+}
 }

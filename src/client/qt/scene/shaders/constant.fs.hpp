@@ -7,7 +7,7 @@ static const char *constant_fragment_shader = R"(
 out vec4 FragColor;
 
 void main (void) {
-float shadow = 1;
+float shadow = 0.0;
 #ifdef HAS_SHADOWS
         if ( light_casts_shadows ) {
             shadow = calcShadow(lspos, shadowBias);

@@ -204,10 +204,12 @@ private:
     size_t slices_, stacks_ ;
 };
 
+// cylinder center at origin aligned with Y axis. Height is half length.
+
 class CylinderGeometry: public Geometry {
 public:
 
-    CylinderGeometry(float r, float h, size_t slices = 12, size_t stacks = 10): radius_(r), height_(h),
+    CylinderGeometry(float r, float h,  size_t slices = 12, size_t stacks = 10): radius_(r), height_(h),
         slices_(slices), stacks_(stacks),
         Geometry(std::move(Geometry::createSolidCylinder(r, h, slices, stacks))) {}
 
@@ -218,7 +220,7 @@ public:
     size_t stacks() const { return stacks_ ; }
 
     bool hasCheapIntersectionTest() const override { return true ; }
-    bool intersect(const Ray &, float &) const override { return true ; } //todo
+    bool intersect(const Ray &, float &) const override ;
 
 private:
 

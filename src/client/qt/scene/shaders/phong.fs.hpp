@@ -30,6 +30,7 @@ struct MaterialParameters
     vec4 diffuse;     // Dcm
     vec4 specular;    // Scm
     float shininess;  // Srm
+    vec4 emission;
 };
 
 uniform MaterialParameters g_material;
@@ -45,61 +46,62 @@ vec4 phongIllumination(vec4 dc) {
 
     float shadow  = 0.0 ;
 
-        vec3 L ;
-        float att = 1.0 ;
+    vec3 L ;
+    float att = 1.0 ;
 
+    if ( g_light_source.light_type == -1 )  ;
+    else if ( g_light_source.light_type == AMBIENT_LIGHT ) {
+        return vec4(g_light_source.color, 1.0) * g_material.ambient ;
+    }
+    else if ( g_light_source.light_type == DIRECTIONAL_LIGHT ) {
+        L = normalize(g_light_source.direction) ;
+    }
+    else if ( g_light_source.light_type == SPOT_LIGHT ) {
+        float dist = length(g_light_source.position.xyz - position) ;
+        L = normalize(g_light_source.position.xyz - position);
 
-        if ( g_light_source.light_type == -1 )  ;
-        else if ( g_light_source.light_type == AMBIENT_LIGHT ) {
-            return vec4(g_light_source.color, 1.0) * g_material.ambient ;
-        }
-        else if ( g_light_source.light_type == DIRECTIONAL_LIGHT ) {
-            L = normalize(g_light_source.direction) ;
-        }
-        else if ( g_light_source.light_type == SPOT_LIGHT ) {
-            float dist = length(g_light_source.position.xyz - position) ;
-            L = normalize(g_light_source.position.xyz - position);
-
-            float spotEffect = dot(normalize(g_light_source.direction), normalize(-L));
-            if (spotEffect > g_light_source.spot_cos_cutoff) {
-                spotEffect = pow(spotEffect, g_light_source.spot_exponent);
-                att = spotEffect / (g_light_source.constant_attenuation +
-                g_light_source.linear_attenuation * dist +
-                g_light_source.quadratic_attenuation * dist * dist);
-            }
-            else att = 0.0 ;
-        }
-        else if ( g_light_source.light_type == POINT_LIGHT ) {
-            float dist = length(g_light_source.position.xyz - position);
-            L = normalize(g_light_source.position.xyz - position);
-
-            att = 1.0 / (g_light_source.constant_attenuation +
+        float spotEffect = dot(normalize(g_light_source.direction), normalize(-L));
+        if (spotEffect > g_light_source.spot_cos_cutoff) {
+            spotEffect = pow(spotEffect, g_light_source.spot_exponent);
+            att = spotEffect / (g_light_source.constant_attenuation +
             g_light_source.linear_attenuation * dist +
             g_light_source.quadratic_attenuation * dist * dist);
         }
+        else att = 0.0 ;
+    }
+    else if ( g_light_source.light_type == POINT_LIGHT ) {
+        float dist = length(g_light_source.position.xyz - position);
+        L = normalize(g_light_source.position.xyz - position);
+
+        att = 1.0 / (g_light_source.constant_attenuation +
+        g_light_source.linear_attenuation * dist +
+        g_light_source.quadratic_attenuation * dist * dist);
+    }
 
 #ifdef HAS_SHADOWS
-        if ( light_casts_shadows ) {
-            shadow = calcShadow(lspos, shadowBias);
-        }
-
+    if ( light_casts_shadows ) {
+        shadow = calcShadow(lspos, shadowBias);
+    }
 #endif
 
-        vec3 E = normalize(-position); // we are in Eye Coordinates, so EyePos is (0,0,0)
-        vec3 R = normalize(-reflect(L,N));
+    vec3 E = normalize(-position); // we are in Eye Coordinates, so EyePos is (0,0,0)
+    vec3 R = normalize(-reflect(L,N));
 
-        //calculate Diffuse Term:
+    vec4 Iamb = vec4(g_light_source.color, 1.0) * g_material.ambient ;
 
-        vec4 Idiff = vec4(g_light_source.color, 1.0) * dc * max(dot(N,L), 0.0f);
-        Idiff = clamp(Idiff, 0.0, 1.0);
+    //calculate Diffuse Term:
 
-        // calculate Specular Term:
-        vec4 Ispec = vec4(g_light_source.color, 1.0) * g_material.specular
-        * pow(max(dot(R,E),0.0f),g_material.shininess);
-        Ispec = clamp(Ispec, 0.0, 1.0);
+    vec4 Idiff = vec4(g_light_source.color, 1.0) * dc * max(dot(N,L), 0.0f);
+    Idiff = clamp(Idiff, 0.0, 1.0);
 
-        finalColor =  att*clamp((1 - shadow)*(Ispec + Idiff), 0.0, 1.0);
+    // calculate Specular Term:
+    vec4 Ispec = vec4(g_light_source.color, 1.0) * g_material.specular
+        * pow(max(dot(R,E),0.0f), g_material.shininess);
+    Ispec = clamp(Ispec, 0.0, 1.0);
 
+    vec4 I = att*(Ispec + Idiff + Iamb) ;
+
+    finalColor =  clamp((1 - shadow)*I, 0.0, 1.0);
 
     return  finalColor ;
 }

@@ -77,7 +77,9 @@ Ray::Ray(const Vector3f &orig, const Vector3f &dir) : orig_(orig), dir_(dir) {
 }
 
 Ray::Ray(const Ray &other, const Eigen::Affine3f &tr):
-    Ray((tr * other.orig_.homogeneous()).head<3>(), tr.linear() * other.dir_) {}
+    Ray((tr * other.orig_.homogeneous()).head<3>(), tr.linear() * other.dir_) {
+    dir_.normalize() ;
+}
 
 } // namespace viz
 

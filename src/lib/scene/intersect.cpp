@@ -451,5 +451,61 @@ bool rayIntersectsLine(const Ray &ray, const Vector3f &p1, const Vector3f &p2, f
     return false;
 }
 
+static bool intersectsDisk(const Vector3f &p, const Vector3f &d, float radius, float height, float &t) {
+    if ( fabs(d.z()) < std::numeric_limits<float>::min() ) return false ; // parallel to disk
+    t = (height - p.z()) / d.z() ;
+    if ( t < 0 ) return false ;
+
+    Vector3f ip = p + t * d ;
+
+    if ( ip.x()*ip.x() + ip.y()*ip.y() > radius * radius ) return false ;
+    cout << t << endl ;
+    return true;
+}
+
+bool rayIntersectsCylinder(const Ray &ray, float radius, float height, float &t) {
+    float h2 = height/2.0 ;
+    Vector3f d = ray.dir(), p = ray.origin() ;
+    float c =  p.x() * p.x() + p.y() * p.y() - radius * radius ;
+    float b = 2 * ( p.x() * d.x() + p.y() * d.y() ) ;
+    float a = d.x() * d.x() + d.y() * d.y() ;
+
+    float delta = b*b - 4*(a*c);
+    if ( delta < 0 ) return false ;
+    if ( fabs(delta) < std::numeric_limits<float>::min() ) return false ;
+
+    bool has_intersection = false ;
+
+    t = (-b - sqrt(delta))/(2*a);
+
+    if ( t > 0.0 ) {
+        float iz = p.z() + t*d.z() ;
+        has_intersection = ( fabs(iz) < h2 ) ;
+
+    }
+
+    if ( !has_intersection ) {
+        t = std::numeric_limits<float>::max() ;
+    }
+
+    float t1, t2 ;
+
+    if ( intersectsDisk(p, d, radius, -h2, t1) ) { // top cap
+        if ( t1 < t ) {
+            t = t1 ;
+            has_intersection = true ;
+        }
+    }
+
+    if ( intersectsDisk(p, d, radius, h2, t2) ) { // bottom cap
+        if ( t2 < t ) {
+            t = t2 ;
+            has_intersection = true ;
+        }
+    }
+
+
+    return has_intersection ;
+}
 
 }}

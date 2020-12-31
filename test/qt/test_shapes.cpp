@@ -86,6 +86,25 @@ NodePtr randomBox(ScenePtr &scene, const string &name, const Vector3f &hs, const
     return box_node ;
 }
 
+NodePtr randomCylinder(ScenePtr &scene, const string &name, float r, float h, const Vector4f &clr) {
+
+    NodePtr box_node(new Node) ;
+    box_node->setName(name) ;
+
+    GeometryPtr geom(new CylinderGeometry(r, h)) ;
+
+    PhongMaterial *material = new PhongMaterial(clr) ;
+
+    MaterialPtr mat(material) ;
+    box_node->addDrawable(geom, mat) ;
+
+    box_node->setTransform(getRandTransform(0)) ;
+
+    scene->addChild(box_node) ;
+
+    return box_node ;
+}
+
 class Viewer: public SceneViewer {
 
 public:
@@ -101,7 +120,7 @@ public:
         for( int i=0 ; i<vertices.size() ; i++ ) {
             vertices[i].y() -= 0.01 ;
         }
-        geom->setVerticesUpdated(true) ;
+    //    geom->setVerticesUpdated(true) ;
 
     }
 
@@ -118,7 +137,7 @@ int main(int argc, char **argv)
     ground->setName("ground");
     ground->transform().translate(Vector3f{0, -0.1, 0}) ;
     GeometryPtr plane(new Geometry(std::move(Geometry::makePlane(2, 2, 2, 2)))) ;
-    MaterialPtr planeMat(new ConstantMaterial({0.2, 0.2, 0.2, 1})) ;
+    MaterialPtr planeMat(new ConstantMaterial({0.6, 0.6, 0.6, 1})) ;
    // planeMat->setSide(Material::Side::Both) ;
     ground->addDrawable(plane, planeMat) ;
     scene->addChild(ground) ;
@@ -128,11 +147,12 @@ int main(int argc, char **argv)
         stringstream strm ;
         strm << "box" << i << endl ;
 
-        randomBox(scene, strm.str(), Vector3f(0.04, rnd_uniform(0.1, 0.15), 0.04), clr);
+        if ( i %2 ) randomBox(scene, strm.str(), Vector3f(0.04, rnd_uniform(0.1, 0.15), 0.04), clr);
+        else randomCylinder(scene, strm.str(), rnd_uniform(0.05, 0.1), rnd_uniform(0.1, 0.15), clr);
     }
 
     DirectionalLight *dl = new DirectionalLight(Vector3f(1, 4, 0.5)) ;
-    dl->diffuse_color_ = Vector3f(0.52, 0.22, 0.22) ;
+    dl->diffuse_color_ = Vector3f(0.72, 0.72, 0.72) ;
     scene->addLightNode(LightPtr(dl)) ;
 
     xviz::DirectionalLight *dl2 = new xviz::DirectionalLight(Vector3f(0, 4, 0.1)) ;

@@ -87,6 +87,25 @@ NodePtr randomBox(ScenePtr &scene, const string &name, const Vector3f &hs, const
     return box_node ;
 }
 
+NodePtr randomCylinder(ScenePtr &scene, const string &name, float r, float h, const Vector4f &clr) {
+
+    NodePtr box_node(new Node) ;
+    box_node->setName(name) ;
+
+    GeometryPtr geom(new CylinderGeometry(r, h)) ;
+
+    PhongMaterial *material = new PhongMaterial(clr) ;
+
+    MaterialPtr mat(material) ;
+    box_node->addDrawable(geom, mat) ;
+
+    box_node->setTransform(getRandTransform(0)) ;
+
+    scene->addChild(box_node) ;
+
+    return box_node ;
+}
+
 class PickingViewer: public SceneViewer {
 public:
     PickingViewer(ScenePtr scene, QWidget *parent = nullptr): SceneViewer(scene, parent),
@@ -160,9 +179,16 @@ int main(int argc, char **argv)
     for( uint i=0 ; i<10 ; i++ ) {
         Vector4f clr(0.5, rnd_uniform(0.0, 1.0), rnd_uniform(0.0, 1.0), 1.0) ;
         stringstream strm ;
-        strm << "box" << i ;
 
-        randomBox(scene, strm.str(), Vector3f(0.04, rnd_uniform(0.1, 0.15), 0.04), clr);
+
+        if ( i != 0 ) {
+            strm << "box" << i ;
+            randomBox(scene, strm.str(), Vector3f(0.04, rnd_uniform(0.1, 0.15), 0.04), clr);
+        }
+        else {
+            strm << "cylinder" << i ;
+            randomCylinder(scene, strm.str(), rnd_uniform(0.05, 0.1), rnd_uniform(0.1, 0.15), clr);
+        }
     }
 
     GeometryPtr ptcloud(new Geometry(Geometry::Points)) ;

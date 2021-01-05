@@ -35,6 +35,10 @@ public:
     void setDefaultFBO(GLuint fbo) {
         default_fbo_ = fbo ;
     }
+
+    // transform model coordinates to screne coordinates
+    Eigen::Vector2f project(const Eigen::Vector3f &pos) ;
+
 private slots:
 
     void uploadTexture(QImage im, const xviz::Material *material, int slot) ;

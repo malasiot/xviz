@@ -9,6 +9,7 @@
 
 #include <QMainWindow>
 #include <QApplication>
+#include <QPainter>
 
 using namespace xviz ;
 using namespace Eigen ;
@@ -111,6 +112,7 @@ public:
     PickingViewer(ScenePtr scene, QWidget *parent = nullptr): SceneViewer(scene, parent),
     ray_caster_(scene) {
         setMouseTracking(true);
+        trackball_.setZoomScale(2) ;
         ray_caster_.setPointDistanceThreshold(0.05);
         ray_caster_.setLineDistanceThreshold(0.05);
    //    ray_caster_.buildOctrees();
@@ -155,6 +157,28 @@ public:
         SceneViewer::mouseMoveEvent(event) ;
     }
 
+    void paintGL() override {
+        SceneViewer::paintGL() ;
+
+        for( uint i=0 ; i<10 ; i++ ) {
+            stringstream strm ;
+            strm << "box" << i ;
+            NodePtr node = scene_->findNodeByName(strm.str());
+            if ( node ) {
+                Vector3f c = node->geomCenter() ;
+                Vector2f p = rdr_.project(c) ;
+                // Render text
+                QPainter painter(this);
+                QString text = QString::fromStdString(strm.str()) ;
+                QFontMetrics fm(painter.font()) ;
+                QRect rect = fm.boundingRect(text) ;
+                painter.drawText(p.x() - rect.width()/2, p.y() + rect.height()/2, text);
+                painter.end();
+            }
+
+        }
+    }
+
 
 private:
     RayCaster ray_caster_ ;
@@ -183,7 +207,9 @@ int main(int argc, char **argv)
 
         if ( i != 0 ) {
             strm << "box" << i ;
-            randomBox(scene, strm.str(), Vector3f(0.04, rnd_uniform(0.1, 0.15), 0.04), clr);
+            string name = strm.str() ;
+            NodePtr res = randomBox(scene, name, Vector3f(0.04, rnd_uniform(0.1, 0.15), 0.04), clr);
+
         }
         else {
             strm << "cylinder" << i ;
@@ -224,16 +250,7 @@ int main(int argc, char **argv)
 
     QApplication app(argc, argv);
 
-    QSurfaceFormat format;
-      format.setDepthBufferSize(24);
-      format.setMajorVersion(3);
-      format.setMinorVersion(3);
-
-      format.setSamples(4);
-      format.setProfile(QSurfaceFormat::CoreProfile);
-
-      QSurfaceFormat::setDefaultFormat(format);
-
+    SceneViewer::initDefaultGLContext();
     QMainWindow window ;
     window.setCentralWidget(new PickingViewer(scene)) ;
     window.resize(512, 512) ;

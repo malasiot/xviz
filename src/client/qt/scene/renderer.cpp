@@ -238,6 +238,19 @@ glBlendFunc(GL_ONE, GL_ZERO);
 
 }
 
+Vector2f Renderer::project(const Vector3f &pos) {
+    Vector3f p = Affine3f(perspective_ * proj_) * pos ;
+
+    GLint vp[4] ;
+    glGetIntegerv (GL_VIEWPORT, vp) ;
+
+    float xn = p.x()/p.z(), yn = p.y()/p.z() ;
+    float x = (xn + 1.0) * (vp[2]/2.0) + vp[0] ;
+    float y = (yn + 1.0) * (vp[3]/2.0) + vp[1];
+
+    return { x, vp[3] - y } ;
+}
+
 
 unsigned int quadVAO = 0;
 unsigned int quadVBO;

@@ -1,5 +1,4 @@
 set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 if(CMAKE_VERSION VERSION_LESS "3.7.0")
@@ -66,7 +65,10 @@ set( QT_CLIENT_SOURCES
     image_element.hpp
 
     image_widget.cpp
+    image_toolbar.cpp
+
     ${XVIZ_INCLUDE_DIR}/qt/image_widget.hpp
+    ${XVIZ_INCLUDE_DIR}/qt/image_toolbar.hpp
 
     tabular_element.cpp
     tabular_element.hpp
@@ -83,9 +85,8 @@ set( QT_CLIENT_HEADERS
     client.hpp
 )
 
-set(QT_CLIENT_FORMS )
-#SET(QT_CLIENT_RESOURCES mdi.qrc )
-
+QT5_ADD_RESOURCES(QT_CLIENT_RC_SOURCES "image_toolbar.qrc")
+set_source_files_properties(${QT_CLIENT_RC_SOURCES} PROPERTIES GENERATED ON)
 
 include_directories(${PROTOBUF_INCLUDE_DIR})
 protobuf_generate_cpp(PROTO_SRC PROTO_HDR ../../messages/session.proto)

@@ -15,9 +15,11 @@ target_link_libraries(test_picking xviz_qt_client)
 
 add_executable(test_animation test_animation.cpp )
 target_link_libraries(test_animation xviz_qt_client)
-
 add_executable(test_skeleton test_skeleton.cpp )
 target_link_libraries(test_skeleton xviz_qt_client)
 
 add_executable(test_robot test_robot.cpp )
 target_link_libraries(test_robot xviz_qt_client)
+
+add_executable(test_image_view test_image_view.cpp image_view.cpp image_view.hpp)
+target_link_libraries(test_image_view xviz_qt_client)

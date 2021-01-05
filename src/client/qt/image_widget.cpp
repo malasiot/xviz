@@ -221,6 +221,11 @@ float ImageWidget::getZoomFactor() const {
     return zoomFactors[zc] ;
 }
 
+void ImageWidget::zoomFit()
+{
+      zoomToRect(QRectF(0, 0, pixmap->width(), pixmap->height())) ;
+}
+
 void ImageWidget::wheelEvent( QWheelEvent *event )
 {
     int zz = zc  ;

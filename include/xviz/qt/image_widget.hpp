@@ -42,6 +42,9 @@ public:
         return zc ;
     }
 
+    void zoomFit() ;
+
+
 protected:
 
     QPixmap *pixmap ;

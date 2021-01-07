@@ -1,4 +1,3 @@
-#include <xviz/qt/image_toolbar.hpp>
 #include "image_view.hpp"
 
 #include <QApplication>

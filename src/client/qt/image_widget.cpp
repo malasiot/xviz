@@ -65,7 +65,7 @@ void ImageGraphicsScene::mouseMoveEvent ( QGraphicsSceneMouseEvent * mouseEvent 
 
 
 void ImageWidget::mouseMoveEventHandler( QGraphicsSceneMouseEvent * mouseEvent ) {
-    //if ( currentTool ) currentTool->mouseMoved(mouseEvent);
+    if ( tool_ ) tool_->mouseMoved(mouseEvent);
 }
 
 
@@ -122,7 +122,7 @@ void ImageWidget::mousePressEventHandler( QGraphicsSceneMouseEvent * mouseEvent 
         ctxMenu->popup(mouseEvent->screenPos()) ;
     }
 
- //   if ( currentTool ) currentTool->mousePressed(mouseEvent);
+    if ( tool_ ) tool_->mousePressed(mouseEvent);
 
 }
 
@@ -134,7 +134,7 @@ void ImageGraphicsScene::mouseReleaseEvent( QGraphicsSceneMouseEvent * mouseEven
 
 void ImageWidget::mouseReleaseEventHandler( QGraphicsSceneMouseEvent * mouseEvent )
 {
-   // if ( currentTool ) currentTool->mouseReleased(mouseEvent);
+    if ( tool_ ) tool_->mouseReleased(mouseEvent);
 }
 
 QGraphicsScene *ImageWidget::scene() {
@@ -223,7 +223,17 @@ float ImageWidget::getZoomFactor() const {
 
 void ImageWidget::zoomFit()
 {
-      zoomToRect(QRectF(0, 0, pixmap->width(), pixmap->height())) ;
+    zoomToRect(QRectF(0, 0, pixmap->width(), pixmap->height())) ;
+}
+
+void ImageWidget::setTool(ImageTool *tool)
+{
+    if ( tool ) {
+        if ( tool_ )
+            tool_->deactivate() ;
+        tool->activate() ;
+    }
+    tool_ = tool ;
 }
 
 void ImageWidget::wheelEvent( QWheelEvent *event )

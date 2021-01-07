@@ -65,10 +65,12 @@ set( QT_CLIENT_SOURCES
     image_element.hpp
 
     image_widget.cpp
-    image_toolbar.cpp
 
+    image_tools.cpp
+    image_rb.cpp
+    image_rb.hpp
     ${XVIZ_INCLUDE_DIR}/qt/image_widget.hpp
-    ${XVIZ_INCLUDE_DIR}/qt/image_toolbar.hpp
+    ${XVIZ_INCLUDE_DIR}/qt/image_tools.hpp
 
     tabular_element.cpp
     tabular_element.hpp
@@ -85,15 +87,13 @@ set( QT_CLIENT_HEADERS
     client.hpp
 )
 
-QT5_ADD_RESOURCES(QT_CLIENT_RC_SOURCES "image_toolbar.qrc")
-set_source_files_properties(${QT_CLIENT_RC_SOURCES} PROPERTIES GENERATED ON)
 
 include_directories(${PROTOBUF_INCLUDE_DIR})
 protobuf_generate_cpp(PROTO_SRC PROTO_HDR ../../messages/session.proto)
 set_source_files_properties(${PROTO_SRC} ${PROTO_HDR} PROPERTIES GENERATED TRUE)
 
 
-add_library(xviz_qt_client ${QT_CLIENT_SOURCES} ${QT_CLIENT_MOC_SOURCES} ${QT_CLIENT_RC_SOURCES} ${PROTO_SRC} ${PROTO_HDR})
+add_library(xviz_qt_client ${QT_CLIENT_SOURCES} ${QT_CLIENT_MOC_SOURCES} ${PROTO_SRC} ${PROTO_HDR})
 
 target_link_libraries(xviz_qt_client xviz Qt5::Core Qt5::Widgets Qt5::WebSockets Qt5::Xml ${PROTOBUF_LIBRARY})
 

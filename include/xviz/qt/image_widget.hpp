@@ -6,6 +6,7 @@
 #include <QMenu>
 
 class ImageGraphicsScene ;
+class ImageTool ;
 
 class ImageWidget : public QGraphicsView
 {
@@ -44,6 +45,8 @@ public:
 
     void zoomFit() ;
 
+    void setTool(ImageTool *tool) ;
+
 
 protected:
 
@@ -75,6 +78,7 @@ private:
     void mouseReleaseEventHandler( QGraphicsSceneMouseEvent * mouseEvent ) ;
 
 
+    ImageTool *tool_ = nullptr ;
     ImageGraphicsScene *gscene ;
     QMenu *ctxMenu ;
 
@@ -115,9 +119,40 @@ private:
     ImageWidget *view ;
 } ;
 
+// abstract class for handling all dragging operations on image canvas
+class ImageTool: public QObject
+{
+    Q_OBJECT
 
+public:
 
+    ImageTool(QGraphicsView *w): widget_(w), QObject(w) {}
 
+    virtual ~ImageTool() = default;
+
+    // called when the tool button is clicked
+    virtual void activate() {}
+
+    // called when another tool is selected
+    virtual void deactivate() {}
+
+    // handles mouse-pressed event
+    virtual void mousePressed(QGraphicsSceneMouseEvent *pevent) = 0 ;
+
+    // handles mouse-released event
+    virtual void mouseReleased(QGraphicsSceneMouseEvent *pevent) = 0 ;
+
+    // handles mouse-move event
+    virtual void mouseMoved(QGraphicsSceneMouseEvent *pevent) = 0 ;
+
+signals:
+
+    void showMessage(const QString &) ;
+
+protected:
+
+    QGraphicsView *widget_ ;
+} ;
 
 
 

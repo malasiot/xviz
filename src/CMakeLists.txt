@@ -1,6 +1,5 @@
 add_subdirectory(client/qt)
 
-
 FIND_PACKAGE(Bullet)
 
 include_directories(
@@ -105,5 +104,16 @@ ENDIF( BULLET_FOUND )
 protobuf_generate_cpp(PROTO_SRC PROTO_HDR messages/core.proto messages/session.proto messages/style.proto messages/drawable.proto messages/scene.proto)
 set_source_files_properties(${PROTO_SRC} ${PROTO_HDR} PROPERTIES GENERATED TRUE)
 
-add_library(xviz ${XVIZ_LIB_SOURCES} ${PROTO_SRC} ${PROTO_HDR})
+add_library(xviz ${LIBRARY_TYPE} ${XVIZ_LIB_SOURCES} ${PROTO_SRC} ${PROTO_HDR})
 target_link_libraries(xviz pthread ${PROTOBUF_LIBRARY} ${ASSIMP_LIBRARIES} ${BULLET_LIBRARIES})
+
+# Install library
+install(TARGETS xviz xviz_qt_client
+  EXPORT ${PROJECT_EXPORT}
+  RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
+  LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT shlib
+  ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT stlib
+  COMPONENT dev)
+
+# Install headers
+install(DIRECTORY "${XVIZ_INCLUDE_DIR}" DESTINATION "${INSTALL_INCLUDE_DIR}/xviz" )

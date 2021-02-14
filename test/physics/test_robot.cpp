@@ -1,4 +1,3 @@
-
 #include <xviz/scene/camera.hpp>
 #include <xviz/scene/light.hpp>
 #include <xviz/scene/node.hpp>
@@ -29,11 +28,7 @@ using namespace Eigen ;
 PhysicsWorld physics ;
 ScenePtr scene(new Scene) ;
 
-
-
 MultiBodyPtr body(new MultiBody) ;
-
-
 
 class GUI: public SimulationGui, CollisionFeedback {
 public:
@@ -76,33 +71,11 @@ NodePtr makeCube(const string &name, const Vector3f &hs, const Vector4f &clr, No
     return node ;
 }
 
-NodePtr makeSphere(const string &name, float radious, const Vector4f &clr, NodePtr parent) {
-    NodePtr node = NodeHelpers::makeSphere(radious, clr) ;
-    node->setName(name) ;
-    parent->addChild(node) ;
-    return node ;
-}
-
-NodePtr makeCylinder(const string &name, float radious, float len, const Vector4f &clr, NodePtr parent) {
-    NodePtr node = NodeHelpers::makeCylinder(radious, len, clr) ;
-    node->setName(name) ;
-    parent->addChild(node) ;
-    return node ;
-}
-
-NodePtr makeJoint(const Isometry3f &tr, NodePtr parent) {
-    NodePtr j(new Node) ;
-    j->setTransform(tr) ;
-    parent->addChild(j) ;
-    return j ;
-}
-
-
 void createScene() {
 
     physics.createMultiBodyDynamicsWorld();
 
-    Affine3f tr(Translation3f{0, -1.5, 0}) ;
+    Affine3f tr(Translation3f{0, -1.6, 0}) ;
 
     Vector3f ground_hs{3.5f, 0.05f, 3.5f} ;
     auto groundNode = NodeHelpers::makeBox(ground_hs, {0.5, 0.5, 0.5, 1}) ;

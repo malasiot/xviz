@@ -22,7 +22,7 @@ public:
 
     enum UpAxis { XAxis, YAxis, ZAxis } ;
 
-    SceneViewer(const xviz::ScenePtr &scene, QWidget *parent = nullptr)  ;
+    SceneViewer(const xviz::NodePtr &scene, QWidget *parent = nullptr)  ;
 
     static void initDefaultGLContext() {
 
@@ -39,9 +39,7 @@ public:
         QSurfaceFormat::setDefaultFormat(format);
     }
 
-    void setDrawAxes(bool draw_axes) {
-        draw_axes_ = draw_axes ;
-    }
+    void setDrawAxes(bool draw_axes);
 
     // should be called to initialized camera and trackball with given scene center and radius
 
@@ -68,12 +66,15 @@ protected:
 
     void wheelEvent ( QWheelEvent * event ) override;
 
+    void keyPressEvent(QKeyEvent *event) override ;
+
     void initializeGL() override;
     void paintGL() override;
     void resizeGL(int width, int height) override;
 
-    xviz::ScenePtr scene_ ;
+    void drawText(const Eigen::Vector3f &c, const QString &label, const QColor &clr) ;
 
+    xviz::NodePtr scene_, axes_ ;
     xviz::CameraPtr camera_ ;
 
     Renderer rdr_ ;
@@ -81,7 +82,7 @@ protected:
 
     bool draw_axes_ = true ;
     UpAxis axis_ = YAxis ;
-    float aradius_ ;
+    float aradius_, radius_ ;
 
     QElapsedTimer et_ ;
 

@@ -16,7 +16,7 @@ public:
     explicit QOffscreenRenderer(QScreen* targetScreen = nullptr, const QSize& size = QSize (1, 1));
     ~QOffscreenRenderer();
 
-    QImage render(const xviz::ScenePtr &scene, const xviz::CameraPtr &cam);
+    QImage render(const xviz::NodePtr &scene, const xviz::CameraPtr &cam);
 
 private:
     QOpenGLFramebufferObject *fbo_;

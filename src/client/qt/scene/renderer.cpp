@@ -78,7 +78,7 @@ MaterialProgramPtr Renderer::instantiateMaterial(const xviz::Material *mat, int 
     return nullptr ;
 }
 
-void Renderer::init(const xviz::ScenePtr &scene) {
+void Renderer::init(const xviz::NodePtr &scene) {
     initializeOpenGLFunctions() ;
 
     initShadowMapRenderer();
@@ -298,6 +298,7 @@ void Renderer::renderShadowDebug()
 void Renderer::renderScene(const xviz::LightPtr &l, const Affine3f &light_mat) {
 
     for ( const xviz::ConstNodePtr &node: scene_->getNodesRecursive() ) {
+        if ( !node->isVisible() ) continue ;
         for( const auto &drawable: node->drawables() )
             render(drawable, node->globalTransform(), l, light_mat ) ;
     }

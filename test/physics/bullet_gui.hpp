@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cvx/viz/scene/scene_fwd.hpp>
+#include <xviz/scene/scene_fwd.hpp>
 #include <xviz/qt/scene/viewer.hpp>
 
 #include <xviz/physics/world.hpp>

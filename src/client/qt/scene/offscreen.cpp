@@ -40,7 +40,7 @@ QOffscreenRenderer::~QOffscreenRenderer() {
     if ( fbo_ ) delete fbo_ ;
 }
 
-QImage QOffscreenRenderer::render(const xviz::ScenePtr &scene, const xviz::CameraPtr &cam)
+QImage QOffscreenRenderer::render(const xviz::NodePtr &scene, const xviz::CameraPtr &cam)
 {
     Renderer rdr ;
     rdr.init(scene) ;

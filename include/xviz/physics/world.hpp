@@ -1,8 +1,6 @@
 ﻿#ifndef XVIZ_PHYSICS_WORLD_HPP
 #define XVIZ_PHYSICS_WORLD_HPP
 
-#include <cvx/viz/scene/node.hpp>
-
 #include <memory>
 
 #include <bullet/btBulletCollisionCommon.h>

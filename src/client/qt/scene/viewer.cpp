@@ -3,13 +3,20 @@
 #include <xviz/scene/scene.hpp>
 #include <xviz/scene/light.hpp>
 #include <xviz/scene/node.hpp>
+#include <xviz/scene/node_helpers.hpp>
+
 #include <QTimer>
+#include <QPainter>
+#include <QApplication>
 
 using namespace std ;
 using namespace Eigen ;
 
-SceneViewer::SceneViewer(const xviz::ScenePtr &scene, QWidget *parent): QOpenGLWidget(parent), scene_(scene) {
+SceneViewer::SceneViewer(const xviz::NodePtr &scene, QWidget *parent): QOpenGLWidget(parent), scene_(new xviz::Node) {
     setFocusPolicy(Qt::StrongFocus) ;
+
+    scene_->addChild(scene) ;
+
 
     //scene_.reset(new xviz::Scene) ;
    // scene_->load("/home/malasiot/Downloads/BoxTextured.gltf", xviz::Scene::IMPORT_LIGHTS);
@@ -25,6 +32,9 @@ SceneViewer::SceneViewer(const xviz::ScenePtr &scene, QWidget *parent): QOpenGLW
     auto r = scene_->geomRadius(c) ;
     initCamera(c, r, UpAxis::YAxis) ;
 
+    axes_ = xviz::NodeHelpers::makeAxes(r) ;
+    axes_->setVisible(false) ;
+    scene_->addChild(axes_) ;
 
     QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(updateAnimation()));
@@ -34,12 +44,18 @@ SceneViewer::SceneViewer(const xviz::ScenePtr &scene, QWidget *parent): QOpenGLW
 
 }
 
+void SceneViewer::setDrawAxes(bool draw_axes) {
+    draw_axes_ = draw_axes ;
+    axes_->setVisible(draw_axes) ;
+}
+
 void SceneViewer::initCamera(const Vector3f &c, float r, UpAxis axis) {
 
-   camera_.reset(new xviz::PerspectiveCamera(1.0, 70*M_PI/180, 0.01*r, 100*r)) ;
+    camera_.reset(new xviz::PerspectiveCamera(1.0, 70*M_PI/180, 0.01*r, 100*r)) ;
 
    axis_ = axis ;
 
+   radius_ = r ;
    aradius_ = 10 * r ;
 
    if ( axis == YAxis )
@@ -123,12 +139,22 @@ void SceneViewer::wheelEvent(QWheelEvent *event) {
     update() ;
 }
 
+void SceneViewer::keyPressEvent(QKeyEvent *event)
+{
+    int key = event->key() ;
+    if ( key == Qt::Key_A ) {
+        draw_axes_ = !draw_axes_ ;
+        setDrawAxes(draw_axes_);
+        update() ;
+    } else if ( key == Qt::Key_Escape ) {
+        QApplication::quit();
+    }
+
+}
+
 
 void SceneViewer::initializeGL() {
-
-    if ( scene_ )
-        rdr_.init(scene_) ;
-
+   rdr_.init(scene_) ;
 }
 
 void SceneViewer::resizeGL(int w, int h) {
@@ -141,32 +167,30 @@ void SceneViewer::resizeGL(int w, int h) {
     }
 }
 
+void SceneViewer::drawText(const Vector3f &c, const QString &text, const QColor &clr) {
+    Vector2f p = rdr_.project(c) ;
+    // Render text
+    QPainter painter(this);
+
+    QFontMetrics fm(painter.font()) ;
+    QRect rect = fm.boundingRect(text) ;
+    painter.setPen(clr) ;
+    painter.drawText(p.x() - rect.width()/2, p.y() + rect.height()/2, text);
+    painter.end();
+}
 
 void SceneViewer::paintGL()
 {
     if ( !scene_ ) return ;
     rdr_.setDefaultFBO(defaultFramebufferObject());
     rdr_.render(camera_) ;
-#if 0
+
     if ( draw_axes_ ) {
-        rdr_.clearZBuffer();
-
-        rdr_.line({0, 0, 0}, {aradius_, 0, 0}, {1, 0, 0, 1}, 3);
-        rdr_.line({0, 0, 0}, {0, aradius_, 0}, {0, 1, 0, 1}, 3);
-        rdr_.line({0, 0, 0}, {0, 0, aradius_}, {0, 0, 1, 1}, 3);
-
-        rdr_.text("X", Vector3f{aradius_, 0, 0}, Font("Arial", 12), Vector3f{1, 0, 0}) ;
-        rdr_.text("Y", Vector3f{0, aradius_, 0}, Font("Arial", 12), Vector3f{0, 1, 0}) ;
-        rdr_.text("Z", Vector3f{0, 0, aradius_}, Font("Arial", 12), Vector3f{0, 0, 1}) ;
-
-        if ( axis_ == YAxis )
-            rdr_.circle({0, 0, 0}, {0, 1, 0}, 5.0, {0, 1, 0, 1}) ;
-        else if ( axis_ == XAxis )
-            rdr_.circle({0, 0, 0}, {1, 0, 0}, 5.0, {0, 1, 0, 1}) ;
-        else if ( axis_ == ZAxis )
-            rdr_.circle({0, 0, 0}, {0, 0, 1}, 5.0, {0, 1, 0, 1}) ;
+        drawText(Vector3f{radius_, 0, 0}, "X", Qt::red) ;
+        drawText(Vector3f{0, radius_, 0}, "Y", Qt::green) ;
+        drawText(Vector3f{0, 0, radius_}, "Z", Qt::blue) ;
     }
-#endif
+
 }
 
 void SceneViewer::updateAnimation() {

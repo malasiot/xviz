@@ -39,7 +39,7 @@ void createScene() {
 
     // create new scene and add light
 
-    std::shared_ptr<DirectionalLight> dl( new DirectionalLight(Vector3f(0.5, 0.5, 1)) ) ;
+    auto dl = make_shared<DirectionalLight>(Vector3f(0.5, 0.5, 1))  ;
     dl->diffuse_color_ = Vector3f(1, 1, 1) ;
     scene->addLightNode(dl) ;
 

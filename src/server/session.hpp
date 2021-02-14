@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 
-#define ASIO_STANDALONE
 #include <websocketpp/config/asio_no_tls.hpp>
 
 namespace xviz { namespace impl {

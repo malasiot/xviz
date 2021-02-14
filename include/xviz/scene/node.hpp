@@ -166,6 +166,10 @@ public:
 
     NodePtr findNodeByName(const std::string &name) ;
 
+    void setVisible(bool v) { visible_ = v ; }
+
+    bool isVisible() const { return visible_ ; }
+
 private:
 
     std::string name_ ;
@@ -182,6 +186,8 @@ private:
     std::vector<std::unique_ptr<Animation>> animations_ ;
 
     Node *parent_ = nullptr;
+
+    bool visible_ = true ;
 };
 
 

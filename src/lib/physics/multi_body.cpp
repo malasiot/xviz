@@ -351,7 +351,7 @@ void MultiBody::getLinkTransforms(std::map<string, Isometry3f> &names) const
 {
     for( const Link &l: links_ ) {
         if ( l.collider_ ) {
-            btTransform tr = l.collider_->getWorldTransform();
+            btTransform tr = l.collider_->getWorldTransform() * l.local_inertial_frame_.inverse() * toBulletTransform(l.origin_);
             names.emplace(l.name_, Isometry3f(toEigenTransform(tr))) ;
         }
     }

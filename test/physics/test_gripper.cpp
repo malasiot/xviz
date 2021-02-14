@@ -37,6 +37,8 @@ public:
 
         initCamera({0, -1, 0}, 0.5, SceneViewer::YAxis) ;
         vert_pos_ = 0.0, gripper_pos_ = 0.5 ;
+        setDrawAxes(true);
+
     }
 
     void onUpdate(float delta) override {
@@ -49,7 +51,7 @@ public:
         map<string, Isometry3f> transforms ;
         body->getLinkTransforms(transforms) ;
         scene->updateTransforms(transforms) ;
-        SimulationGui::onUpdate(delta) ;
+     SimulationGui::onUpdate(delta) ;
 
     }
 
@@ -96,7 +98,7 @@ void createScene() {
     scene->addChild(groundNode) ;
     physics.addRigidBody(make_shared<RigidBody>(CollisionShapePtr(new BoxCollisionShape(ground_hs)), tr)) ;
 
-    Affine3f box_tr(Translation3f{0, -1.2, 0}) ;
+    Affine3f box_tr(Translation3f{0, -1.25, 0}) ;
     Vector3f box_hs{0.03, 0.03f, 0.03f} ;
     NodePtr boxNode = NodeHelpers::makeBox(box_hs, {0.5, 0.5, 0, 1} );
     boxNode->setTransform(box_tr);
@@ -110,18 +112,21 @@ void createScene() {
     RobotScenePtr rs = RobotScene::fromURDF(robot) ;
 
     DirectionalLight *dl = new DirectionalLight(Vector3f(0.5, 0.5, 1)) ;
-    dl->diffuse_color_ = Vector3f(1, 1, 1) ;
+    dl->diffuse_color_ = Vector3f(0.5, 0.5, 0.5) ;
     scene->addLightNode(LightPtr(dl)) ;
 
     scene->addChild(rs) ;
 
     Isometry3f global = Isometry3f::Identity() ;
+
     global.rotate(AngleAxisf(-M_PI/2, Vector3f::UnitZ())) ;
+//    global.translate(Vector3f{0, 0, -0.2});
+
 
     body->loadURDF(robot) ;
 
-    body->addLink("world", 0.0, nullptr) ;
-    body->addJoint("world_to_base", PrismaticJoint, "world", "gripper_pole", global).setAxis(Vector3f::UnitX()) ;
+   // body->addLink("world", 0.0, nullptr) ;
+//    body->addJoint("world_to_base", PrismaticJoint, "world", "gripper_pole", global).setAxis(Vector3f::UnitX()) ;
 
     physics.addMultiBody(body) ;
 

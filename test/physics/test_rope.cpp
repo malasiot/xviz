@@ -67,11 +67,7 @@ NodePtr makeCylinder(float radius, float length, const Eigen::Affine3f &tr, cons
 
     // we need an extra node to perform rotation of cylinder so that it is aligned with Y axis instead of Z
 
-    NodePtr node(new Node) ;
-
-    GeometryPtr geom(new CylinderGeometry(radius, length)) ;
-
-    node->addDrawable(geom, MaterialPtr(new PhongMaterial(clr))) ;
+    auto node = NodeHelpers::makeCylinder(radius, length, clr) ;
 
     node->transform().rotate(Eigen::AngleAxisf(-0.5*M_PI, Eigen::Vector3f::UnitX()));
 

@@ -24,7 +24,7 @@ public:
     Renderer(int flags = 0) ;
     ~Renderer() ;
 
-    void init(const xviz::ScenePtr &scene) ;
+    void init(const xviz::NodePtr &scene) ;
 
     void clearZBuffer();
 
@@ -71,7 +71,7 @@ private slots:
 private:
 
 
-    xviz::ScenePtr scene_ ;
+    xviz::NodePtr scene_ ;
 
     Eigen::Matrix4f perspective_, proj_, ls_mat_ ;
 

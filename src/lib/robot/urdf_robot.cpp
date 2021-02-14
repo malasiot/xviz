@@ -63,10 +63,10 @@ void URDFRobot::computeLinkTransformRecursive(std::map<std::string, Isometry3f> 
 
     Isometry3f tr = parent * p2j ;
 
-  //  if ( link->visual_geom_ )
- //       transforms.emplace(link->name_, tr.matrix() * link->visual_geom_->origin_.matrix()) ;
-  //  else
+    if ( link->visual_geom_ )
         transforms.emplace(link->name_, tr.matrix() * link->visual_geom_->origin_.matrix()) ;
+    else
+        transforms.emplace(link->name_, tr.matrix()) ;
 
     for( const URDFLink *l: link->child_links_ ) {
         computeLinkTransformRecursive(transforms, l, tr) ;

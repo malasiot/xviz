@@ -1,8 +1,6 @@
 # This "exports" all targets which have been put into the export set
 
-install(EXPORT ${PROJECT_EXPORT}
-  DESTINATION ${INSTALL_CMAKE_DIR}
-  FILE ${PROJECT_NAME}Targets.cmake)
+install(EXPORT ${PROJECT_EXPORT} DESTINATION ${INSTALL_CMAKE_DIR} FILE ${PROJECT_NAME}Targets.cmake)
 
 # Create the <package>Config.cmake.in
 configure_file(${CMAKE_SOURCE_DIR}/CMake/Config.cmake.in

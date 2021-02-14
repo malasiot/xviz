@@ -1,6 +1,6 @@
 
 add_executable(test_client test_client.cpp )
-target_link_libraries(test_client xviz_qt_client)
+target_link_libraries(test_client xviz_qt_client xviz_server)
 
 add_executable(test_scene test_scene.cpp )
 target_link_libraries(test_scene xviz_qt_client)
@@ -30,4 +30,4 @@ QT5_ADD_RESOURCES(TEST_IMAGEVIEW_RC_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/image_vi
 set_source_files_properties(${TEST_IMAGEVIEW_RC_SOURCES} PROPERTIES GENERATED ON)
 message(${TEST_IMAGEVIEW_RC_SOURCES})
 add_executable(test_image_view test_image_view.cpp image_view.cpp image_view.hpp ${TEST_IMAGEVIEW_RC_SOURCES})
-target_link_libraries(test_image_view xviz_qt_client)
+target_link_libraries(test_image_view xviz_qt_client )

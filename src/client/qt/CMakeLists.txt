@@ -88,11 +88,20 @@ set( QT_CLIENT_HEADERS
 )
 
 
-include_directories(${PROTOBUF_INCLUDE_DIR})
-protobuf_generate_cpp(PROTO_SRC PROTO_HDR ../../messages/session.proto)
-set_source_files_properties(${PROTO_SRC} ${PROTO_HDR} PROPERTIES GENERATED TRUE)
+#include_directories(${PROTOBUF_INCLUDE_DIR})
+#protobuf_generate_cpp(PROTO_SRC PROTO_HDR ../../messages/session.proto)
+#set_source_files_properties(${PROTO_SRC} ${PROTO_HDR} PROPERTIES GENERATED TRUE)
 
 
 add_library(xviz_qt_client ${LIBRARY_TYPE} ${QT_CLIENT_SOURCES} ${QT_CLIENT_MOC_SOURCES} ${PROTO_SRC} ${PROTO_HDR})
 
 target_link_libraries(xviz_qt_client xviz Qt5::Core Qt5::Widgets Qt5::WebSockets Qt5::Xml ${PROTOBUF_LIBRARY})
+
+
+# Install library
+install(TARGETS xviz_qt_client
+  EXPORT ${PROJECT_EXPORT}
+  RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
+  LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT shlib
+  ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT stlib
+  COMPONENT dev)

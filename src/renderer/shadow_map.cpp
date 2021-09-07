@@ -1,5 +1,14 @@
 #include "shadow_map.hpp"
-namespace cvx { namespace viz { namespace detail {
+
+#include "gl/gl3w.h"
+
+namespace clsim { namespace impl {
+
+
+ShadowMap::ShadowMap()
+{
+
+}
 
 ShadowMap::~ShadowMap()
 {
@@ -10,11 +19,11 @@ ShadowMap::~ShadowMap()
         glDeleteTextures(1, &texture_id_);
 }
 
-bool ShadowMap::init(unsigned int width, unsigned int height)
+bool ShadowMap::init(uint32_t width, uint32_t height)
 {
     // Create the FBO
     glGenFramebuffers(1, &fbo_);
-     glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
 
     // Create the depth buffer texture
     glGenTextures(1, &texture_id_);
@@ -29,6 +38,11 @@ bool ShadowMap::init(unsigned int width, unsigned int height)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
     glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+  //  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+  //  glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
+
     glBindTexture(GL_TEXTURE_2D, 0);
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture_id_, 0);
@@ -36,6 +50,7 @@ bool ShadowMap::init(unsigned int width, unsigned int height)
   // Disable writes to the color buffer
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
+
 }
 
 
@@ -53,5 +68,4 @@ void ShadowMap::bindTexture(GLenum textureUnit) {
     glBindTexture(GL_TEXTURE_2D, texture_id_);
 }
 
-
-}}}
+}}

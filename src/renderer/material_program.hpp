@@ -8,12 +8,13 @@
 
 #include <map>
 
+
+enum MaterialProgramFlags { ENABLE_SKINNING = 1, ENABLE_SHADOWS = 2, HAS_DIFFUSE_TEXTURE = 4, HAS_SPECULAR_TEXTURE = 8 } ;
+
 namespace clsim { namespace impl {
 
 class MaterialProgram ;
 using MaterialProgramPtr = std::shared_ptr<MaterialProgram> ;
-
-enum MaterialProgramFlags { ENABLE_SKINNING = 1, ENABLE_SHADOWS = 2, HAS_DIFFUSE_TEXTURE = 4, HAS_SPECULAR_TEXTURE = 8 } ;
 
 template<class T, typename ...Args>
 MaterialProgramPtr materialSingleton(std::map<int, MaterialProgramPtr> &instances, int flags, Args... args) {

@@ -1,15 +1,16 @@
-#pragma once
+#ifndef CLSIM_RENDERER_SHADOW_MAP_HPP
+#define CLSIM_RENDERER_SHADOW_MAP_HPP
 
-#include "GL/gl3w.h"
+#include "gl/gl3w.h"
 
-namespace cvx { namespace viz { namespace detail {
+namespace clsim { namespace impl {
 
 class ShadowMap {
 public:
-    ShadowMap() = default ;
+    ShadowMap() ;
     ~ShadowMap();
 
-    bool init(unsigned int width, unsigned int height);
+    bool init(uint32_t width, uint32_t height);
 
     void bind();
     void unbind(GLuint default_fbo);
@@ -19,7 +20,9 @@ public:
     bool ready() const { return fbo_ != 0 ; }
 
 private:
-    GLuint fbo_ = 0, texture_id_ = 0;
+    GLuint fbo_ = 0, texture_id_ = 0 ;
 };
 
-}}}
+}}
+
+#endif

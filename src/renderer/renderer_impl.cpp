@@ -1,4 +1,9 @@
 #include "renderer_impl.hpp"
+#include "shadow_map.hpp"
+#include "util.hpp"
+#include "mesh_data.hpp"
+#include "material_program.hpp"
+
 //#include <xviz/qt/scene/mesh_data.hpp>
 //#include <xviz/qt/scene/material.hpp>
 
@@ -28,60 +33,59 @@
 using namespace Eigen ;
 using namespace std ;
 
+namespace clsim {
+
+using namespace impl ;
+
 Renderer::Renderer(int flags) {
-    xviz::PhongMaterial *mat = new xviz::PhongMaterial() ;
+    PhongMaterial *mat = new PhongMaterial() ;
     mat->setDiffuseColor({0.5, 0.5, 0.5, 1.0}) ;
     default_material_.reset(mat) ;
 
 
 }
 
-void Renderer::setupTexture(const xviz::Material *mat, const xviz::Texture2D *texture, uint slot) {
+void Renderer::setupTexture(const Material *mat, const Texture2D *texture, uint slot) {
     if ( textures_.count(mat) == 0 ) {
-        textures_[mat] = {nullptr} ;
+        textures_[mat] = {0} ;
     }
-    if ( textures_[mat][slot] != nullptr ) return ; // already loaded
+    if ( textures_[mat][slot] != 0 ) return ; // already loaded
 
-    auto &loader = ResourceLoader::instance() ;
     if ( texture ) {
-        QObject::connect(&loader, &ResourceLoader::downloaded, this, [&](const QByteArray &data){
-            QImage im ;
-            im.loadFromData(data) ;
-            uploadTexture(im, mat, slot);
-        });
 
-        xviz::Image image = texture->image() ;
+        auto tlcb = [&] (const Image &im) {
+            uploadTexture(im, mat, slot) ;
+        };
 
-        if ( image.type() == xviz::ImageType::Uri )
-            loader.fetch(QString::fromStdString(image.uri())) ;
+        Image image = texture->image() ;
+
+        if ( image.type() == ImageType::Uri )
+            resource_loader_->loadTexture(image.uri(), tlcb) ;
         else {
-            QImage qim = qImageFromImage(image) ;
-            uploadTexture(qim, mat, slot) ;
+            uploadTexture(image, mat, slot) ;
         }
     }
-
-
 }
 
-MaterialProgramPtr Renderer::instantiateMaterial(const xviz::Material *mat, int flags) {
-    if ( const xviz::PhongMaterial *material = dynamic_cast<const xviz::PhongMaterial *>(mat)) {
+MaterialProgramPtr Renderer::instantiateMaterial(const Material *mat, int flags) {
+    if ( const PhongMaterial *material = dynamic_cast<const PhongMaterial *>(mat)) {
         if ( material->diffuseTexture()  ) {
             flags |= HAS_DIFFUSE_TEXTURE ;
             setupTexture(mat, material->diffuseTexture(), 0);
         }
 
         return PhongMaterialProgram::instance(flags) ;
-    } else if ( const xviz::ConstantMaterial *material = dynamic_cast<const xviz::ConstantMaterial *>(mat)) {
+    } else if ( const ConstantMaterial *material = dynamic_cast<const ConstantMaterial *>(mat)) {
         return ConstantMaterialProgram::instance(flags) ;
-    } else if ( const xviz::PerVertexColorMaterial *material = dynamic_cast<const xviz::PerVertexColorMaterial *>(mat)) {
+    } else if ( const PerVertexColorMaterial *material = dynamic_cast<const PerVertexColorMaterial *>(mat)) {
         return PerVertexColorMaterialProgram::instance(flags) ;
     }
 
     return nullptr ;
 }
 
-void Renderer::init(const xviz::NodePtr &scene) {
-    initializeOpenGLFunctions() ;
+void Renderer::init(const NodePtr &scene) {
+    gl3wInit();
 
     meshes_.clear() ;
 
@@ -92,23 +96,23 @@ Renderer::~Renderer() {
 
 }
 
-void Renderer::setupCulling(const xviz::Material *mat) {
+void Renderer::setupCulling(const Material *mat) {
     switch ( mat->side() ) {
-    case xviz::Material::Side::Front:
+    case Material::Side::Front:
         glEnable(GL_CULL_FACE) ;
         glCullFace(GL_BACK) ;
         break ;
-    case xviz::Material::Side::Back:
+    case Material::Side::Back:
         glEnable(GL_CULL_FACE) ;
         glCullFace(GL_FRONT) ;
         break ;
-    case xviz::Material::Side::Both:
+    case Material::Side::Both:
         glDisable(GL_CULL_FACE) ;
         break ;
     }
 }
 
-void Renderer::setupShadows(const xviz::LightPtr &light) {
+void Renderer::setupShadows(const LightPtr &light) {
 
 
     initShadowMapRenderer();
@@ -118,7 +122,7 @@ void Renderer::setupShadows(const xviz::LightPtr &light) {
         shadow_map_.reset(new ShadowMap()) ;
         shadow_map_->init(shadow_map_width_, shadow_map_height_) ;
     }
-    if ( const xviz::DirectionalLight *dl = dynamic_cast<const xviz::DirectionalLight *>(light.get()) ) {
+    if ( const DirectionalLight *dl = dynamic_cast<const DirectionalLight *>(light.get()) ) {
         Matrix4f lightProjection =
                 ortho(light->shadow_cam_left_, light->shadow_cam_right_,
                       light->shadow_cam_top_, light->shadow_cam_bottom_,
@@ -131,7 +135,7 @@ void Renderer::setupShadows(const xviz::LightPtr &light) {
     }
 }
 
-const MeshData *Renderer::fetchMeshData(xviz::GeometryPtr &geom) {
+const MeshData *Renderer::fetchMeshData(GeometryPtr &geom) {
      MeshData *data = nullptr ;
     auto it = meshes_.find(geom.get()) ;
     if ( it == meshes_.end() ) {
@@ -146,7 +150,7 @@ const MeshData *Renderer::fetchMeshData(xviz::GeometryPtr &geom) {
 
 }
 
-void Renderer::renderShadowMap(const xviz::LightPtr &l) {
+void Renderer::renderShadowMap(const LightPtr &l) {
     shadow_map_->bind();
 
     glViewport(0, 0, shadow_map_width_, shadow_map_height_);
@@ -156,28 +160,29 @@ void Renderer::renderShadowMap(const xviz::LightPtr &l) {
     glClear(GL_DEPTH_BUFFER_BIT);
     glCullFace(GL_FRONT);
 
-    for ( const xviz::ConstNodePtr &node: scene_->getNodesRecursive() ) {
+    for ( const ConstNodePtr &node: scene_->getNodesRecursive() ) {
         for( const auto &dr: node->drawables() ) {
-            xviz::GeometryPtr geom = dr.geometry() ;
+            GeometryPtr geom = dr.geometry() ;
 
             if ( !geom || !geom->castsShadows()) continue ;
 
             const MeshData *data = fetchMeshData(geom) ;
 
             if ( !data ) continue ;
-
+/*
             shadow_map_shader_.bind() ;
             shadow_map_shader_.setUniformValue(shadow_map_shader_.uniformLocation("lightSpaceMatrix"), eigenToQt(ls_mat_));
             shadow_map_shader_.setUniformValue(shadow_map_shader_.uniformLocation("model"), eigenToQt(node->globalTransform().matrix())) ;
             drawMeshData(*data, geom, true) ;
             shadow_map_shader_.release() ;
+            */
         }
     }
 
     shadow_map_->unbind(default_fbo_) ;
 }
 
-void Renderer::render(const xviz::CameraPtr &cam) {
+void Renderer::render(const CameraPtr &cam) {
 
 
     // render background
@@ -189,13 +194,13 @@ void Renderer::render(const xviz::CameraPtr &cam) {
 
     // setup camera matrices
 
-    if ( const auto &pcam = dynamic_pointer_cast<xviz::PerspectiveCamera>(cam) ) {
+    if ( const auto &pcam = dynamic_pointer_cast<PerspectiveCamera>(cam) ) {
         perspective_ = pcam->projectionMatrix() ;
         znear_ = pcam->zNear() ;
         zfar_ = pcam->zFar() ;
     }
 
-    const xviz::Viewport &vp = cam->getViewport() ;
+    const Viewport &vp = cam->getViewport() ;
 
     proj_ = cam->getViewMatrix() ;
 
@@ -212,8 +217,8 @@ void Renderer::render(const xviz::CameraPtr &cam) {
 
     bool first_pass = true ;
     // render scene for each light
-    for( const xviz::ConstNodePtr &node: scene_->getNodesRecursive() ) {
-        xviz::LightPtr l = node->light() ;
+    for( const ConstNodePtr &node: scene_->getNodesRecursive() ) {
+        LightPtr l = node->light() ;
         if ( l  ) {
             Affine3f ltr = node->globalTransform() ;
 
@@ -290,6 +295,7 @@ void Renderer::renderQuad()
 
 void Renderer::renderShadowDebug()
 {
+    /*
     shadow_map_debug_shader_.bind() ;
     shadow_map_debug_shader_.setUniformValue(shadow_map_debug_shader_.uniformLocation("depthMap"), 0);
     shadow_map_debug_shader_.setUniformValue(shadow_map_debug_shader_.uniformLocation("near_plane"), -10.f) ;
@@ -298,19 +304,20 @@ void Renderer::renderShadowDebug()
     shadow_map_->bindTexture(GL_TEXTURE0) ;
     renderQuad() ;
     shadow_map_debug_shader_.release() ;
+    */
 }
 
-void Renderer::renderScene(const xviz::LightPtr &l, const Affine3f &light_mat) {
+void Renderer::renderScene(const LightPtr &l, const Affine3f &light_mat) {
 
-    for ( const xviz::ConstNodePtr &node: scene_->getNodesRecursive() ) {
+    for ( const ConstNodePtr &node: scene_->getNodesRecursive() ) {
         if ( !node->isVisible() ) continue ;
         for( const auto &drawable: node->drawables() )
             render(drawable, node->globalTransform(), l, light_mat ) ;
     }
 }
 
-void Renderer::uploadTexture(QImage im, const xviz::Material *mat, int slot) {
-    if ( im.isNull() ) return ;
+void Renderer::uploadTexture(const Image &im, const Material *mat, int slot) {
+/*    if ( im.isNull() ) return ;
     QOpenGLTexture *texture = new QOpenGLTexture(im);
     texture->setMinificationFilter(QOpenGLTexture::Linear);
     texture->setMagnificationFilter(QOpenGLTexture::Linear);
@@ -319,18 +326,19 @@ void Renderer::uploadTexture(QImage im, const xviz::Material *mat, int slot) {
     texture->generateMipMaps();
 
     textures_[mat][slot] = texture ;
+    */
 }
 
 #define MAX_LIGHTS 10
 
-void Renderer::render(const xviz::Drawable &dr, const Affine3f &mat, const xviz::LightPtr &l, const Affine3f &lmat)
+void Renderer::render(const Drawable &dr, const Affine3f &mat, const LightPtr &l, const Affine3f &lmat)
 {
-    xviz::GeometryPtr mesh = dr.geometry() ;
+    GeometryPtr mesh = dr.geometry() ;
     if ( !mesh ) return ;
 
     const MeshData *data = fetchMeshData(mesh) ;
 
-    xviz::MaterialPtr material = dr.material() ;
+    MaterialPtr material = dr.material() ;
 
     MaterialProgramPtr prog ;
 
@@ -358,10 +366,12 @@ void Renderer::render(const xviz::Drawable &dr, const Affine3f &mat, const xviz:
     if ( tit != textures_.end() ) {
         const TextureData &data = tit->second ;
         for( int i=0 ; i<4 ; i++ ) {
+            /*
             QOpenGLTexture *texture = data[i] ;
             if ( texture != nullptr ) {
                 texture->bind(GL_TEXTURE0 + i) ;
             }
+            */
         }
     }
 
@@ -403,40 +413,54 @@ void Renderer::render(const xviz::Drawable &dr, const Affine3f &mat, const xviz:
 
 void Renderer::initShadowMapRenderer()
 {
-    if ( shadow_map_shader_.isLinked() ) return ;
+    //if ( shadow_map_shader_.isLinked() ) return ;
 
     std::string preproc("#version 330\n") ;
 
-    string vs_code = preproc + shadow_map_shader_vs ;
-    string fs_code = preproc + shadow_map_shader_fs ;
+    OpenGLShaderPtr vs(new OpenGLShader(VERTEX_SHADER)) ;
+    vs->addSourceFile(preproc) ;
+    vs->addSourceFile(shadow_map_shader_vs) ;
 
-    shadow_map_shader_.addShaderFromSourceCode(QOpenGLShader::Vertex, vs_code.c_str()) ;
-    shadow_map_shader_.addShaderFromSourceCode(QOpenGLShader::Fragment, fs_code.c_str()) ;
-    shadow_map_shader_.link() ;
+    OpenGLShaderPtr fs(new OpenGLShader(FRAGMENT_SHADER)) ;
+    fs->addSourceFile(preproc) ;
+    fs->addSourceFile(shadow_map_shader_fs) ;
 
-    vs_code = preproc + shadow_debug_shader_vs ;
-    fs_code = preproc + shadow_debug_shader_fs ;
+    shadow_map_shader_.reset(new OpenGLShaderProgram) ;
+    shadow_map_shader_->addShader(vs) ;
+    shadow_map_shader_->addShader(fs) ;
+    shadow_map_shader_->link() ;
 
-    shadow_map_debug_shader_.addShaderFromSourceCode(QOpenGLShader::Vertex, vs_code.c_str()) ;
-    shadow_map_debug_shader_.addShaderFromSourceCode(QOpenGLShader::Fragment, fs_code.c_str()) ;
-    shadow_map_debug_shader_.link() ;
+    OpenGLShaderPtr vsd(new OpenGLShader(VERTEX_SHADER)) ;
+    vsd->addSourceFile(preproc) ;
+    vsd->addSourceFile(shadow_debug_shader_vs) ;
+
+    OpenGLShaderPtr fsd(new OpenGLShader(FRAGMENT_SHADER)) ;
+    fsd->addSourceFile(preproc) ;
+    fsd->addSourceFile(shadow_debug_shader_fs) ;
+
+    shadow_map_debug_shader_.reset(new OpenGLShaderProgram) ;
+    shadow_map_debug_shader_->addShader(vs) ;
+    shadow_map_debug_shader_->addShader(fs) ;
+    shadow_map_debug_shader_->link() ;
+
 }
 
 
-void Renderer::setPose(const xviz::GeometryPtr &mesh, const MaterialProgramPtr &mat) {
+void Renderer::setPose(const GeometryPtr &mesh, const MaterialProgramPtr &mat) {
     const auto &skeleton = mesh->skeleton() ;
     for( int i=0 ; i<skeleton.size() ; i++ ) {
-        const xviz::Geometry::Bone &b = skeleton[i] ;
+        const Geometry::Bone &b = skeleton[i] ;
         mat->applyBoneTransform(i, ( b.node_->globalTransform() * b.offset_).matrix()) ;
     }
 }
 
-void Renderer::drawMeshData(const MeshData &data, xviz::GeometryPtr mesh, bool solid) {
+void Renderer::drawMeshData(const MeshData &data, GeometryPtr mesh, bool solid) {
 
+    /*
     data.vao_->bind() ;
 
     if ( mesh ) {
-        if ( mesh->ptype() == xviz::Geometry::Triangles ) {
+        if ( mesh->ptype() == Geometry::Triangles ) {
             if ( data.index_ ) {
                 // bind index buffer if you want to render indexed data
                 data.index_->bind() ;
@@ -448,7 +472,7 @@ void Renderer::drawMeshData(const MeshData &data, xviz::GeometryPtr mesh, bool s
             else
                 glDrawArrays(GL_TRIANGLES, 0, data.elem_count_) ;
         }
-        else if ( mesh->ptype() == xviz::Geometry::Lines && !solid ) {
+        else if ( mesh->ptype() == Geometry::Lines && !solid ) {
             if ( data.index_ ) {
                 // bind index buffer if you want to render indexed data
                 data.index_->bind() ;
@@ -460,14 +484,15 @@ void Renderer::drawMeshData(const MeshData &data, xviz::GeometryPtr mesh, bool s
             else
                 glDrawArrays(GL_LINES, 0, data.elem_count_) ;
         }
-        else if ( mesh->ptype() == xviz::Geometry::Points && !solid ) {
+        else if ( mesh->ptype() == Geometry::Points && !solid ) {
             glDrawArrays(GL_POINTS, 0, data.elem_count_) ;
         }
 
     }
 
     data.vao_->release() ;
-
+*/
     glFlush();
 }
 
+}

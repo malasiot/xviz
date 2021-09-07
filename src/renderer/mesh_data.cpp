@@ -1,10 +1,4 @@
 #include "mesh_data.hpp"
-#include <cvx/util/geometry/point_list.hpp>
-
-using namespace cvx::util ;
-
-namespace cvx { namespace viz { namespace detail {
-
 
 #define POSITION_LOCATION    0
 #define NORMALS_LOCATION    1
@@ -13,63 +7,80 @@ namespace cvx { namespace viz { namespace detail {
 #define BONE_WEIGHT_LOCATION    4
 #define UV_LOCATION 5
 
-MeshData::MeshData(const Mesh &mesh)
+namespace clsim { namespace impl {
+
+
+MeshData::MeshData(const Geometry &mesh)
 {
-    // Create the VAO
+   /*
+    vao_ = new QOpenGLVertexArrayObject;
 
-    glGenVertexArrays(1, &vao_);
-    glBindVertexArray(vao_);
+    if ( vao_->create() ) vao_->bind();
 
-    const PointList3f &vertices = mesh.vertices().data() ;
-    const PointList3f &normals = mesh.normals().data() ;
-    const PointList3f &colors = mesh.colors().data() ;
+    const Geometry::vb3_t &vertices = mesh.vertices() ;
+    const Geometry::vb3_t &normals = mesh.normals() ;
+    const Geometry::vb3_t &colors = mesh.colors() ;
+    const Geometry::indices_t &indices = mesh.indices() ;
 
+    elem_count_ = vertices.size() ;
+    indices_ = indices.size() ;
 
-    elem_count_ = mesh.vertices().data().size() ;
-    indices_ = mesh.vertices().indices().size() ;
-
-    glGenBuffers(1, &pos_);
-    glBindBuffer(GL_ARRAY_BUFFER, pos_);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat) * 3, &vertices[0], mesh.normals().isDynamic() ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
-    glEnableVertexAttribArray(POSITION_LOCATION);
-    glVertexAttribPointer(POSITION_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    pos_ = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+    pos_->create();
+    pos_->bind();
+    pos_->allocate(&vertices[0], vertices.size() * sizeof(GLfloat) * 3) ;
+    pos_->setUsagePattern(QOpenGLBuffer::DynamicDraw);
+    f->glEnableVertexAttribArray(POSITION_LOCATION);
+    f->glVertexAttribPointer(POSITION_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    pos_->release() ;
 
     if ( !normals.empty() ) {
-        glGenBuffers(1, &normals_);
-        glBindBuffer(GL_ARRAY_BUFFER, normals_);
-        glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(GLfloat) * 3, (GLfloat *)normals.data(), mesh.normals().isDynamic() ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW );
-        glEnableVertexAttribArray(NORMALS_LOCATION);
-        glVertexAttribPointer(NORMALS_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        normals_ = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+        normals_->create();
+        normals_->bind();
+        normals_->allocate(&normals[0], normals.size() * sizeof(GLfloat) * 3) ;
+        normals_->setUsagePattern(QOpenGLBuffer::DynamicDraw);
+        f->glEnableVertexAttribArray(NORMALS_LOCATION);
+        f->glVertexAttribPointer(NORMALS_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        normals_->release() ;
     }
 
     if ( !colors.empty() ) {
-        glGenBuffers(1, &colors_);
-        glBindBuffer(GL_ARRAY_BUFFER, colors_);
-        glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(GLfloat) * 3, (GLfloat *)colors.data(), mesh.colors().isDynamic() ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
-        glEnableVertexAttribArray(COLORS_LOCATION);
-        glVertexAttribPointer(COLORS_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        colors_ = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+        colors_->create();
+        colors_->bind();
+        colors_->allocate(&colors[0], colors.size() * sizeof(GLfloat) * 3) ;
+        colors_->setUsagePattern(QOpenGLBuffer::DynamicDraw);
+        f->glEnableVertexAttribArray(COLORS_LOCATION);
+        f->glVertexAttribPointer(COLORS_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        colors_->release() ;
     }
 
-    for( uint t = 0 ; t<MAX_TEXTURES ; t++ ) {
-        if ( !mesh.texCoords(t).data().empty() ) {
-            glGenBuffers(1, &tex_coords_[t]);
-            glBindBuffer(GL_ARRAY_BUFFER, tex_coords_[t]);
-            glBufferData(GL_ARRAY_BUFFER, mesh.texCoords(t).data().size() * sizeof(GLfloat) * 2, (GLfloat *)mesh.texCoords(t).data().data(), GL_STATIC_DRAW);
-            glEnableVertexAttribArray(UV_LOCATION + t);
-            glVertexAttribPointer(UV_LOCATION + t, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+    for( uint t = 0 ; t<mesh.numUVChannels() ; t++ ) {
+        if ( !mesh.texCoords(t).empty() ) {
+            tex_coords_[t]  = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+            tex_coords_[t]->create();
+            tex_coords_[t]->bind();
+            tex_coords_[t]->allocate(&mesh.texCoords(t)[0], mesh.texCoords(t).size() * sizeof(GLfloat) * 2) ;
+            tex_coords_[t]->setUsagePattern(QOpenGLBuffer::StaticDraw);
+            f->glEnableVertexAttribArray(UV_LOCATION+t);
+            f->glVertexAttribPointer(UV_LOCATION+t, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+            tex_coords_[t]->release() ;
         }
     }
 
-    const std::vector<Mesh::BoneWeight> weights = mesh.weights() ;
+    const auto &weights = mesh.weights() ;
     if ( !weights.empty() ) {
-        glGenBuffers(1, &weights_);
-        glBindBuffer(GL_ARRAY_BUFFER, weights_);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(weights[0]) * weights.size(), weights.data(), GL_STATIC_DRAW);
-        glEnableVertexAttribArray(BONE_ID_LOCATION);
-        glVertexAttribIPointer(BONE_ID_LOCATION, 4, GL_INT, sizeof(Mesh::BoneWeight), (const GLvoid*)0);
+        weights_ = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+        weights_->create();
+        weights_->bind();
+        weights_->allocate(&weights[0], weights.size() * sizeof(Geometry::BoneWeight)) ;
 
-        glEnableVertexAttribArray(BONE_WEIGHT_LOCATION);
-        glVertexAttribPointer(BONE_WEIGHT_LOCATION, 4, GL_FLOAT, GL_FALSE, sizeof(Mesh::BoneWeight), (const GLvoid*)offsetof(Mesh::BoneWeight, weight_));
+        f->glEnableVertexAttribArray(BONE_ID_LOCATION);
+        f->glVertexAttribIPointer(BONE_ID_LOCATION, Geometry::MAX_BONES_PER_VERTEX, GL_INT, sizeof(Geometry::BoneWeight), (const GLvoid*)0);
+
+        f->glEnableVertexAttribArray(BONE_WEIGHT_LOCATION);
+        f->glVertexAttribPointer(BONE_WEIGHT_LOCATION, Geometry::MAX_BONES_PER_VERTEX, GL_FLOAT, GL_FALSE, sizeof(Geometry::BoneWeight), (const GLvoid*)offsetof(Geometry::BoneWeight, weight_));
     }
 
 #if 0
@@ -78,65 +89,73 @@ MeshData::MeshData(const Mesh &mesh)
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat) * 3, 0, GL_STATIC_READ);
 #endif
 
-    if ( mesh.vertices().hasIndices() ) {
-        glGenBuffers(1, &index_);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.vertices().indices().size() * sizeof(uint32_t),
-                     mesh.vertices().indices().data(), GL_STATIC_DRAW);
+    if ( !indices.empty() ) {
+        index_ = new QOpenGLBuffer(QOpenGLBuffer::IndexBuffer);
+        index_->create();
+        index_->bind();
+        index_->allocate(&indices[0], indices.size() * sizeof(uint32_t)) ;
+        index_->release() ;
     }
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    vao_->release() ;
+
+    */
 }
 
-void MeshData::update(const Mesh &mesh) {
 
-    const PointList3f &vertices = mesh.vertices().data() ;
-    const PointList3f &normals = mesh.normals().data() ;
-    const PointList3f &colors = mesh.colors().data() ;
+void MeshData::update(Geometry &geom) {
 
-    elem_count_ = mesh.vertices().data().size() ;
-    indices_ = mesh.vertices().indices().size() ;
 
-    if ( mesh.vertices().isDynamic() ) {
-        glBindBuffer(GL_ARRAY_BUFFER, pos_);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(GLfloat) * 3, &vertices[0]);
-        glEnableVertexAttribArray(POSITION_LOCATION);
-        glVertexAttribPointer(POSITION_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    /*
+    QOpenGLExtraFunctions *f = QOpenGLContext::currentContext()->extraFunctions();
+
+    const Geometry::vb3_t &vertices = geom.vertices() ;
+    const Geometry::vb3_t &normals = geom.normals() ;
+    const Geometry::vb3_t &colors = geom.colors() ;
+
+    if ( geom.verticesUpdated() ) {
+        pos_->bind();
+        pos_->write(0, &vertices[0], vertices.size() * sizeof(GLfloat) * 3);
+        f->glEnableVertexAttribArray(POSITION_LOCATION);
+        f->glVertexAttribPointer(POSITION_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        geom.setVerticesUpdated(false) ;
     }
 
-    if ( !normals.empty() && mesh.normals().isDynamic()) {
-        glBindBuffer(GL_ARRAY_BUFFER, normals_);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, normals.size() * sizeof(GLfloat) * 3, &normals[0]);
-        glEnableVertexAttribArray(NORMALS_LOCATION);
-        glVertexAttribPointer(NORMALS_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    if ( !normals.empty() && geom.normalsUpdated() ) {
+        normals_->bind();
+        normals_->write(0, &normals[0], normals.size() * sizeof(GLfloat) * 3);
+        f->glEnableVertexAttribArray(NORMALS_LOCATION);
+        f->glVertexAttribPointer(NORMALS_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        geom.setNormalsUpdated(false) ;
     }
 
-    if ( !colors.empty() && mesh.colors().isDynamic()) {
-        glBindBuffer(GL_ARRAY_BUFFER, colors_);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, colors.size() * sizeof(GLfloat) * 3, &colors[0]);
-        glEnableVertexAttribArray(NORMALS_LOCATION);
-        glVertexAttribPointer(NORMALS_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    if ( !colors.empty() && geom.colorsUpdated()) {
+        colors_->bind();
+        colors_->write(0, &colors[0], colors.size() * sizeof(GLfloat) * 3);
+
+        f->glEnableVertexAttribArray(COLORS_LOCATION);
+        f->glVertexAttribPointer(COLORS_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        geom.setColorsUpdated(false) ;
     }
+
+    */
 
 }
 
 MeshData::~MeshData()
 {
-     glDeleteVertexArrays(1, &vao_) ;
+    /*
+    if ( pos_ ) delete pos_ ;
+    if ( colors_ ) delete colors_ ;
+    if ( normals_ ) delete normals_ ;
+    for( uint i=0 ; i<max_textures_ ; i++ ) {
+        if ( tex_coords_[i] ) delete tex_coords_[i] ;
+    }
+
+    if ( weights_ ) delete weights_ ;
+    if ( index_ )  delete index_ ;
+    */
 }
 
-
-}}}
-
-namespace cvx {  namespace  viz {
-
-void Mesh::makeMeshData() {
-    MeshPtr fmesh = Mesh::flatten(shared_from_this());
-    data_.reset(new detail::MeshData(*fmesh)) ;
-
 }
-
-
-}}
+}

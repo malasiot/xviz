@@ -9,11 +9,11 @@
 
 #include <Eigen/Geometry>
 
-#include <assimp/scene.h>
-
 #include <clsim/scene/scene_fwd.hpp>
 #include <clsim/scene/drawable.hpp>
 #include <clsim/scene/animation.hpp>
+
+class aiScene ;
 
 namespace clsim {
 

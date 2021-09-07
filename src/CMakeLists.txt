@@ -16,6 +16,8 @@ set(LIB_SOURCES
     renderer/shader.cpp
     renderer/material_program.cpp
     renderer/renderer_impl.cpp
+    renderer/shadow_map.cpp
+    renderer/mesh_data.cpp
 
     scene/node.cpp
     scene/assimp_loader.cpp

@@ -1,19 +1,19 @@
-#ifndef __CVX_VIZ_MESH_DATA_HPP__
-#define __CVX_VIZ_MESH_DATA_HPP__
+#ifndef CLSIM_RENDERER_MESH_DATA_HPP
+#define CLSIM_RENDERER_MESH_DATA_HPP
 
-#include <cvx/viz/scene/mesh.hpp>
+#include <clsim/scene/geometry.hpp>
 
-#include "GL/gl3w.h"
+#include "gl/gl3w.h"
 
-namespace cvx { namespace viz { namespace detail {
+namespace clsim { namespace impl {
 
 class MeshData {
 public:
 
     MeshData() ;
-    MeshData(const Mesh &mesh) ;
+    MeshData(const Geometry &mesh) ;
 
-    void update(const Mesh &mesh) ;
+    void update(Geometry &mesh) ;
 
     static const int max_textures_ = 4 ;
 
@@ -26,6 +26,6 @@ public:
 } ;
 
 
-}}}
+}}
 
 #endif

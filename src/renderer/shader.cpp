@@ -1,4 +1,4 @@
-#include <clsim/renderer/gl/shader.hpp>
+#include "shader.hpp"
 
 #include <cstring>
 #include <fstream>

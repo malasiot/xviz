@@ -1,4 +1,5 @@
-#include "renderer_impl.hpp"
+#include <clsim/scene/renderer.hpp>
+
 #include "shadow_map.hpp"
 #include "util.hpp"
 #include "mesh_data.hpp"

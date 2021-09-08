@@ -4,6 +4,16 @@ FIND_PACKAGE(Assimp REQUIRED)
 FIND_PACKAGE(ZLIB REQUIRED)
 FIND_PACKAGE(OpenGL REQUIRED)
 
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+
+
+if(CMAKE_VERSION VERSION_LESS "3.7.0")
+    set(CMAKE_INCLUDE_CURRENT_DIR ON)
+endif()
+
+find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
+
 get_filename_component(LIBRARY_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../include/clsim/" ABSOLUTE)
 
 include_directories(
@@ -15,7 +25,7 @@ set(LIB_SOURCES
     renderer/gl/gl3w.c
     renderer/shader.cpp
     renderer/material_program.cpp
-    renderer/renderer_impl.cpp
+    renderer/renderer.cpp
     renderer/shadow_map.cpp
     renderer/mesh_data.cpp
 
@@ -29,6 +39,10 @@ set(LIB_SOURCES
     scene/node_helpers.cpp
 
     common/image.cpp
+
+    gui/qt/viewer.cpp
+    ${LIBRARY_INCLUDE_DIR}/gui/qt/viewer.hpp
+
 
 #    renderer/renderer.cpp
 #    renderer/renderer_impl.cpp
@@ -68,6 +82,7 @@ add_library(clsim SHARED ${LIB_SOURCES})
 target_link_libraries(clsim
     ${ASSIMP_LIBRARIES}
     ${OPENGL_LIBRARIES}
+    Qt5::Core Qt5::Widgets
 )
 
 # Install library

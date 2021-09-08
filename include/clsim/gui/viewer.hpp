@@ -1,20 +1,19 @@
 #ifndef CLSIM_QT_SCENE_VIEWER
 #define CLSIM_QT_SCENE_VIEWER
 
-
 #include <clsim/scene/scene_fwd.hpp>
 #include <clsim/scene/camera.hpp>
 
 #include <Eigen/Geometry>
 
 #include <clsim/scene/renderer.hpp>
-#include <clsim/gui/qt/trackball.hpp>
+#include <clsim/gui/trackball.hpp>
 
 #include <QOpenGLWidget>
 #include <QMouseEvent>
 #include <QElapsedTimer>
 
-namespace clsim { namespace qt {
+namespace clsim {
 
 class SceneViewer : public QOpenGLWidget
 {
@@ -93,6 +92,6 @@ protected:
 };
 
 }
-                }
+
 
 #endif

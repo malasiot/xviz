@@ -1,4 +1,4 @@
-#include <clsim/gui/qt/viewer.hpp>
+#include <clsim/gui/viewer.hpp>
 
 #include <clsim/scene/scene.hpp>
 #include <clsim/scene/light.hpp>
@@ -12,7 +12,7 @@
 using namespace std ;
 using namespace Eigen ;
 
-namespace clsim { namespace qt {
+namespace clsim {
 SceneViewer::SceneViewer(const NodePtr &scene, QWidget *parent): QOpenGLWidget(parent), scene_(new Node) {
     setFocusPolicy(Qt::StrongFocus) ;
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -213,4 +213,4 @@ void SceneViewer::updateAnimation() {
 
 }
 
-}}
+}

@@ -1,13 +1,14 @@
-#include <xviz/qt/scene/trackball.hpp>
+#include <clsim/gui/trackball.hpp>
 
-#include <xviz/scene/scene.hpp>
-#include <xviz/scene/camera.hpp>
+#include <clsim/scene/scene.hpp>
+#include <clsim/scene/camera.hpp>
 
 #include <Eigen/Geometry>
 
 using namespace std ;
 using namespace Eigen ;
 
+namespace clsim {
 
 Eigen::Vector3f TrackBall::X(1.f, 0.f, 0.f);
 Eigen::Vector3f TrackBall::Y(0.f, 1.f, 0.f);
@@ -313,7 +314,7 @@ void TrackBall::scroll()
     }
 }
 
-void TrackBall::setCamera(xviz::CameraPtr c, const Vector3f &eye, const Vector3f &center, const Vector3f &up) {
+void TrackBall::setCamera(CameraPtr c, const Vector3f &eye, const Vector3f &center, const Vector3f &up) {
     camera_ = c;
     eye_ = eye ; center_ = center ; up_ = up ;
     camera_->lookAt(eye, center, up) ;
@@ -413,3 +414,4 @@ void TrackBall::updateCameraEyeUp(bool eye, bool up)
 }
 
 
+}

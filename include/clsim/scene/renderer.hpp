@@ -14,6 +14,7 @@ class MeshData ;
 class ShadowMap ;
 class OpenGLShaderProgram ;
 class MaterialProgram ;
+class TextureData ;
 using MaterialProgramPtr = std::shared_ptr<MaterialProgram> ;
 }
 
@@ -40,7 +41,6 @@ public:
     // transform model coordinates to screen coordinates
     Eigen::Vector2f project(const Eigen::Vector3f &pos) ;
 
-    void uploadTexture(const Image &im, const Material *material, int slot) ;
 
 private:
 
@@ -56,12 +56,11 @@ private:
 
     int flags_ ;
 
-    using TextureData = std::array<uint, 4> ;
+    using TextureBundle = std::array<std::unique_ptr<impl::TextureData>, 4> ;
 
     std::map<const Geometry *, std::unique_ptr<impl::MeshData>> meshes_ ;
     std::map<const Material *, impl::MaterialProgramPtr> materials_ ;
-    std::vector<impl::MaterialProgramPtr> programs_ ;
-    std::map<const Material *, TextureData> textures_ ;
+    std::map<const Material *, TextureBundle> textures_ ;
     uint default_fbo_ ;
 
     std::unique_ptr<impl::OpenGLShaderProgram> shadow_map_shader_, shadow_map_debug_shader_ ;
@@ -91,6 +90,8 @@ private:
     void setupShadows(const LightPtr &light);
     void renderShadowDebug();
     void renderQuad();
+    void uploadTexture(impl::TextureData *data, const Material *material, int slot) ;
+
 
     const impl::MeshData *fetchMeshData(GeometryPtr &geom);
 } ;

@@ -52,7 +52,7 @@ public:
     bool import(const aiScene *sc, const std::string &fname);
     bool findSkeletonHierarchies();
 
-    void getMaterialTexture(const aiScene *sc, PhongMaterial *material, const struct aiMaterial *mtl) ;
+    void getMaterialTexture(const aiScene *sc, PhongMaterial *material, const struct aiMaterial *mtl, const std::string &base_name) ;
 };
 
 static void getPhongMaterial(PhongMaterial *material, const struct aiMaterial *mtl) {
@@ -120,7 +120,7 @@ static Image readTexture(aiTexture *t) {
     }
 }
 
-void AssimpImporter::getMaterialTexture(const aiScene *sc, PhongMaterial *material, const struct aiMaterial *mtl) {
+void AssimpImporter::getMaterialTexture(const aiScene *sc, PhongMaterial *material, const struct aiMaterial *mtl, const std::string &base_dir) {
     aiString tex_path ;
     aiTextureMapping tmap ;
     aiTextureMapMode mode[3] ;
@@ -138,7 +138,9 @@ void AssimpImporter::getMaterialTexture(const aiScene *sc, PhongMaterial *materi
 
             image = readTexture(texture) ;
         } else {
-            image = Image(string(tex_path.data, tex_path.length));
+            string path(tex_path.data, tex_path.length) ;
+
+            image = Image(base_dir + path);
         }
 
         material->setDiffuseTexture(new Texture2D(image,
@@ -146,6 +148,10 @@ void AssimpImporter::getMaterialTexture(const aiScene *sc, PhongMaterial *materi
     }
 }
 
+static std::string baseName(const std::string& fname) {
+     size_t pos = fname.find_last_of("\\/");
+     return (std::string::npos == pos) ? "" : fname.substr(0, pos+1)  ;
+}
 
 MaterialPtr AssimpImporter::importMaterial(const aiScene *sc, const struct aiMaterial *mtl, const string &model_path) {
 
@@ -154,11 +160,10 @@ MaterialPtr AssimpImporter::importMaterial(const aiScene *sc, const struct aiMat
 
     PhongMaterial *material  = new PhongMaterial() ;
 
-    getMaterialTexture(sc, material, mtl) ;
+    getMaterialTexture(sc, material, mtl, baseName(model_path)) ;
     getPhongMaterial(material, mtl) ;
 
     return MaterialPtr(material) ;
-
 }
 
 bool AssimpImporter::importMaterials(const string &mpath, const aiScene *sc) {

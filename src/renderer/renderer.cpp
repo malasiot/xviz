@@ -4,9 +4,7 @@
 #include "util.hpp"
 #include "mesh_data.hpp"
 #include "material_program.hpp"
-
-//#include <xviz/qt/scene/mesh_data.hpp>
-//#include <xviz/qt/scene/material.hpp>
+#include "texture_data.hpp"
 
 #include <clsim/scene/scene.hpp>
 #include <clsim/scene/node.hpp>
@@ -16,20 +14,7 @@
 #include <clsim/scene/light.hpp>
 #include <clsim/scene/material.hpp>
 
-//#include <xviz/qt/resource_loader.hpp>
-
-//#include "../qt_graphics_helpers.hpp"
-//#include "util.hpp"
-//#include "shadow_map.hpp"
-
 #include <iostream>
-
-#define POSITION_LOCATION    0
-#define NORMALS_LOCATION    1
-#define COLORS_LOCATION    2
-#define BONE_ID_LOCATION    3
-#define BONE_WEIGHT_LOCATION    4
-#define UV_LOCATION 5
 
 using namespace Eigen ;
 using namespace std ;
@@ -42,28 +27,22 @@ Renderer::Renderer(int flags) {
     PhongMaterial *mat = new PhongMaterial() ;
     mat->setDiffuseColor({0.5, 0.5, 0.5, 1.0}) ;
     default_material_.reset(mat) ;
-
-
 }
 
 void Renderer::setupTexture(const Material *mat, const Texture2D *texture, uint slot) {
     if ( textures_.count(mat) == 0 ) {
-        textures_[mat] = {0} ;
+        textures_[mat] = {  } ;
     }
-    if ( textures_[mat][slot] != 0 ) return ; // already loaded
+    if ( textures_[mat][slot]  ) return ; // already loaded
 
     if ( texture ) {
 
-        auto tlcb = [&] (const Image &im) {
-            uploadTexture(im, mat, slot) ;
-        };
-
         Image image = texture->image() ;
 
-        if ( image.type() == ImageType::Uri )
-            resource_loader_->loadTexture(image.uri(), tlcb) ;
-        else {
-            uploadTexture(image, mat, slot) ;
+        if ( image.type() == ImageType::Uri ) {
+            TextureData *data = new TextureData() ;
+            data->create(image.uri()) ;
+            uploadTexture(data, mat, slot) ;
         }
     }
 }
@@ -114,10 +93,7 @@ void Renderer::setupCulling(const Material *mat) {
 }
 
 void Renderer::setupShadows(const LightPtr &light) {
-
-
     initShadowMapRenderer();
-
 
     if ( !shadow_map_ ) {
         shadow_map_.reset(new ShadowMap()) ;
@@ -170,13 +146,13 @@ void Renderer::renderShadowMap(const LightPtr &l) {
             const MeshData *data = fetchMeshData(geom) ;
 
             if ( !data ) continue ;
-/*
-            shadow_map_shader_.bind() ;
-            shadow_map_shader_.setUniformValue(shadow_map_shader_.uniformLocation("lightSpaceMatrix"), eigenToQt(ls_mat_));
-            shadow_map_shader_.setUniformValue(shadow_map_shader_.uniformLocation("model"), eigenToQt(node->globalTransform().matrix())) ;
+
+            shadow_map_shader_->use() ;
+
+            shadow_map_shader_->setUniform("lightSpaceMatrix", ls_mat_);
+            shadow_map_shader_->setUniform("model", node->globalTransform().matrix()) ;
             drawMeshData(*data, geom, true) ;
             shadow_map_shader_.release() ;
-            */
         }
     }
 
@@ -296,16 +272,14 @@ void Renderer::renderQuad()
 
 void Renderer::renderShadowDebug()
 {
-    /*
-    shadow_map_debug_shader_.bind() ;
-    shadow_map_debug_shader_.setUniformValue(shadow_map_debug_shader_.uniformLocation("depthMap"), 0);
-    shadow_map_debug_shader_.setUniformValue(shadow_map_debug_shader_.uniformLocation("near_plane"), -10.f) ;
-    shadow_map_debug_shader_.setUniformValue(shadow_map_debug_shader_.uniformLocation("far_plane"), 7.0f) ;
+
+    shadow_map_debug_shader_->use() ;
+    shadow_map_debug_shader_->setUniform("depthMap", 0);
+    shadow_map_debug_shader_->setUniform("near_plane", -10.f) ;
+    shadow_map_debug_shader_->setUniform("far_plane", 7.0f) ;
 
     shadow_map_->bindTexture(GL_TEXTURE0) ;
     renderQuad() ;
-    shadow_map_debug_shader_.release() ;
-    */
 }
 
 void Renderer::renderScene(const LightPtr &l, const Affine3f &light_mat) {
@@ -317,17 +291,9 @@ void Renderer::renderScene(const LightPtr &l, const Affine3f &light_mat) {
     }
 }
 
-void Renderer::uploadTexture(const Image &im, const Material *mat, int slot) {
-/*    if ( im.isNull() ) return ;
-    QOpenGLTexture *texture = new QOpenGLTexture(im);
-    texture->setMinificationFilter(QOpenGLTexture::Linear);
-    texture->setMagnificationFilter(QOpenGLTexture::Linear);
-    texture->setWrapMode(QOpenGLTexture::DirectionS, QOpenGLTexture::Repeat) ;
-    texture->setWrapMode(QOpenGLTexture::DirectionT, QOpenGLTexture::Repeat) ;
-    texture->generateMipMaps();
-
-    textures_[mat][slot] = texture ;
-    */
+void Renderer::uploadTexture(TextureData *data, const Material *mat, int slot) {
+    if ( !data ) return ;
+    textures_[mat][slot].reset(data) ;
 }
 
 #define MAX_LIGHTS 10
@@ -352,7 +318,6 @@ void Renderer::render(const Drawable &dr, const Affine3f &mat, const LightPtr &l
     }
 
     prog = instantiateMaterial(material.get(), flags) ;
-    programs_.push_back(prog) ;
 
     setupCulling(material.get()) ;
 
@@ -365,14 +330,14 @@ void Renderer::render(const Drawable &dr, const Affine3f &mat, const LightPtr &l
 
     auto tit = textures_.find(material.get()) ;
     if ( tit != textures_.end() ) {
-        const TextureData &data = tit->second ;
+        const TextureBundle &bundle = tit->second ;
         for( int i=0 ; i<4 ; i++ ) {
-            /*
-            QOpenGLTexture *texture = data[i] ;
-            if ( texture != nullptr ) {
-                texture->bind(GL_TEXTURE0 + i) ;
+            TextureData * texture = bundle[i].get() ;
+            if ( texture ) {
+                glActiveTexture(GL_TEXTURE0 + i);
+                glBindTexture(GL_TEXTURE_2D, texture->id());
             }
-            */
+
         }
     }
 
@@ -449,7 +414,7 @@ void Renderer::initShadowMapRenderer()
 
 void Renderer::setPose(const GeometryPtr &mesh, const MaterialProgramPtr &mat) {
     const auto &skeleton = mesh->skeleton() ;
-    for( int i=0 ; i<skeleton.size() ; i++ ) {
+    for( uint i=0 ; i<skeleton.size() ; i++ ) {
         const Geometry::Bone &b = skeleton[i] ;
         mat->applyBoneTransform(i, ( b.node_->globalTransform() * b.offset_).matrix()) ;
     }
@@ -457,42 +422,32 @@ void Renderer::setPose(const GeometryPtr &mesh, const MaterialProgramPtr &mat) {
 
 void Renderer::drawMeshData(const MeshData &data, GeometryPtr mesh, bool solid) {
 
-    /*
-    data.vao_->bind() ;
+    glBindVertexArray(data.vao_);
 
     if ( mesh ) {
         if ( mesh->ptype() == Geometry::Triangles ) {
             if ( data.index_ ) {
                 // bind index buffer if you want to render indexed data
-                data.index_->bind() ;
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, data.index_);
                 // indexed draw call
                 glDrawElements(GL_TRIANGLES, data.indices_, GL_UNSIGNED_INT, nullptr);
-
-                data.index_->release() ;
             }
             else
                 glDrawArrays(GL_TRIANGLES, 0, data.elem_count_) ;
         }
         else if ( mesh->ptype() == Geometry::Lines && !solid ) {
-            if ( data.index_ ) {
-                // bind index buffer if you want to render indexed data
-                data.index_->bind() ;
-                // indexed draw call
-                glDrawElements(GL_LINES, data.indices_, GL_UNSIGNED_INT, nullptr);
-
-                data.index_->release() ;
-            }
-            else
-                glDrawArrays(GL_LINES, 0, data.elem_count_) ;
+            glDrawArrays(GL_LINES, 0, data.elem_count_) ;
         }
-        else if ( mesh->ptype() == Geometry::Points && !solid ) {
+        else if ( mesh->ptype() == Geometry::Points ) {
             glDrawArrays(GL_POINTS, 0, data.elem_count_) ;
         }
 
+    } else {
+        glDrawArrays(GL_TRIANGLES, 0, data.elem_count_) ;
     }
 
-    data.vao_->release() ;
-*/
+    glBindVertexArray(0) ;
+
     glFlush();
 }
 

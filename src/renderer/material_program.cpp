@@ -160,6 +160,9 @@ ConstantMaterialProgram::ConstantMaterialProgram(int flags): flags_(flags) {
         fs->addSourceString(shadows_fragment_shader) ;
     fs->addSourceString(constant_fragment_shader) ;
 
+    addShader(vs) ;
+    addShader(fs) ;
+
     link() ;
 }
 
@@ -190,8 +193,10 @@ PerVertexColorMaterialProgram::PerVertexColorMaterialProgram(int flags) {
     fs->addSourceString(preproc) ;
     fs->addSourceString(per_vertex_color_fragment_shader) ;
 
-    link() ;
+    addShader(vs) ;
+    addShader(fs) ;
 
+    link() ;
 }
 
 void PerVertexColorMaterialProgram::applyParams(const MaterialPtr &mat) {

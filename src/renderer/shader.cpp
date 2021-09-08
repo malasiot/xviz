@@ -67,19 +67,16 @@ void OpenGLShader::compile() {
 
     if ( compiled_ ) return ;
 
-    std::unique_ptr<const GLchar* [] > sources(new const GLchar * [sources_.size() + 2]);
-    std::unique_ptr< GLint []> lengths(new GLint [sources_.size() + 2]) ;
-
-    sources[0] = header_.c_str() ;
-    sources[1] = preproc_.c_str() ;
+    std::unique_ptr<const GLchar* [] > sources(new const GLchar * [sources_.size()]);
+    std::unique_ptr< GLint []> lengths(new GLint [sources_.size()]) ;
 
     for ( uint i=0 ; i<sources_.size() ; i++ ) {
         const Source &src = sources_[i] ;
-        sources[i+2] = src.data_.c_str() ;
-        lengths[i+2] = src.data_.length() ;
+        sources[i] = src.data_.c_str() ;
+        lengths[i] = src.data_.length() ;
     }
 
-    glShaderSource(handle_, sources_.size()+2, sources.get(), lengths.get());
+    glShaderSource(handle_, sources_.size(), sources.get(), lengths.get());
     glCompileShader(handle_);
 
     GLint success;

@@ -1,8 +1,3 @@
-FIND_PACKAGE(Eigen3 REQUIRED)
-FIND_PACKAGE(Assimp REQUIRED)
-
-FIND_PACKAGE(ZLIB REQUIRED)
-FIND_PACKAGE(OpenGL REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
@@ -28,6 +23,7 @@ set(LIB_SOURCES
     renderer/renderer.cpp
     renderer/shadow_map.cpp
     renderer/mesh_data.cpp
+    renderer/texture_data.cpp
 
     scene/node.cpp
     scene/assimp_loader.cpp
@@ -40,8 +36,9 @@ set(LIB_SOURCES
 
     common/image.cpp
 
-    gui/qt/viewer.cpp
-    ${LIBRARY_INCLUDE_DIR}/gui/qt/viewer.hpp
+    gui/viewer.cpp
+    gui/trackball.cpp
+    ${LIBRARY_INCLUDE_DIR}/gui/viewer.hpp
 
 
 #    renderer/renderer.cpp

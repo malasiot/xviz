@@ -34,6 +34,12 @@ set(LIB_SOURCES
     scene/raycaster.cpp
     scene/node_helpers.cpp
 
+    physics/particle.cpp
+    physics/cloth.cpp
+    physics/constraint.cpp
+    physics/solver.cpp
+    physics/world.cpp
+
     common/image.cpp
 
     gui/viewer.cpp

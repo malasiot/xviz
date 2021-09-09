@@ -17,7 +17,16 @@ public:
 
 protected:
 
+    void applyExternalForces(float dt) ;
+    void dampVelocities() ;
+    void integrate(float dt) ;
+    void projectInternalConstraints() ;
+    void updateState(float dt) ;
+
     World &world_ ;
+
+    float k_damping_ = 0.00125f;
+    uint num_iterations_ = 4 ;
 };
 
 }

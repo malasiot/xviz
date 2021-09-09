@@ -4,18 +4,18 @@
 #include <vector>
 #include <Eigen/Geometry>
 
-namespace clsim { namespace impl {
+namespace clsim {
 
 struct Particle {
-    float mass_, inv_mass_ ;
+    float mass_, w_ ;
     Eigen::Vector3f x0_ ;
     Eigen::Vector3f x_ ;
     Eigen::Vector3f v_ ;
-    Eigen::Vector3f a_ ;
-    Eigen::Vector3f x_old_ ;
-    Eigen::Vector3f x_last_ ;
+    Eigen::Vector3f p_ ;
+    Eigen::Vector3f f_ ;
+    Eigen::Vector3f r_ ;
 };
 
-}}
+}
 
 #endif

@@ -34,17 +34,20 @@ static NodePtr cloth_node ;
 void createWorld() {
     // init physics
 
-    const int NUM_X = 11 ;
-    const int NUM_Z = 11 ;
+    const int NUM_X = 21 ;
+    const int NUM_Z = 21 ;
 
-    RectangularPatch *cloth = new RectangularPatch({-2, 3, 0}, {2, 3, 0}, {-2, 3, 4}, NUM_X, NUM_Z, RectangularPatch::TopEdge, 0.001, 0.001);
+    RectangularPatch *cloth = new RectangularPatch(0.1, {-2, 3, 0}, {2, 3, 0}, {-2, 3, 4},
+                                                   NUM_X, NUM_Z,
+                                                   RectangularPatch::TopLeft | RectangularPatch::TopRight,
+                                                   1110.5, 0.001);
 
     physics.setCloth(cloth) ;
     solver = new Solver(physics) ;
 
     physics.setSolver(solver) ;
 
-
+    physics.resetSimulation() ;
 
 }
 

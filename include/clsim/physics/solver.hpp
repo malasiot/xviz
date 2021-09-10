@@ -26,7 +26,7 @@ protected:
     World &world_ ;
 
     float k_damping_ = 0.00125f;
-    uint num_iterations_ = 4 ;
+    uint num_iterations_ = 5 ;
 };
 
 }

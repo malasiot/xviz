@@ -46,9 +46,11 @@ void Cloth::getMesh(std::vector<Vector3f> &vertices, std::vector<Vector3f> &norm
             indices.push_back(idx2) ;
         }
     }
+
+
 }
 
-RectangularPatch::RectangularPatch(const Eigen::Vector3f &c00, const Eigen::Vector3f &c10, const Eigen::Vector3f &c01,
+RectangularPatch::RectangularPatch(float mass, const Eigen::Vector3f &c00, const Eigen::Vector3f &c10, const Eigen::Vector3f &c01,
                                    uint nvX, uint nvY, uint flags, float k_stretch, float k_bend)
 {
 #define IDX(_x_, _y_) ((_y_)*nvX + (_x_))
@@ -70,7 +72,7 @@ RectangularPatch::RectangularPatch(const Eigen::Vector3f &c00, const Eigen::Vect
         for ( uint ix = 0; ix < nvX; ++ix, px += deltaX ) {
             auto &p = particles_[IDX(ix, iy)] ;
             p.x0_ = px ;
-            p.mass_ = 1 ;
+            p.mass_ = mass/numNodes ;
         }
     }
 
@@ -113,15 +115,17 @@ RectangularPatch::RectangularPatch(const Eigen::Vector3f &c00, const Eigen::Vect
                 {
                     faces_.emplace_back(IDX(ix, iy), IDX(ix + 1, iy), IDX(ix + 1, iy + 1));
                     faces_.emplace_back(IDX(ix, iy), IDX(ix + 1, iy + 1), IDX(ix, iy + 1));
+                    distance_constraints_.emplace_back(particles_[IDX(ix, iy)], particles_[IDX(ix + 1, iy + 1)], k_stretch );
                 }
                 else
                 {
                     faces_.emplace_back(IDX(ix, iy + 1), IDX(ix, iy), IDX(ix + 1, iy));
                     faces_.emplace_back(IDX(ix, iy + 1), IDX(ix + 1, iy), IDX(ix + 1, iy + 1));
+                    distance_constraints_.emplace_back(particles_[IDX(ix + 1, iy)], particles_[IDX(ix, iy + 1)], k_stretch );
                 }
 
-                distance_constraints_.emplace_back(particles_[IDX(ix, iy)], particles_[IDX(ix + 1, iy + 1)], k_stretch );
-                distance_constraints_.emplace_back(particles_[IDX(ix + 1, iy)], particles_[IDX(ix, iy + 1)], k_stretch );
+
+
             }
         }
     }

@@ -29,7 +29,7 @@ void Solver::step(float dt) {
 void Solver::applyExternalForces(float dt) {
     auto &particles = world_.cloth()->particles_ ;
     for( auto &p: particles ) {
-        p.f_ = world_.gravity() ;
+        p.f_ = world_.gravity() * p.mass_ ;
         p.v_ *= global_dampening ; //global velocity dampening !!!
 
         // integrate forces

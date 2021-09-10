@@ -42,7 +42,7 @@ public:
     enum Anchors {  TopLeft = 0x1, TopRight = 0x2, BottomLeft = 0x4, BottomRight = 0x8,
                     TopEdge = 0x10, BottomEdge = 0x20, LeftEdge = 0x40, RightEdge = 0x80 } ;
 
-    RectangularPatch(const Eigen::Vector3f &c00, const Eigen::Vector3f &c10, const Eigen::Vector3f &c01,
+    RectangularPatch(float mass, const Eigen::Vector3f &c00, const Eigen::Vector3f &c10, const Eigen::Vector3f &c01,
                 uint nvX, uint nvY, uint anchors, float k_stretch, float k_bend);
 
 

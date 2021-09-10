@@ -16,10 +16,6 @@ void World::setCloth(clsim::Cloth *cloth) {
     GeometryPtr mesh(new Geometry(Geometry::Triangles));
     node->addDrawable(mesh, material) ;
 
-    cloth_->getMesh(mesh->vertices(), mesh->normals(), mesh->indices());
-    mesh->setVerticesUpdated(true);
-    mesh->setNormalsUpdated(true);
-
     cloth_visual_ = node ;
 }
 
@@ -31,6 +27,7 @@ void World::setSolver(Solver *solver)
 void World::resetSimulation()
 {
     solver_->init() ;
+    updateVisuals() ;
 }
 
 void World::stepSimulation(float dt) {
@@ -47,6 +44,7 @@ void World::updateVisuals()
         geom->vertices().clear() ;
         geom->normals().clear() ;
         cloth_->getMesh(geom->vertices(), geom->normals(), geom->indices());
+        geom->computeNormals() ;
         geom->setVerticesUpdated(true);
         geom->setNormalsUpdated(true);
     }

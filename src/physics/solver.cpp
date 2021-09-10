@@ -14,7 +14,7 @@ Solver::Solver(World &w): world_(w) {
 }
 
 void Solver::init() {
-    world_.cloth_->reset(num_iterations_) ;
+    world_.cloth()->reset(num_iterations_) ;
 }
 
 void Solver::step(float dt) {
@@ -27,9 +27,9 @@ void Solver::step(float dt) {
 }
 
 void Solver::applyExternalForces(float dt) {
-    auto &particles = world_.cloth_->particles_ ;
+    auto &particles = world_.cloth()->particles_ ;
     for( auto &p: particles ) {
-        p.f_ = world_.g_ ;
+        p.f_ = world_.gravity() ;
         p.v_ *= global_dampening ; //global velocity dampening !!!
 
         // integrate forces
@@ -38,7 +38,7 @@ void Solver::applyExternalForces(float dt) {
 }
 
 void Solver::dampVelocities() {
-    auto &particles = world_.cloth_->particles_ ;
+    auto &particles = world_.cloth()->particles_ ;
 
     Vector3f xcm{0, 0, 0}, vcm{0, 0, 0};
     float mass = 0;
@@ -81,7 +81,7 @@ void Solver::dampVelocities() {
 
 void Solver::integrate(float dt)
 {
-    auto &particles = world_.cloth_->particles_ ;
+    auto &particles = world_.cloth()->particles_ ;
 
     for(auto &p: particles ) {
         if ( p.w_ <= 0.0 ) p.p_ = p.x_ ;
@@ -91,7 +91,7 @@ void Solver::integrate(float dt)
 
 void Solver::projectInternalConstraints()
 {
-    auto &cloth = *world_.cloth_ ;
+    auto &cloth = *world_.cloth() ;
 
     for( auto &c: cloth.distance_constraints_ ) {
         c.project() ;
@@ -103,7 +103,7 @@ void Solver::projectInternalConstraints()
 }
 
 void Solver::updateState(float dt) {
-    auto &particles = world_.cloth_->particles_ ;
+    auto &particles = world_.cloth()->particles_ ;
 
     for( auto &p: particles ) {
         p.v_ = (p.p_ - p.x_)/dt ;

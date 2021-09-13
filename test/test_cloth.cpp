@@ -15,6 +15,7 @@
 #include <clsim/physics/world.hpp>
 #include <clsim/physics/cloth.hpp>
 #include <clsim/physics/solver.hpp>
+#include <clsim/physics/collision_object.hpp>
 
 #include <clsim/scene/scene.hpp>
 #include <clsim/scene/node_helpers.hpp>
@@ -43,6 +44,11 @@ void createWorld() {
                                                    1110.5, 0.001);
 
     physics.setCloth(cloth) ;
+
+    Isometry3f mat ;
+    mat.setIdentity() ;
+    mat.translate(Vector3f{0, 0., 1.2}) ;
+    physics.addCollisionObject(new CollisionObject("/home/malasiot/Downloads/cube.obj", mat)) ;
     solver = new Solver(physics) ;
 
     physics.setSolver(solver) ;

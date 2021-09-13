@@ -39,6 +39,8 @@ set(LIB_SOURCES
     physics/constraint.cpp
     physics/solver.cpp
     physics/world.cpp
+    physics/spatial_hashing.cpp
+    physics/collision_object.cpp
 
     common/image.cpp
 

@@ -22,6 +22,7 @@ protected:
     void integrate(float dt) ;
     void projectInternalConstraints() ;
     void updateState(float dt) ;
+    void processCollisions() ;
 
     World &world_ ;
 

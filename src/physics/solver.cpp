@@ -2,6 +2,12 @@
 #include <clsim/physics/world.hpp>
 #include <clsim/physics/cloth.hpp>
 
+#include <clsim/scene/camera.hpp>
+
+#include <clsim/physics/collision_object.hpp>
+
+#include <iostream>
+
 using namespace Eigen ;
 using namespace std ;
 
@@ -21,8 +27,10 @@ void Solver::step(float dt) {
     applyExternalForces(dt);
     dampVelocities() ;
     integrate(dt) ;
+ processCollisions() ;
     for( uint iter = 0 ; iter < num_iterations_ ; iter ++ )
         projectInternalConstraints() ;
+
     updateState(dt) ;
 }
 
@@ -108,6 +116,26 @@ void Solver::updateState(float dt) {
     for( auto &p: particles ) {
         p.v_ = (p.p_ - p.x_)/dt ;
         p.x_ = p.p_ ;
+    }
+}
+
+void Solver::processCollisions()
+{
+    auto &particles = world_.cloth()->particles_ ;
+
+    for( auto &p: particles ) {
+        for( const auto &c: world_.collisionObjects() ) {
+            Ray r(p.x_, p.v_.normalized()) ;
+            Vector3f x, n ;
+            float t ;
+            if ( c->intersect(r, x, n, t) && t < 0.05f ) {
+                cout << x << std::endl << n << std::endl << t << endl << endl;
+                p.v_ = { 0, 0, 0} ;
+                p.p_ = x ;
+
+            }
+
+        }
     }
 }
 

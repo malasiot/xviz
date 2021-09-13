@@ -16,17 +16,20 @@ class Solver ;
 class World {
 
 public:
-
+    World() ;
+    ~World() ;
     void setCloth(Cloth *cloth);
     void setSolver(Solver *solver) ;
+    void addCollisionObject(CollisionObject *obj);
 
     void resetSimulation() ;
     void stepSimulation(float t) ;
 
     Cloth *cloth() const { return cloth_.get() ; }
     const Eigen::Vector3f &gravity() const { return g_ ; }
+    const std::vector<std::unique_ptr<CollisionObject>> &collisionObjects() const { return objects_ ; }
 
-    NodePtr getVisual() const { return cloth_visual_ ; }
+    NodePtr getVisual() const ;
 
 protected:
 
@@ -34,7 +37,8 @@ protected:
 
     std::unique_ptr<Cloth> cloth_ ;
     std::unique_ptr<Solver> solver_ ;
-  //  std::vector<std::unique_ptr<CollisionObject>> objects_ ;
+    std::vector<std::unique_ptr<CollisionObject>> objects_ ;
+
     Eigen::Vector3f g_ = { 0.0, -10, 0.0 } ;
     NodePtr cloth_visual_ ;
 };

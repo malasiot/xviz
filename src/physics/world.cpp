@@ -18,6 +18,8 @@ World::~World() {
 void World::setCloth(clsim::Cloth *cloth) {
     cloth_.reset(cloth) ;
 
+    size_t np = cloth_->particles_.size() ;
+
     MaterialPtr material(new PhongMaterial({0, 1, 1, 1}));
     material->setSide(Material::Side::Both) ;
 
@@ -26,6 +28,16 @@ void World::setCloth(clsim::Cloth *cloth) {
     node->addDrawable(mesh, material) ;
 
     cloth_visual_ = node ;
+
+    collision_visual_.reset(new Node) ;
+
+    MaterialPtr cm(new PerVertexColorMaterial()) ;
+    GeometryPtr collision_geom(new Geometry(Geometry::Lines));
+    collision_geom->vertices().resize(np * 2, {0, 0, 0}) ;
+    collision_geom->colors().resize(np * 2, {1, 0, 0}) ;
+
+    collision_visual_->addDrawable(collision_geom, cm) ;
+
 }
 
 void World::setSolver(Solver *solver)
@@ -57,6 +69,8 @@ NodePtr World::getVisual() const
     for( const auto &c: objects_ ) {
         node->addChild(c->getVisual()) ;
     }
+
+    node->addChild(collision_visual_) ;
 
     return node ;
 }

@@ -46,8 +46,6 @@ public:
     void create(const aiScene *) ;
     bool intersect(const Ray &ray, Eigen::Vector3f &v, Eigen::Vector3f &n, float &t) ;
 
-    using Triangle = bvh::Triangle<float>;
-
     std::vector<Triangle> primitives_ ;
     bvh::Bvh<float> bvh_ ;
 };
@@ -97,8 +95,7 @@ bool BVH::intersect(const Ray &ray, Eigen::Vector3f &vi, Eigen::Vector3f &n, flo
 
         vi = orig + t * dir ;
         n = -bvh2eigen(triangle.n).normalized() ;
-    /*
-
+/*
         std::cout
                 << "Hit primitive " << triangle_index << "\n"
                     << "distance: "    << intersection.t << "\n";
@@ -106,7 +103,7 @@ bool BVH::intersect(const Ray &ray, Eigen::Vector3f &vi, Eigen::Vector3f &n, flo
         std::cout
                 << "u: "           << intersection.u << "\n"
                         << "v: "           << intersection.v << "\n";
-        */
+*/
         return true;
 
     }

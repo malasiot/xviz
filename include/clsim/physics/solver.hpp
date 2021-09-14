@@ -14,7 +14,7 @@ public:
     ContactConstraint(Particle &p, const Eigen::Vector3f &c, const Eigen::Vector3f &n) ;
 
     void resolve(float dt) ;
-private:
+
 
     Particle &p_ ;
     Eigen::Vector3f c_, n_ ;

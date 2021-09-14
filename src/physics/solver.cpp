@@ -120,6 +120,15 @@ void Solver::updateState(float dt) {
         p.v_ = (p.p_ - p.x_)/dt ;
         p.x_ = p.p_ ;
     }
+
+    // update collision velocities
+
+    for ( const auto &c: contacts_ ) {
+        Vector3f v = c.p_.v_ ;
+        v -= 2 * v.dot(c.n_) * c.n_;
+        Vector3f friction = -(v - v.dot(c.n_) * c.n_);
+        c.p_.v_ += friction ;
+    }
 }
 
 
@@ -134,7 +143,7 @@ void Solver::processCollisions()
             Ray r(p.x_, p.v_.normalized()) ;
             Vector3f x, n ;
             float t ;
-            if ( c->intersect(r, x, n, t) && t <0.1) {
+            if ( c->intersect(r, x, n, t) && t <= 0) {
                 cout << x << std::endl << n << std::endl << t << endl << endl;
                 contacts_.emplace_back(p, x, n) ;
             }
@@ -145,7 +154,7 @@ void Solver::processCollisions()
 void Solver::resolveContacts(float dt)
 {
     for( auto &c: contacts_ ) {
-        c.resolve(dt) ;
+    //    c.resolve(dt) ;
     }
 }
 
@@ -158,7 +167,7 @@ void ContactConstraint::resolve(float dt)
     float dist = n_.dot(p_.p_ - c_)  ;
     if ( dist > 0 ) return ;
     double d = sqrt(-dist) ;
-    p_.p_ = p_.x_ - d * n_  ;
+    p_.p_ += dist * n_  ;
 
 
 }

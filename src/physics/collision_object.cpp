@@ -92,10 +92,11 @@ bool BVH::intersect(const Ray &ray, Eigen::Vector3f &vi, Eigen::Vector3f &n, flo
         t = intersection.t ;
         float u = intersection.u ;
         float v = intersection.v ;
-        float h = 1.0f - u - v ;
 
-        vi = bvh2eigen(triangle.p0) + u*bvh2eigen(triangle.e2) - v*bvh2eigen(triangle.e1) ;
-        n = bvh2eigen(triangle.n).normalized() ;
+      //  vi = bvh2eigen(triangle.p0) + u*bvh2eigen(triangle.e2) - v*bvh2eigen(triangle.e1) ;
+
+        vi = orig + t * dir ;
+        n = -bvh2eigen(triangle.n).normalized() ;
     /*
 
         std::cout

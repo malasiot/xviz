@@ -52,6 +52,8 @@ protected:
     Particle &p0_, &p1_, &p2_, &p3_ ;
     float phi0_ ;
 };
+
+
 }
 
 #endif

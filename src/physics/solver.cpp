@@ -27,9 +27,12 @@ void Solver::step(float dt) {
     applyExternalForces(dt);
     dampVelocities() ;
     integrate(dt) ;
- processCollisions() ;
-    for( uint iter = 0 ; iter < num_iterations_ ; iter ++ )
+    processCollisions() ;
+    for( uint iter = 0 ; iter < num_iterations_ ; iter ++ ) {
+         resolveContacts(dt) ;
         projectInternalConstraints() ;
+
+    }
 
     updateState(dt) ;
 }
@@ -119,24 +122,45 @@ void Solver::updateState(float dt) {
     }
 }
 
+
+
 void Solver::processCollisions()
 {
     auto &particles = world_.cloth()->particles_ ;
 
+    contacts_.clear() ;
     for( auto &p: particles ) {
         for( const auto &c: world_.collisionObjects() ) {
             Ray r(p.x_, p.v_.normalized()) ;
             Vector3f x, n ;
             float t ;
-            if ( c->intersect(r, x, n, t) && t < 0.05f ) {
+            if ( c->intersect(r, x, n, t) && t <0.1) {
                 cout << x << std::endl << n << std::endl << t << endl << endl;
-                p.v_ = { 0, 0, 0} ;
-                p.p_ = x ;
-
+                contacts_.emplace_back(p, x, n) ;
             }
-
         }
     }
+}
+
+void Solver::resolveContacts(float dt)
+{
+    for( auto &c: contacts_ ) {
+        c.resolve(dt) ;
+    }
+}
+
+ContactConstraint::ContactConstraint(Particle &p, const Vector3f &c, const Vector3f &n): p_(p), c_(c), n_(n) {
+
+}
+
+void ContactConstraint::resolve(float dt)
+{
+    float dist = n_.dot(p_.p_ - c_)  ;
+    if ( dist > 0 ) return ;
+    double d = sqrt(-dist) ;
+    p_.p_ = p_.x_ - d * n_  ;
+
+
 }
 
 

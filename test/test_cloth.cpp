@@ -47,7 +47,7 @@ void createWorld() {
 
     Isometry3f mat ;
     mat.setIdentity() ;
-    mat.translate(Vector3f{0, 0., 1.2}) ;
+    mat.translate(Vector3f{0, 0., 0.2}) ;
     physics.addCollisionObject(new CollisionObject("/home/malasiot/Downloads/cube.obj", mat)) ;
     solver = new Solver(physics) ;
 

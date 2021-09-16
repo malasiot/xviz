@@ -127,7 +127,7 @@ void Solver::updateState(float dt) {
         Vector3f v = c.p_.v_ ;
         v -= 2 * v.dot(c.n_) * c.n_;
         Vector3f friction = -(v - v.dot(c.n_) * c.n_);
-        c.p_.v_ += friction ;
+        c.p_.v_ = {0, 0, 0};
     }
 }
 

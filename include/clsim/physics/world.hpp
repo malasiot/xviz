@@ -40,7 +40,7 @@ protected:
     std::vector<std::unique_ptr<CollisionObject>> objects_ ;
 
     Eigen::Vector3f g_ = { 0.0, -10, 0.0 } ;
-    NodePtr cloth_visual_ ;
+    NodePtr cloth_visual_, collision_visual_ ;
 };
 
 }

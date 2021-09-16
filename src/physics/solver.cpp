@@ -29,9 +29,8 @@ void Solver::step(float dt) {
     integrate(dt) ;
     processCollisions() ;
     for( uint iter = 0 ; iter < num_iterations_ ; iter ++ ) {
-         resolveContacts(dt) ;
         projectInternalConstraints() ;
-
+        resolveContacts(dt) ;
     }
 
     updateState(dt) ;
@@ -140,10 +139,11 @@ void Solver::processCollisions()
     contacts_.clear() ;
     for( auto &p: particles ) {
         for( const auto &c: world_.collisionObjects() ) {
-            Ray r(p.x_, p.v_.normalized()) ;
+            Ray r(p.x_, (p.p_ - p.x_).normalized()) ;
+            float t0 = (p.p_ - p.x_).norm() ;
             Vector3f x, n ;
             float t ;
-            if ( c->intersect(r, x, n, t) && t <= 0) {
+            if ( c->intersect(r, x, n, t) && t < t0 && t<0.01 ) {
                 cout << x << std::endl << n << std::endl << t << endl << endl;
                 contacts_.emplace_back(p, x, n) ;
             }
@@ -154,7 +154,7 @@ void Solver::processCollisions()
 void Solver::resolveContacts(float dt)
 {
     for( auto &c: contacts_ ) {
-    //    c.resolve(dt) ;
+            c.resolve(dt) ;
     }
 }
 
@@ -167,7 +167,7 @@ void ContactConstraint::resolve(float dt)
     float dist = n_.dot(p_.p_ - c_)  ;
     if ( dist > 0 ) return ;
     double d = sqrt(-dist) ;
-    p_.p_ += dist * n_  ;
+    p_.p_ -= dist * n_  ;
 
 
 }

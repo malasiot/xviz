@@ -30,6 +30,7 @@ protected:
     } ;
 
     friend class Solver ;
+    friend class World ;
 
     std::vector<Particle> particles_ ;
     std::vector<DistanceConstraint> distance_constraints_ ;

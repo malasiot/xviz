@@ -2,8 +2,12 @@
 
 #include <cstring>
 #include <fstream>
+#include <regex>
+#include <iostream>
 
 #include "gl/gl3w.h"
+
+#include "resource_manager.hpp"
 
 using namespace std ;
 using namespace Eigen ;
@@ -44,10 +48,7 @@ void OpenGLShader::create(OpenGLShaderType t) {
         throw_error("cannot create shader", "") ;
 }
 
-OpenGLShader::OpenGLShader(OpenGLShaderType t, const std::string &code, const string &rname) {
-    create(t) ;
-    addSourceString(code, rname) ;
-}
+
 
 void OpenGLShader::setHeader(const string &header) {
     header_ = header ;
@@ -59,24 +60,79 @@ void OpenGLShader::addPreProcDefinition(const string &key, const string &val) {
     preproc_ += '\n' ;
 }
 
-void OpenGLShader::addSourceString(const std::string &code, const string &resource_name) {
-    sources_.emplace_back(sources_.size(), resource_name, code) ;
+void OpenGLShader::setSourceCode(const std::string &code) {
+    code_ = code ;
+    compile() ;
 }
+
+
+void OpenGLShader::preproc(const std::string &file_name, const OpenGLShaderPreproc &defines, bool version_parsed) {
+    string fragment = OpenGLShaderResourceManager::fetch(file_name) ;
+    if ( fragment.empty() ) throw_error("Cannot load shader resource string from: ", file_name.c_str()) ;
+
+    std::stringstream is(fragment);
+
+    static const std::regex rx("[ \t]*#include[ \t]+<([@\\w\\d_./]+)>");
+    std::smatch match;
+
+    while ( is ) {
+        string line ;
+        std::getline(is, line,'\n') ;
+
+        // append any definition after first #version is encountered
+        if ( !version_parsed && line.find("#version") != string::npos ) {
+
+            code_.append(std::move(line)) ;
+            code_.append("\n") ;
+            for( const auto &dp: defines.defines_ ) {
+                code_.append("#define ") ;
+                code_.append(dp) ;
+                code_.append("\n") ;
+            }
+
+            for( const auto &dp: defines.constants_ ) {
+                code_.append("#define ") ;
+                code_.append(dp.first) ;
+                code_.append(" ") ;
+                code_.append(dp.second) ;
+                code_.append("\n") ;
+            }
+            version_parsed = true ;
+        } else if ( std::regex_match(line, match, rx) ) {
+            if ( match.size() == 2 ) {
+                std::ssub_match sub_match = match[1];
+                std::string include_str = sub_match.str();
+                preproc(include_str, defines, version_parsed) ;
+            }
+        } else {
+            code_.append(line) ;
+            code_.append("\n") ;
+        }
+
+    }
+}
+
+void OpenGLShader::setSourceFile(const std::string &file_name, const OpenGLShaderPreproc &defines) {
+    resource_name_ = file_name ;
+
+    preproc(file_name, defines, false) ;
+
+    cout << code_ << endl ;
+    compile() ;
+}
+
 
 void OpenGLShader::compile() {
 
     if ( compiled_ ) return ;
 
-    std::unique_ptr<const GLchar* [] > sources(new const GLchar * [sources_.size()]);
-    std::unique_ptr< GLint []> lengths(new GLint [sources_.size()]) ;
+    GLint len  ;
+    const GLchar *source[1] ;
 
-    for ( uint i=0 ; i<sources_.size() ; i++ ) {
-        const Source &src = sources_[i] ;
-        sources[i] = src.data_.c_str() ;
-        lengths[i] = src.data_.length() ;
-    }
+    source[0] = code_.c_str() ;
+    len = code_.length() ;
 
-    glShaderSource(handle_, sources_.size(), sources.get(), lengths.get());
+    glShaderSource(handle_, 1, source, &len);
     glCompileShader(handle_);
 
     GLint success;
@@ -90,23 +146,8 @@ void OpenGLShader::compile() {
     }
 
     compiled_ = true ;
-    sources_.clear() ;
 }
 
-void OpenGLShader::addSourceFile(const std::string &fname, const string &resource_name) {
-
-    std::ifstream is(fname);
-    std::string contents((std::istreambuf_iterator<char>(is)),
-                     std::istreambuf_iterator<char>());
-
-    if ( contents.empty() )
-        throw_error("Error reading shader file: ", fname.c_str()) ;
-
-    if ( resource_name.empty() )
-        addSourceString(contents, fname) ;
-    else
-        addSourceString(contents, resource_name) ;
-}
 
 OpenGLShader::~OpenGLShader() {
     glDeleteShader(handle_) ;
@@ -115,8 +156,10 @@ OpenGLShader::~OpenGLShader() {
 OpenGLShaderProgram::OpenGLShaderProgram(const char *vshader_code, const char *fshader_code) {
     handle_ = glCreateProgram();
 
-    OpenGLShaderPtr vertex_shader = make_shared<OpenGLShader>(VERTEX_SHADER, vshader_code) ;
-    OpenGLShaderPtr fragment_shader = make_shared<OpenGLShader>(FRAGMENT_SHADER, fshader_code) ;
+    OpenGLShaderPtr vertex_shader = make_shared<OpenGLShader>(VERTEX_SHADER) ;
+    vertex_shader->setSourceCode(vshader_code) ;
+    OpenGLShaderPtr fragment_shader = make_shared<OpenGLShader>(FRAGMENT_SHADER) ;
+    fragment_shader->setSourceCode(fshader_code) ;
 
     addShader(vertex_shader) ;
     addShader(fragment_shader) ;
@@ -184,16 +227,16 @@ void OpenGLShaderProgram::addShader(const OpenGLShaderPtr &shader) {
     shaders_.push_back(shader) ;
 }
 
-void OpenGLShaderProgram::addShaderFromString(OpenGLShaderType t, const string &code, const string &resource_name) {
+void OpenGLShaderProgram::addShaderFromCode(OpenGLShaderType t, const string &code) {
     auto shader = std::make_shared<OpenGLShader>(t) ;
-    shader->addSourceString(code, resource_name) ;
+    shader->setSourceCode(code) ;
     shader->compile() ;
     addShader(shader) ;
 }
 
-void OpenGLShaderProgram::addShaderFromFile(OpenGLShaderType t, const string &fname, const string &resource_name) {
+void OpenGLShaderProgram::addShaderFromFile(OpenGLShaderType t, const string &fname, const OpenGLShaderPreproc &preproc) {
     auto shader = std::make_shared<OpenGLShader>(t) ;
-    shader->addSourceFile(fname, resource_name) ;
+    shader->setSourceFile(fname, preproc) ;
     shader->compile() ;
     addShader(shader) ;
 }

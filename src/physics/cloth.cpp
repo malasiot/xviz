@@ -10,6 +10,7 @@ namespace clsim {
 void Cloth::reset(uint n_iter) {
     for( auto &p: particles_ ) {
        p.x_ = p.x0_ ;
+       p.p_ = p.x_ ;
        p.v_ = { 0.f, 0.f, 0.f } ;
        p.w_ = p.mass_ == 0.0f ? 0.0 : 1.0f/p.mass_ ;
        p.f_ = { 0.f, 0.f, 0.f } ;

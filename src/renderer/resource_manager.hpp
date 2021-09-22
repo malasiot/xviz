@@ -5,20 +5,27 @@
 
 namespace clsim { namespace impl {
 
-class ShaderResourceManager {
+class OpenGLShader ;
+
+class OpenGLShaderResourceManager {
 public:
 
-    static const char *fetch(const std::string &name) ;
+    static void setShaderResourceFolder(const std::string &folder) ;
 
 private:
+    friend class OpenGLShader ;
 
-    ShaderResourceManager() ;
+    // load resource (internal or file)
+    static std::string fetch(const std::string &name) ;
+
+    OpenGLShaderResourceManager() ;
 
     void addSource(const char *name, const char *src) ;
 
-    static ShaderResourceManager instance_ ;
+    static OpenGLShaderResourceManager instance_ ;
 
     std::map<std::string, std::string> sources_ ;
+    std::string folder_ ;
 };
 
 }}

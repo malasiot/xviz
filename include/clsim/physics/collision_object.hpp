@@ -19,7 +19,7 @@ public:
 
     NodePtr getVisual() const { return visual_ ; }
 
-    bool intersect(const Ray &ray, Eigen::Vector3f &v, Eigen::Vector3f &n, float &t) ;
+    bool intersect(const Ray &ray, Eigen::Vector3f &v, Eigen::Vector3f &n, float &t, float tol) ;
 private:
     void makeVisual(const std::vector<Eigen::Vector3f> &vertices, const std::vector<uint32_t> &indices, const std::vector<Eigen::Vector3f> &normals);
 

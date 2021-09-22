@@ -6,16 +6,33 @@
 #include "shaders/constant.fs.hpp"
 #include "shaders/per_vertex.fs.hpp"
 
+
+#include "shaders/shadow_map.vs.hpp"
+#include "shaders/shadow_map.fs.hpp"
+
+
+#include <fstream>
+
 namespace clsim { namespace impl {
 
+std::string OpenGLShaderResourceManager::fetch(const std::string &name) {
+    if ( name.empty() ) return {} ;
 
-const char *ShaderResourceManager::fetch(const std::string &name) {
-    auto it = instance_.sources_.find(name) ;
-    if ( it != instance_.sources_.end() ) return it->second.c_str() ;
-    else return nullptr ;
+    if ( name[0] == '@' ) {
+        auto it = instance_.sources_.find(name.substr(1)) ;
+        if ( it != instance_.sources_.end() ) return it->second.c_str() ;
+        else return {} ;
+    } else {
+        std::ifstream fs(instance_.folder_ + '/' + name);
+        return {std::istreambuf_iterator<char>(fs), std::istreambuf_iterator<char>()};
+    }
 }
 
-ShaderResourceManager::ShaderResourceManager() {
+void OpenGLShaderResourceManager::setShaderResourceFolder(const std::string &folder) {
+    instance_.folder_ = folder ;
+}
+
+OpenGLShaderResourceManager::OpenGLShaderResourceManager() {
     addSource("vertex_shader", vertex_shader_code) ;
     addSource("phong_fragment_shader_vars", phong_fragment_shader_vars) ;
     addSource("phong_fragment_shader_common", phong_fragment_shader_common) ;
@@ -24,12 +41,18 @@ ShaderResourceManager::ShaderResourceManager() {
     addSource("constant_fragment_shader_vars", constant_fragment_shader_vars);
     addSource("constant_fragment_shader", constant_fragment_shader) ;
     addSource("per_vertex_color_fragment_shader", per_vertex_color_fragment_shader);
+    addSource("shadow_map_shader_vs", shadow_map_shader_vs) ;
+    addSource("shadow_map_shader_fs", shadow_map_shader_fs) ;
+    addSource("shadow_debug_shader_vs", shadow_debug_shader_vs) ;
+    addSource("shadow_debug_shader_fs", shadow_debug_shader_fs) ;
 }
 
-void ShaderResourceManager::addSource(const char * name, const char *src) {
+void OpenGLShaderResourceManager::addSource(const char * name, const char *src) {
     sources_.emplace(name, src) ;
 }
 
-ShaderResourceManager ShaderResourceManager::instance_ ;
+OpenGLShaderResourceManager OpenGLShaderResourceManager::instance_ ;
+
+
 
 }}

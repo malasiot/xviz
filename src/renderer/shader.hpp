@@ -15,6 +15,24 @@ namespace clsim { namespace impl {
 
 enum OpenGLShaderType { VERTEX_SHADER,  FRAGMENT_SHADER, GEOMETRY_SHADER, COMPUTE_SHADER, TESS_CONTROL_SHADER, TESS_EVALUATION_SHADER  } ;
 
+struct OpenGLShaderPreproc {
+
+    void appendDefinition(const std::string &def) {
+        defines_.push_back(def) ;
+    }
+
+    void appendConstant(const std::string &name, const std::string &val) {
+        constants_.emplace(name, val) ;
+    }
+
+private:
+
+    friend class OpenGLShader ;
+
+    std::map<std::string, std::string> constants_ ;
+    std::vector<std::string> defines_ ;
+};
+
 class OpenGLShader {
 public:
 
@@ -23,13 +41,15 @@ public:
     void setHeader(const std::string &header) ;
     void addPreProcDefinition(const std::string &key, const std::string &val = std::string()) ;
 
-    // Compile shader from source code string. A resource name may be passed to be able to identify the code in error messages
-    void addSourceString(const std::string &code, const std::string &resource_name = std::string()) ;
-    // Loads the code from the designated file and calls compile string. If no resource name the filename will be used.
-    void addSourceFile(const std::string &fileName, const std::string &resource_name = std::string()) ;
+    // Compile shader from source code string.
+    void setSourceCode(const std::string &code) ;
+    // Loads the code from the designated file or internal resource string and calls compile.
+    // Internal resources are designated by prepending the filename with '@'.
+    // A preprocessor is run on the loaded resource. This will resolve any #include directives,
+    // prepend any defines, or replace any defined strings with their value
+    void setSourceFile(const std::string &fileName, const OpenGLShaderPreproc &defines = {}) ;
 
-    // creates and compiles shader
-    OpenGLShader(OpenGLShaderType t, const std::string &code, const std::string &resource_name = std::string()) ;
+
     ~OpenGLShader() ;
 
     void compile() ;
@@ -41,13 +61,7 @@ public:
 private:
 
     void create(OpenGLShaderType t) ;
-
-    struct Source {
-        Source(uint id, std::string name, std::string data): id_(id), name_(name), data_(data) {}
-        uint id_ ;
-        std::string name_ ;
-        std::string data_ ;
-    };
+    void preproc(const std::string &filename, const OpenGLShaderPreproc &defines, bool version_parsed) ;
 
     std::string header_ = "#version 330\n" ;
     std::string preproc_ ;
@@ -55,7 +69,8 @@ private:
     unsigned int handle_ ;
     bool compiled_ = false ;
 
-    std::vector<Source> sources_ ;
+    std::string code_ ;
+    std::string resource_name_ ;
     OpenGLShaderType type_ ;
 };
 
@@ -69,8 +84,8 @@ public:
     OpenGLShaderProgram() ;
 
     void addShader(const OpenGLShaderPtr &shader) ;
-    void addShaderFromString(OpenGLShaderType t, const std::string &code, const std::string &resource_name = std::string()) ;
-    void addShaderFromFile(OpenGLShaderType t, const std::string &fname, const std::string &resource_name = std::string()) ;
+    void addShaderFromCode(OpenGLShaderType t, const std::string &code) ;
+    void addShaderFromFile(OpenGLShaderType t, const std::string &fname, const OpenGLShaderPreproc &preproc = {}) ;
 
     void link(bool validate = true) ;
     void use() ;

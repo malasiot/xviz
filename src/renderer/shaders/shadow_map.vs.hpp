@@ -1,5 +1,7 @@
 
 static const char *shadow_map_shader_vs = R"(
+#version 330
+
   layout (location = 0) in vec3 aPos;
 
   uniform mat4 lightSpaceMatrix;
@@ -12,6 +14,8 @@ static const char *shadow_map_shader_vs = R"(
 )" ;
 
 static const char *shadow_debug_shader_vs = R"(
+#version 330
+
   layout (location = 0) in vec3 aPos;
   layout (location = 1) in vec2 aTexCoords;
 

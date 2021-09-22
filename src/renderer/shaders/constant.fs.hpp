@@ -4,6 +4,11 @@ uniform bool light_casts_shadows ;
 )";
 
 static const char *constant_fragment_shader = R"(
+#version 330
+
+#include <@constant_fragment_shader_vars>
+#include <@shadows_fragment_shader>
+
 out vec4 FragColor;
 
 void main (void) {

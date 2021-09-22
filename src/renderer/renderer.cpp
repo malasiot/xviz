@@ -374,41 +374,19 @@ void Renderer::render(const Drawable &dr, const Affine3f &mat, const LightPtr &l
     glUseProgram(0) ;
 }
 
-#include "shaders/shadow_map.vs.hpp"
-#include "shaders/shadow_map.fs.hpp"
-
 void Renderer::initShadowMapRenderer()
 {
     //if ( shadow_map_shader_.isLinked() ) return ;
 
-    std::string preproc("#version 330\n") ;
-
-    OpenGLShaderPtr vs(new OpenGLShader(VERTEX_SHADER)) ;
-    vs->addSourceFile(preproc) ;
-    vs->addSourceFile(shadow_map_shader_vs) ;
-
-    OpenGLShaderPtr fs(new OpenGLShader(FRAGMENT_SHADER)) ;
-    fs->addSourceFile(preproc) ;
-    fs->addSourceFile(shadow_map_shader_fs) ;
-
     shadow_map_shader_.reset(new OpenGLShaderProgram) ;
-    shadow_map_shader_->addShader(vs) ;
-    shadow_map_shader_->addShader(fs) ;
+    shadow_map_shader_->addShaderFromFile(VERTEX_SHADER, "@shadow_map_shader_vs") ;
+    shadow_map_shader_->addShaderFromFile(FRAGMENT_SHADER, "@shadow_map_shader_fs") ;
     shadow_map_shader_->link() ;
 
-    OpenGLShaderPtr vsd(new OpenGLShader(VERTEX_SHADER)) ;
-    vsd->addSourceFile(preproc) ;
-    vsd->addSourceFile(shadow_debug_shader_vs) ;
-
-    OpenGLShaderPtr fsd(new OpenGLShader(FRAGMENT_SHADER)) ;
-    fsd->addSourceFile(preproc) ;
-    fsd->addSourceFile(shadow_debug_shader_fs) ;
-
     shadow_map_debug_shader_.reset(new OpenGLShaderProgram) ;
-    shadow_map_debug_shader_->addShader(vs) ;
-    shadow_map_debug_shader_->addShader(fs) ;
+    shadow_map_debug_shader_->addShaderFromFile(VERTEX_SHADER, "@shadow_debug_shader_vs") ;
+    shadow_map_debug_shader_->addShaderFromFile(FRAGMENT_SHADER, "@shadow_debug_shader_fs") ;
     shadow_map_debug_shader_->link() ;
-
 }
 
 

@@ -15,44 +15,27 @@ using namespace Eigen ;
 
 namespace clsim { namespace impl {
 
-static const char *version_header = "#version 330\n" ;
-
 PhongMaterialProgram::PhongMaterialProgram(int flags): flags_(flags)
 {
-    OpenGLShaderPtr vs(new OpenGLShader(VERTEX_SHADER)) ;
+    OpenGLShaderPreproc vs_preproc ;
 
-    std::string vs_preproc ;
-    vs_preproc.append("#define HAS_NORMALS\n") ;
-    if ( flags & HAS_DIFFUSE_TEXTURE ) vs_preproc.append("#define HAS_UVs\n") ;
-    if ( flags & ENABLE_SKINNING ) vs_preproc.append("#define USE_SKINNING\n");
-    if ( flags & ENABLE_SHADOWS ) vs_preproc.append("#define HAS_SHADOWS\n") ;
+    vs_preproc.appendDefinition("HAS_NORMALS") ;
 
-    vs->addSourceString(version_header) ;
-    vs->addSourceString(vs_preproc) ;
-    vs->addSourceString(vertex_shader_code, "vertex_shader_code") ;
+    if ( flags & HAS_DIFFUSE_TEXTURE ) vs_preproc.appendDefinition("HAS_UVs") ;
+    if ( flags & ENABLE_SKINNING ) vs_preproc.appendDefinition("USE_SKINNING");
+    if ( flags & ENABLE_SHADOWS ) vs_preproc.appendDefinition("HAS_SHADOWS") ;
 
-    OpenGLShaderPtr fs(new OpenGLShader(FRAGMENT_SHADER)) ;
+    addShaderFromFile(VERTEX_SHADER, "@vertex_shader", vs_preproc) ;
 
-    std::string fs_preproc ;
+    OpenGLShaderPreproc fs_preproc ;
 
     if ( flags & HAS_DIFFUSE_TEXTURE )
-        fs_preproc.append("#define HAS_DIFFUSE_MAP") ;
+        fs_preproc.appendDefinition("HAS_DIFFUSE_MAP") ;
 
     if ( flags & ENABLE_SHADOWS )
-        fs_preproc.append("#define HAS_SHADOWS\n") ;
+        fs_preproc.appendDefinition("HAS_SHADOWS") ;
 
-    fs->addSourceString(version_header) ;
-    fs->addSourceString(fs_preproc) ;
-    fs->addSourceString(phong_fragment_shader_vars) ;
-
-    if ( flags & ENABLE_SHADOWS )
-        fs->addSourceString(shadows_fragment_shader) ;
-
-    fs->addSourceString(phong_fragment_shader_common) ;
-    fs->addSourceString(phong_fragment_shader);
-
-    addShader(vs) ;
-    addShader(fs) ;
+    addShaderFromFile(VERTEX_SHADER, "@phong_fragment_shader", fs_preproc) ;
 
     link() ;
 }
@@ -143,25 +126,12 @@ void MaterialProgram::applyDefaultLight(const LightPtr &light, const Affine3f &t
 ConstantMaterialProgram::ConstantMaterialProgram(int flags): flags_(flags) {
     OpenGLShaderPtr vs(new OpenGLShader(VERTEX_SHADER)) ;
 
-    std::string preproc ;
-    if ( flags & ENABLE_SKINNING ) preproc.append("#define USE_SKINNING\n");
-    if ( flags & ENABLE_SHADOWS ) preproc.append("#define HAS_SHADOWS\n") ;
+    OpenGLShaderPreproc preproc ;
+    if ( flags & ENABLE_SKINNING ) preproc.appendDefinition("USE_SKINNING");
+    if ( flags & ENABLE_SHADOWS ) preproc.appendDefinition("HAS_SHADOWS") ;
 
-    vs->addSourceString(version_header) ;
-    vs->addSourceString(preproc) ;
-    vs->addSourceString(vertex_shader_code, "vertex_shader_code") ;
-
-    OpenGLShaderPtr fs(new OpenGLShader(FRAGMENT_SHADER)) ;
-
-    fs->addSourceString(version_header) ;
-    fs->addSourceString(preproc) ;
-    fs->addSourceString(constant_fragment_shader_vars) ;
-    if ( flags & ENABLE_SHADOWS )
-        fs->addSourceString(shadows_fragment_shader) ;
-    fs->addSourceString(constant_fragment_shader) ;
-
-    addShader(vs) ;
-    addShader(fs) ;
+    addShaderFromFile(VERTEX_SHADER, "@vertex_shader", preproc) ;
+    addShaderFromFile(FRAGMENT_SHADER, "@constant_fragment_shader", preproc) ;
 
     link() ;
 }
@@ -179,22 +149,12 @@ PerVertexColorMaterialProgram::PerVertexColorMaterialProgram(int flags) {
 
     OpenGLShaderPtr vs(new OpenGLShader(VERTEX_SHADER)) ;
 
-    std::string preproc ;
-    preproc.append("#define HAS_COLORS");
-    if ( flags & ENABLE_SKINNING ) preproc.append("#define USE_SKINNING");
+    OpenGLShaderPreproc preproc ;
+    preproc.appendDefinition("HAS_COLORS");
+    if ( flags & ENABLE_SKINNING ) preproc.appendDefinition("USE_SKINNING");
 
-    vs->addSourceString(version_header) ;
-    vs->addSourceString(preproc) ;
-    vs->addSourceString(vertex_shader_code, "vertex_shader_code") ;
-
-    OpenGLShaderPtr fs(new OpenGLShader(FRAGMENT_SHADER)) ;
-
-    fs->addSourceString(version_header) ;
-    fs->addSourceString(preproc) ;
-    fs->addSourceString(per_vertex_color_fragment_shader) ;
-
-    addShader(vs) ;
-    addShader(fs) ;
+    addShaderFromFile(VERTEX_SHADER, "@vertex_shader", preproc) ;
+    addShaderFromFile(FRAGMENT_SHADER, "@per_vertex_color_fragment_shader", preproc) ;
 
     link() ;
 }

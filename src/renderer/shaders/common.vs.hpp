@@ -1,5 +1,7 @@
 
 static const char *vertex_shader_code = R"(
+#version 330
+
 const int MAX_LIGHTS = 10;
 
 layout (location = 0) in vec3 vposition;

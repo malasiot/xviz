@@ -44,7 +44,7 @@ public:
     ~BVH() ;
     void create(const std::vector<Eigen::Vector3f> &vertices, const std::vector<uint32_t> &indices) ;
     void create(const aiScene *) ;
-    bool intersect(const Ray &ray, Eigen::Vector3f &v, Eigen::Vector3f &n, float &t) ;
+    bool intersect(const Ray &ray, Eigen::Vector3f &v, Eigen::Vector3f &n, float &t, float tol) ;
 
     std::vector<Triangle> primitives_ ;
     bvh::Bvh<float> bvh_ ;
@@ -72,7 +72,7 @@ void BVH::create(const std::vector<Eigen::Vector3f> &vertices, const std::vector
     builder.build(global_bbox, bboxes_centers.first.get(), bboxes_centers.second.get(), primitives_.size());
 }
 
-bool BVH::intersect(const Ray &ray, Eigen::Vector3f &vi, Eigen::Vector3f &n, float &t) {
+bool BVH::intersect(const Ray &ray, Eigen::Vector3f &vi, Eigen::Vector3f &n, float &t, float tol) {
     bvh::ClosestPrimitiveIntersector<Bvh, Triangle> primitive_intersector(bvh_, primitives_.data());
     bvh::SingleRayTraverser<Bvh> traverser(bvh_);
 
@@ -93,7 +93,7 @@ bool BVH::intersect(const Ray &ray, Eigen::Vector3f &vi, Eigen::Vector3f &n, flo
 
       //  vi = bvh2eigen(triangle.p0) + u*bvh2eigen(triangle.e2) - v*bvh2eigen(triangle.e1) ;
 
-        vi = orig + t * dir ;
+        vi = orig + (t - tol) * dir ;
         n = -bvh2eigen(triangle.n).normalized() ;
 /*
         std::cout
@@ -114,9 +114,9 @@ bool BVH::intersect(const Ray &ray, Eigen::Vector3f &vi, Eigen::Vector3f &n, flo
 
 CollisionObject::~CollisionObject() {}
 
-bool CollisionObject::intersect(const Ray &ray, Eigen::Vector3f &v, Eigen::Vector3f &n, float &t)
+bool CollisionObject::intersect(const Ray &ray, Eigen::Vector3f &v, Eigen::Vector3f &n, float &t, float tolerance)
 {
-    return bvh_->intersect(ray, v, n, t) ;
+    return bvh_->intersect(ray, v, n, t, tolerance) ;
 }
 
 void CollisionObject::makeVisual(const std::vector<Eigen::Vector3f> &vertices, const std::vector<uint32_t> &indices, const std::vector<Eigen::Vector3f> &normals)

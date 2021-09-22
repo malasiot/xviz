@@ -24,6 +24,7 @@ set(LIB_SOURCES
     renderer/shadow_map.cpp
     renderer/mesh_data.cpp
     renderer/texture_data.cpp
+    renderer/resource_manager.cpp
 
     scene/node.cpp
     scene/assimp_loader.cpp

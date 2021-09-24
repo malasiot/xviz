@@ -1,10 +1,10 @@
-#include <xviz/physics/solver.hpp>
-#include <xviz/physics/world.hpp>
-#include <xviz/physics/cloth.hpp>
+#include "solver.hpp"
+#include "world.hpp"
+#include "cloth.hpp"
 
 #include <xviz/scene/camera.hpp>
 
-#include <xviz/physics/collision_object.hpp>
+#include "collision_object.hpp"
 
 #include <iostream>
 

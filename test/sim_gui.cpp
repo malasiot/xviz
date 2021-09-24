@@ -1,6 +1,6 @@
 #include "sim_gui.hpp"
 #include <xviz/scene/scene.hpp>
-#include <xviz/physics/world.hpp>
+#include "physics/world.hpp"
 #include <QTimer>
 
 using namespace xviz ;
@@ -69,8 +69,8 @@ void SimulationGui::mouseMoveEvent(QMouseEvent *event)
 }
 
 void SimulationGui::onUpdate(float delta) {
-   // physics_.stepSimulation(delta/1000.0f);
-      physics_.stepSimulation(0.005);
+    physics_.stepSimulation(delta/1000.0f);
+   //   physics_.stepSimulation(0.005);
 
 }
 

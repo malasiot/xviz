@@ -12,6 +12,7 @@ find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
 get_filename_component(LIBRARY_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../include/xviz/" ABSOLUTE)
 
 include_directories(
+    3rdparty/
     ${EIGEN3_INCLUDE_DIR}
     ${OpenCV_INCLUDE_DIR}
 )
@@ -35,19 +36,18 @@ set(LIB_SOURCES
     scene/raycaster.cpp
     scene/node_helpers.cpp
 
-    physics/particle.cpp
-    physics/cloth.cpp
-    physics/constraint.cpp
-    physics/solver.cpp
-    physics/world.cpp
-    physics/spatial_hashing.cpp
-    physics/collision_object.cpp
+    robot/robot_scene.cpp
+    robot/urdf_loader.cpp
+    robot/urdf_robot.cpp
 
     common/image.cpp
+
+    3rdparty/pugi/pugixml.cpp
 
     gui/viewer.cpp
     gui/trackball.cpp
     gui/offscreen.cpp
+
     ${LIBRARY_INCLUDE_DIR}/gui/viewer.hpp
     ${LIBRARY_INCLUDE_DIR}/gui/offscreen.hpp
 )

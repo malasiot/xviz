@@ -1,5 +1,5 @@
-#include <xviz/physics/constraint.hpp>
-#include <xviz/physics/particle.hpp>
+#include "constraint.hpp"
+#include "particle.hpp"
 
 using namespace Eigen ;
 

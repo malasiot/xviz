@@ -39,11 +39,20 @@ void Renderer::setupTexture(const Material *mat, const Texture2D *texture, uint 
 
         Image image = texture->image() ;
 
+         TextureData *data = new TextureData() ;
+         data->create(image) ;
+         uploadTexture(data, mat, slot) ;
+/*
         if ( image.type() == ImageType::Uri ) {
             TextureData *data = new TextureData() ;
             data->create(image.uri()) ;
             uploadTexture(data, mat, slot) ;
+        } else {
+            TextureData *data = new TextureData() ;
+            data->createFromRawData(image) ;
+
         }
+        */
     }
 }
 

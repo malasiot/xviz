@@ -6,6 +6,9 @@
 
 #include "gl/gl3w.h"
 
+#include <xviz/common/image.hpp>
+
+
 namespace xviz { namespace impl {
 
 class TextureData {
@@ -13,7 +16,7 @@ public:
     TextureData() ;
     ~TextureData() ;
 
-    bool create(const std::string &path) ;
+    bool create(const Image &image) ;
 
     GLuint id() const { return id_ ; }
 

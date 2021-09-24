@@ -23,7 +23,7 @@ int main(int argc, char **argv)
     model->load("/home/malasiot/Downloads/rp_nathan_animated_003_walking.fbx", Node::IMPORT_ANIMATIONS | Node::IMPORT_SKELETONS ) ;
 
     NodePtr box(new Node) ;
-    GeometryPtr geom(new BoxGeometry({0.5, 0.5, 0.5})) ;
+    GeometryPtr geom(new BoxGeometry({15, 15, 15})) ;
     MaterialPtr mat(new PhongMaterial({1, 0, 0, 1}));
     box->addDrawable(geom, mat) ;
     model->addChild(box) ;
@@ -33,13 +33,13 @@ int main(int argc, char **argv)
     model->addLightNode(LightPtr(dl)) ;
 
     NodeAnimation *anim = new NodeAnimation(box) ;
-    anim->addKeyFrame(0.0, {0.0f, 2.0f, 1.0f}, {1.0, 0.0f, 0.0f, 0.0f}, {1, 1, 1});
-    anim->addKeyFrame(1.0, {4.0f, 2.0f, 1.0f}, {1.0, 0.5f, 0.0f, 0.0f}, {0.5, 0.5, 0.5});
-    anim->setDuration(25000) ;
+    anim->addKeyFrame(0.0, {0.0f, 200.0f, 100.0f}, {1.0, 0.0f, 0.0f, 0.0f}, {1, 1, 1});
+    anim->addKeyFrame(1.0, {400.0f, 200.0f, 100.0f}, {1.0, 0.5f, 0.0f, 0.0f}, {0.5, 0.5, 0.5});
+    anim->setDuration(6400) ;
 
-   // model->addAnimation(anim) ;
+    model->addAnimation(anim) ;
 
-    model->startAnimations(1000);
+    model->startAnimations(0);
 
     QApplication app(argc, argv);
 

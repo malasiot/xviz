@@ -3,7 +3,7 @@
 #include <xviz/scene/scene_fwd.hpp>
 #include <xviz/gui/viewer.hpp>
 
-#include <xviz/physics/solver.hpp>
+#include "physics/solver.hpp"
 
 #include <QOpenGLWidget>
 #include <QMouseEvent>

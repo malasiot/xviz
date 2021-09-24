@@ -12,10 +12,10 @@
 
 #include <iostream>
 
-#include <xviz/physics/world.hpp>
-#include <xviz/physics/cloth.hpp>
-#include <xviz/physics/solver.hpp>
-#include <xviz/physics/collision_object.hpp>
+#include "physics/world.hpp"
+#include "physics/cloth.hpp"
+#include "physics/solver.hpp"
+#include "physics/collision_object.hpp"
 
 #include <xviz/scene/scene.hpp>
 #include <xviz/scene/node_helpers.hpp>

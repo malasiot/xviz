@@ -1,4 +1,4 @@
-#include <xviz/physics/collision_object.hpp>
+#include "collision_object.hpp"
 
 #include "3rdparty/bvh/bvh.hpp"
 #include "3rdparty/bvh/vector.hpp"

@@ -1,4 +1,5 @@
 #include "texture_data.hpp"
+#include <xviz/common/image.hpp>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -13,24 +14,44 @@ TextureData::~TextureData() {
         glDeleteTextures(1, &id_) ;
 }
 
-bool TextureData::create(const std::string &path)
+bool TextureData::create(const Image &image)
 {
     stbi_set_flip_vertically_on_load(true);
 
-    int width, height, channels;
-    unsigned char *data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+    if ( image.type() == ImageType::Uri ) {
+        std::string path = image.uri() ;
 
-    if ( !data ) return false ;
+        int width, height, channels;
+        unsigned char *data = stbi_load(path.c_str(), &width, &height, &channels, 0);
 
-    glGenTextures(1, &id_);
-    glBindTexture(GL_TEXTURE_2D, id_) ;
+        if ( !data ) return false ;
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
+        glGenTextures(1, &id_);
+        glBindTexture(GL_TEXTURE_2D, id_) ;
 
-    stbi_image_free(data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
 
-    return true ;
+        stbi_image_free(data);
+
+        return true ;
+    } else if ( image.type() == ImageType::Raw ) {
+        if ( image.format() == ImageFormat::encoded ) {
+
+            int width, height, channels;
+            unsigned char *data = stbi_load_from_memory(image.data(), image.width(), &width, &height, &channels, 0);
+
+            if ( !data ) return false ;
+
+            glGenTextures(1, &id_);
+            glBindTexture(GL_TEXTURE_2D, id_) ;
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            glGenerateMipmap(GL_TEXTURE_2D);
+
+            stbi_image_free(data);
+        }
+    }
 }
 
 }}

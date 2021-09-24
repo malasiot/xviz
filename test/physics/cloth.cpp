@@ -1,4 +1,4 @@
-#include <xviz/physics/cloth.hpp>
+#include "cloth.hpp"
 
 #include <map>
 

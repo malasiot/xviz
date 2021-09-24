@@ -1,11 +1,11 @@
-#ifndef CLSIM_RENDERER_MESH_DATA_HPP
-#define CLSIM_RENDERER_MESH_DATA_HPP
+#ifndef XVIZ_RENDERER_MESH_DATA_HPP
+#define XVIZ_RENDERER_MESH_DATA_HPP
 
-#include <clsim/scene/geometry.hpp>
+#include <xviz/scene/geometry.hpp>
 
 #include "gl/gl3w.h"
 
-namespace clsim { namespace impl {
+namespace xviz { namespace impl {
 
 class MeshData {
 public:

@@ -1,12 +1,12 @@
-#ifndef CLSIM_TEXTURE_DATA_HPP
-#define CLSIM_TEXTURE_DATA_HPP
+#ifndef XVIZ_TEXTURE_DATA_HPP
+#define XVIZ_TEXTURE_DATA_HPP
 
 #include <string>
 #include <memory>
 
 #include "gl/gl3w.h"
 
-namespace clsim { namespace impl {
+namespace xviz { namespace impl {
 
 class TextureData {
 public:

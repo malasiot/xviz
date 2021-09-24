@@ -7,7 +7,7 @@
 #define BONE_WEIGHT_LOCATION    4
 #define UV_LOCATION 5
 
-namespace clsim { namespace impl {
+namespace xviz { namespace impl {
 
 
 MeshData::MeshData(const Geometry &mesh) {

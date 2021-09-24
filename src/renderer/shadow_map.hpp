@@ -1,9 +1,9 @@
-#ifndef CLSIM_RENDERER_SHADOW_MAP_HPP
-#define CLSIM_RENDERER_SHADOW_MAP_HPP
+#ifndef XVIZ_RENDERER_SHADOW_MAP_HPP
+#define XVIZ_RENDERER_SHADOW_MAP_HPP
 
 #include "gl/gl3w.h"
 
-namespace clsim { namespace impl {
+namespace xviz { namespace impl {
 
 class ShadowMap {
 public:

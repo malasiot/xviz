@@ -1,9 +1,9 @@
-#include <clsim/gui/viewer.hpp>
+#include <xviz/gui/viewer.hpp>
 
-#include <clsim/scene/scene.hpp>
-#include <clsim/scene/light.hpp>
-#include <clsim/scene/node.hpp>
-#include <clsim/scene/node_helpers.hpp>
+#include <xviz/scene/scene.hpp>
+#include <xviz/scene/light.hpp>
+#include <xviz/scene/node.hpp>
+#include <xviz/scene/node_helpers.hpp>
 
 #include <QTimer>
 #include <QPainter>
@@ -12,7 +12,7 @@
 using namespace std ;
 using namespace Eigen ;
 
-namespace clsim {
+namespace xviz {
 SceneViewer::SceneViewer(const NodePtr &scene, QWidget *parent): QOpenGLWidget(parent), scene_(new Node) {
     setFocusPolicy(Qt::StrongFocus) ;
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);

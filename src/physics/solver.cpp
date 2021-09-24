@@ -1,10 +1,10 @@
-#include <clsim/physics/solver.hpp>
-#include <clsim/physics/world.hpp>
-#include <clsim/physics/cloth.hpp>
+#include <xviz/physics/solver.hpp>
+#include <xviz/physics/world.hpp>
+#include <xviz/physics/cloth.hpp>
 
-#include <clsim/scene/camera.hpp>
+#include <xviz/scene/camera.hpp>
 
-#include <clsim/physics/collision_object.hpp>
+#include <xviz/physics/collision_object.hpp>
 
 #include <iostream>
 
@@ -13,7 +13,7 @@ using namespace std ;
 
 const float global_dampening = 0.98f;
 
-namespace clsim {
+namespace xviz {
 
 Solver::Solver(World &w): world_(w) {
 

@@ -4,7 +4,7 @@
 #include <Eigen/Geometry>
 #include <unordered_map>
 
-namespace clsim {
+namespace xviz {
     class SpatialHashingCell ;
 }
 #if 0
@@ -37,7 +37,7 @@ namespace std {
     }
 }
 #endif
-namespace clsim {
+namespace xviz {
 
 
 

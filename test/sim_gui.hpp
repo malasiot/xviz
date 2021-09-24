@@ -1,9 +1,9 @@
 #pragma once
 
-#include <clsim/scene/scene_fwd.hpp>
-#include <clsim/gui/viewer.hpp>
+#include <xviz/scene/scene_fwd.hpp>
+#include <xviz/gui/viewer.hpp>
 
-#include <clsim/physics/solver.hpp>
+#include <xviz/physics/solver.hpp>
 
 #include <QOpenGLWidget>
 #include <QMouseEvent>
@@ -11,14 +11,14 @@
 
 #include <iostream>
 
-class SimulationGui : public clsim::SceneViewer
+class SimulationGui : public xviz::SceneViewer
 {
 public:
-    SimulationGui(clsim::World &physics) ;
-    SimulationGui(clsim::World &physics, const Eigen::Vector3f &c, float r);
+    SimulationGui(xviz::World &physics) ;
+    SimulationGui(xviz::World &physics, const Eigen::Vector3f &c, float r);
 protected:
 
-    clsim::World &physics_ ;
+    xviz::World &physics_ ;
 
     bool picking_ = false ;
 

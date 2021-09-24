@@ -1,11 +1,11 @@
-#include <clsim/physics/cloth.hpp>
+#include <xviz/physics/cloth.hpp>
 
 #include <map>
 
 using namespace Eigen ;
 using namespace std ;
 
-namespace clsim {
+namespace xviz {
 
 void Cloth::reset(uint n_iter) {
     for( auto &p: particles_ ) {

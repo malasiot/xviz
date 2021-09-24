@@ -1,10 +1,10 @@
-#include <clsim/scene/detail/intersect.hpp>
+#include <xviz/scene/detail/intersect.hpp>
 
 #include <iostream>
 using namespace Eigen ;
 using namespace std ;
 
-namespace clsim { namespace detail {
+namespace xviz { namespace detail {
 
 
 AABB::~AABB() {}

@@ -1,15 +1,15 @@
-#include <clsim/scene/mesh.hpp>
-#include <clsim/scene/geometry.hpp>
-#include <clsim/scene/raycaster.hpp>
-#include <clsim/scene/detail/octree.hpp>
-#include <clsim/scene/detail/intersect.hpp>
+#include <xviz/scene/mesh.hpp>
+#include <xviz/scene/geometry.hpp>
+#include <xviz/scene/raycaster.hpp>
+#include <xviz/scene/detail/octree.hpp>
+#include <xviz/scene/detail/intersect.hpp>
 
 #include <fstream>
 
 using namespace Eigen ;
 using namespace std ;
 
-namespace clsim {
+namespace xviz {
 
 
 static Geometry flatten(const std::vector<Vector3f> &vertices, const std::vector<uint32_t> &vtx_indices,

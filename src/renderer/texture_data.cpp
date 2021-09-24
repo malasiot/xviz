@@ -3,7 +3,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-namespace clsim { namespace impl {
+namespace xviz { namespace impl {
 
 TextureData::TextureData() {
 }

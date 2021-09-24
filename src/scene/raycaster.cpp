@@ -1,15 +1,15 @@
-#include <clsim/scene/raycaster.hpp>
-#include <clsim/scene/scene.hpp>
-#include <clsim/scene/geometry.hpp>
-#include <clsim/scene/detail/octree.hpp>
-#include <clsim/scene/detail/intersect.hpp>
+#include <xviz/scene/raycaster.hpp>
+#include <xviz/scene/scene.hpp>
+#include <xviz/scene/geometry.hpp>
+#include <xviz/scene/detail/octree.hpp>
+#include <xviz/scene/detail/intersect.hpp>
 
 #include <iostream>
 
 using namespace Eigen ;
 using namespace std ;
 
-namespace clsim {
+namespace xviz {
 
 RayCaster::~RayCaster()
 {

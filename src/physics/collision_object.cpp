@@ -1,4 +1,4 @@
-#include <clsim/physics/collision_object.hpp>
+#include <xviz/physics/collision_object.hpp>
 
 #include "3rdparty/bvh/bvh.hpp"
 #include "3rdparty/bvh/vector.hpp"
@@ -13,7 +13,7 @@
 #include <assimp/postprocess.h>
 #include <assimp/cimport.h>
 
-#include <clsim/scene/geometry.hpp>
+#include <xviz/scene/geometry.hpp>
 #include <iostream>
 
 using namespace std ;
@@ -27,7 +27,7 @@ using Bvh      = bvh::Bvh<Scalar>;
 
 using namespace std ;
 
-namespace clsim {
+namespace xviz {
 
 static Eigen::Vector3f bvh2eigen(const Vector3 &v) {
     return {v[0], v[1], v[2]} ;

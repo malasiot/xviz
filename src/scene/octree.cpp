@@ -1,14 +1,14 @@
-#include <clsim/scene/detail/octree.hpp>
-#include <clsim/scene/geometry.hpp>
+#include <xviz/scene/detail/octree.hpp>
+#include <xviz/scene/geometry.hpp>
 
-#include <clsim/scene/detail/intersect.hpp>
+#include <xviz/scene/detail/intersect.hpp>
 #include <iostream>
 
 using Eigen::Vector3f ;
 using std::vector ;
 using namespace std;
 
-namespace clsim { namespace detail {
+namespace xviz { namespace detail {
 
 OctreeNode::~OctreeNode()
 {

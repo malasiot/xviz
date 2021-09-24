@@ -1,11 +1,11 @@
-#include <clsim/scene/scene.hpp>
-#include <clsim/scene/node.hpp>
-#include <clsim/scene/drawable.hpp>
-#include <clsim/scene/mesh.hpp>
-#include <clsim/scene/light.hpp>
-#include <clsim/scene/material.hpp>
-#include <clsim/scene/geometry.hpp>
-#include <clsim/scene/node_animation.hpp>
+#include <xviz/scene/scene.hpp>
+#include <xviz/scene/node.hpp>
+#include <xviz/scene/drawable.hpp>
+#include <xviz/scene/mesh.hpp>
+#include <xviz/scene/light.hpp>
+#include <xviz/scene/material.hpp>
+#include <xviz/scene/geometry.hpp>
+#include <xviz/scene/node_animation.hpp>
 
 #include <optional>
 
@@ -25,7 +25,7 @@ static Vector4f color4_to_float4(const aiColor4D &c) {
     return Vector4f(c.r, c.g, c.b, c.a) ;
 }
 
-namespace clsim {
+namespace xviz {
 
 namespace internal {
 
@@ -415,7 +415,7 @@ bool AssimpImporter::importAnimations(const aiScene *sc)
                 nanim->addRotationKeyFrame(0.0, Quaternionf(key.mValue.w, key.mValue.x, key.mValue.y, key.mValue.z)) ;
                 nanim->addRotationKeyFrame(1.0, Quaternionf(key.mValue.w, key.mValue.x, key.mValue.y, key.mValue.z)) ;
             } else {
-                for( uint k=0 ; k<channel->mNumScalingKeys ; k++ ) {
+                for( uint k=0 ; k<channel->mNumRotationKeys ; k++ ) {
                     const aiQuatKey &key = channel->mRotationKeys[k] ;
                     nanim->addRotationKeyFrame(key.mTime/anim->mDuration, Quaternionf(key.mValue.w, key.mValue.x, key.mValue.y, key.mValue.z)) ;
                 }

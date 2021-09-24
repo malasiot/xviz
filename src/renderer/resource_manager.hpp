@@ -3,7 +3,7 @@
 
 #include <map>
 
-namespace clsim { namespace impl {
+namespace xviz { namespace impl {
 
 class OpenGLShader ;
 

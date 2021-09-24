@@ -1,9 +1,9 @@
-#include <clsim/physics/constraint.hpp>
-#include <clsim/physics/particle.hpp>
+#include <xviz/physics/constraint.hpp>
+#include <xviz/physics/particle.hpp>
 
 using namespace Eigen ;
 
-namespace clsim {
+namespace xviz {
 
 const float eps = static_cast<float>(1e-6);
 

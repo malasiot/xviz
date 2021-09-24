@@ -12,7 +12,7 @@
 using namespace std ;
 using namespace Eigen ;
 
-namespace clsim { namespace impl {
+namespace xviz { namespace impl {
 
 static void throw_error(const char *error_str, const char *error_desc) {
     ostringstream msg ;
@@ -117,7 +117,6 @@ void OpenGLShader::setSourceFile(const std::string &file_name, const OpenGLShade
 
     preproc(file_name, defines, false) ;
 
-    cout << code_ << endl ;
     compile() ;
 }
 

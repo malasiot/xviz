@@ -1,4 +1,4 @@
-#include <clsim/scene/renderer.hpp>
+#include <xviz/scene/renderer.hpp>
 
 #include "shadow_map.hpp"
 #include "util.hpp"
@@ -6,20 +6,20 @@
 #include "material_program.hpp"
 #include "texture_data.hpp"
 
-#include <clsim/scene/scene.hpp>
-#include <clsim/scene/node.hpp>
-#include <clsim/scene/drawable.hpp>
-#include <clsim/scene/geometry.hpp>
-#include <clsim/scene/camera.hpp>
-#include <clsim/scene/light.hpp>
-#include <clsim/scene/material.hpp>
+#include <xviz/scene/scene.hpp>
+#include <xviz/scene/node.hpp>
+#include <xviz/scene/drawable.hpp>
+#include <xviz/scene/geometry.hpp>
+#include <xviz/scene/camera.hpp>
+#include <xviz/scene/light.hpp>
+#include <xviz/scene/material.hpp>
 
 #include <iostream>
 
 using namespace Eigen ;
 using namespace std ;
 
-namespace clsim {
+namespace xviz {
 
 using namespace impl ;
 
@@ -59,6 +59,8 @@ MaterialProgramPtr Renderer::instantiateMaterial(const Material *mat, int flags)
         return ConstantMaterialProgram::instance(flags) ;
     } else if ( const PerVertexColorMaterial *material = dynamic_cast<const PerVertexColorMaterial *>(mat)) {
         return PerVertexColorMaterialProgram::instance(flags) ;
+    } else if ( const WireFrameMaterial *material = dynamic_cast<const WireFrameMaterial *>(mat)) {
+        return WireFrameMaterialProgram::instance(flags) ;
     }
 
     return nullptr ;

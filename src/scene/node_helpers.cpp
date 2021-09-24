@@ -1,10 +1,10 @@
-#include <clsim/scene/node_helpers.hpp>
-#include <clsim/scene/material.hpp>
+#include <xviz/scene/node_helpers.hpp>
+#include <xviz/scene/material.hpp>
 
 using namespace Eigen ;
 using namespace std ;
 
-namespace clsim {
+namespace xviz {
 
 NodePtr NodeHelpers::makeAxes(float sz) {
     GeometryPtr m(new Geometry(Geometry::Lines)) ;

@@ -1,14 +1,14 @@
-#include <clsim/gui/trackball.hpp>
+#include <xviz/gui/trackball.hpp>
 
-#include <clsim/scene/scene.hpp>
-#include <clsim/scene/camera.hpp>
+#include <xviz/scene/scene.hpp>
+#include <xviz/scene/camera.hpp>
 
 #include <Eigen/Geometry>
 
 using namespace std ;
 using namespace Eigen ;
 
-namespace clsim {
+namespace xviz {
 
 Eigen::Vector3f TrackBall::X(1.f, 0.f, 0.f);
 Eigen::Vector3f TrackBall::Y(0.f, 1.f, 0.f);

@@ -2,7 +2,7 @@
 
 #include "gl/gl3w.h"
 
-namespace clsim { namespace impl {
+namespace xviz { namespace impl {
 
 
 ShadowMap::ShadowMap()

@@ -2,7 +2,7 @@
 
 using namespace Eigen ;
 
-namespace clsim {
+namespace xviz {
 
 #define FLOOR(x) ( (int)(x + 32768.f) - 32768 )
 

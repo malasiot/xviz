@@ -1,4 +1,4 @@
-#include <clsim/scene/camera.hpp>
+#include <xviz/scene/camera.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -8,7 +8,7 @@
 using namespace std ;
 using namespace Eigen ;
 
-namespace clsim {
+namespace xviz {
 
 // http://antongerdelan.net/opengl/raycasting.html
 

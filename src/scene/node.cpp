@@ -1,12 +1,12 @@
-#include <clsim/scene/node.hpp>
-#include <clsim/scene/geometry.hpp>
+#include <xviz/scene/node.hpp>
+#include <xviz/scene/geometry.hpp>
 
 #include <unordered_set>
 
 using namespace Eigen ;
 using namespace std ;
 
-namespace clsim {
+namespace xviz {
 
 
 NodePtr Node::findNodeByName(const std::string &name)

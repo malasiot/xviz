@@ -1,32 +1,32 @@
-#include <clsim/scene/material.hpp>
+#include <xviz/scene/material.hpp>
 
 #include <QApplication>
 #include <QMainWindow>
 
-#include <clsim/scene/camera.hpp>
-#include <clsim/scene/light.hpp>
+#include <xviz/scene/camera.hpp>
+#include <xviz/scene/light.hpp>
 
-#include <clsim/scene/node.hpp>
-#include <clsim/scene/geometry.hpp>
-#include <clsim/scene/mesh.hpp>
+#include <xviz/scene/node.hpp>
+#include <xviz/scene/geometry.hpp>
+#include <xviz/scene/mesh.hpp>
 
 #include <iostream>
 
-#include <clsim/physics/world.hpp>
-#include <clsim/physics/cloth.hpp>
-#include <clsim/physics/solver.hpp>
-#include <clsim/physics/collision_object.hpp>
+#include <xviz/physics/world.hpp>
+#include <xviz/physics/cloth.hpp>
+#include <xviz/physics/solver.hpp>
+#include <xviz/physics/collision_object.hpp>
 
-#include <clsim/scene/scene.hpp>
-#include <clsim/scene/node_helpers.hpp>
+#include <xviz/scene/scene.hpp>
+#include <xviz/scene/node_helpers.hpp>
 
-#include <clsim/gui/viewer.hpp>
+#include <xviz/gui/viewer.hpp>
 #include "sim_gui.hpp"
 
 using namespace Eigen ;
 
 using namespace std ;
-using namespace clsim ;
+using namespace xviz ;
 
 static World physics ;
 static Solver *solver ;

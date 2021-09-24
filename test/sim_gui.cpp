@@ -1,9 +1,9 @@
 #include "sim_gui.hpp"
-#include <clsim/scene/scene.hpp>
-#include <clsim/physics/world.hpp>
+#include <xviz/scene/scene.hpp>
+#include <xviz/physics/world.hpp>
 #include <QTimer>
 
-using namespace clsim ;
+using namespace xviz ;
 
 SimulationGui::SimulationGui(World &physics): SceneViewer(physics.getVisual()), physics_(physics) {
 

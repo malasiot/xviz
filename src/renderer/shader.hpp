@@ -1,5 +1,5 @@
-#ifndef CLSIM_GL_SHADER_HPP
-#define CLSIM_GL_SHADER_HPP
+#ifndef XVIZ_GL_SHADER_HPP
+#define XVIZ_GL_SHADER_HPP
 
 #include <string>
 #include <stdexcept>
@@ -10,7 +10,7 @@
 #include <Eigen/Core>
 #include <memory>
 
-namespace clsim { namespace impl {
+namespace xviz { namespace impl {
 
 
 enum OpenGLShaderType { VERTEX_SHADER,  FRAGMENT_SHADER, GEOMETRY_SHADER, COMPUTE_SHADER, TESS_CONTROL_SHADER, TESS_EVALUATION_SHADER  } ;

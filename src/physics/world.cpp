@@ -1,11 +1,11 @@
-#include <clsim/physics/world.hpp>
-#include <clsim/physics/cloth.hpp>
-#include <clsim/physics/solver.hpp>
-#include <clsim/physics/collision_object.hpp>
+#include <xviz/physics/world.hpp>
+#include <xviz/physics/cloth.hpp>
+#include <xviz/physics/solver.hpp>
+#include <xviz/physics/collision_object.hpp>
 
-#include <clsim/scene/geometry.hpp>
+#include <xviz/scene/geometry.hpp>
 
-namespace clsim {
+namespace xviz {
 
 World::World()
 {
@@ -15,7 +15,7 @@ World::World()
 World::~World() {
 }
 
-void World::setCloth(clsim::Cloth *cloth) {
+void World::setCloth(xviz::Cloth *cloth) {
     cloth_.reset(cloth) ;
 
     size_t np = cloth_->particles_.size() ;

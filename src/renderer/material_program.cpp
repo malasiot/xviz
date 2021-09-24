@@ -1,7 +1,7 @@
 #include "material_program.hpp"
 
-#include <clsim/scene/material.hpp>
-#include <clsim/scene/light.hpp>
+#include <xviz/scene/material.hpp>
+#include <xviz/scene/light.hpp>
 
 #include "util.hpp"
 
@@ -13,7 +13,7 @@ using namespace Eigen ;
 #include "shaders/phong.fs.hpp"
 #include "shaders/shadows.fs.hpp"
 
-namespace clsim { namespace impl {
+namespace xviz { namespace impl {
 
 PhongMaterialProgram::PhongMaterialProgram(int flags): flags_(flags)
 {
@@ -35,7 +35,7 @@ PhongMaterialProgram::PhongMaterialProgram(int flags): flags_(flags)
     if ( flags & ENABLE_SHADOWS )
         fs_preproc.appendDefinition("HAS_SHADOWS") ;
 
-    addShaderFromFile(VERTEX_SHADER, "@phong_fragment_shader", fs_preproc) ;
+    addShaderFromFile(FRAGMENT_SHADER, "@phong_fragment_shader", fs_preproc) ;
 
     link() ;
 }
@@ -147,8 +147,6 @@ void ConstantMaterialProgram::applyParams(const MaterialPtr &mat) {
 
 PerVertexColorMaterialProgram::PerVertexColorMaterialProgram(int flags) {
 
-    OpenGLShaderPtr vs(new OpenGLShader(VERTEX_SHADER)) ;
-
     OpenGLShaderPreproc preproc ;
     preproc.appendDefinition("HAS_COLORS");
     if ( flags & ENABLE_SKINNING ) preproc.appendDefinition("USE_SKINNING");
@@ -164,6 +162,29 @@ void PerVertexColorMaterialProgram::applyParams(const MaterialPtr &mat) {
     assert( material ) ;
 
      setUniform("opacity", material->opacity()) ;
+}
+
+
+WireFrameMaterialProgram::WireFrameMaterialProgram(int flags) {
+
+    OpenGLShaderPreproc preproc ;
+
+    if ( flags & ENABLE_SKINNING ) preproc.appendDefinition("USE_SKINNING");
+
+    addShaderFromFile(VERTEX_SHADER, "@vertex_shader", preproc) ;
+    addShaderFromFile(GEOMETRY_SHADER, "@wireframe_geometry_shader", preproc) ;
+    addShaderFromFile(FRAGMENT_SHADER, "@wireframe_fragment_shader", preproc) ;
+
+    link() ;
+}
+
+void WireFrameMaterialProgram::applyParams(const MaterialPtr &mat) {
+    const WireFrameMaterial *material = dynamic_cast<const WireFrameMaterial *>(mat.get());
+    assert( material ) ;
+
+    setUniform("color", material->lineColor()) ;
+    setUniform("width", material->lineWidth()) ;
+    setUniform("fill", material->fillColor()) ;
 }
 
 }}

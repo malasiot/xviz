@@ -5,7 +5,7 @@
 #include "shaders/shadows.fs.hpp"
 #include "shaders/constant.fs.hpp"
 #include "shaders/per_vertex.fs.hpp"
-
+#include "shaders/wireframe.hpp"
 
 #include "shaders/shadow_map.vs.hpp"
 #include "shaders/shadow_map.fs.hpp"
@@ -13,7 +13,7 @@
 
 #include <fstream>
 
-namespace clsim { namespace impl {
+namespace xviz { namespace impl {
 
 std::string OpenGLShaderResourceManager::fetch(const std::string &name) {
     if ( name.empty() ) return {} ;
@@ -45,6 +45,8 @@ OpenGLShaderResourceManager::OpenGLShaderResourceManager() {
     addSource("shadow_map_shader_fs", shadow_map_shader_fs) ;
     addSource("shadow_debug_shader_vs", shadow_debug_shader_vs) ;
     addSource("shadow_debug_shader_fs", shadow_debug_shader_fs) ;
+    addSource("wireframe_fragment_shader", wireframe_shader_fs) ;
+    addSource("wireframe_geometry_shader", wireframe_shader_gs) ;
 }
 
 void OpenGLShaderResourceManager::addSource(const char * name, const char *src) {

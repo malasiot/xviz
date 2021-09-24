@@ -1,4 +1,4 @@
-#include <clsim/common/image.hpp>
+#include <xviz/common/image.hpp>
 
 #include <cstring>
 #include <iostream>
@@ -6,7 +6,7 @@
 
 using namespace std ;
 
-namespace clsim {
+namespace xviz {
 
 class ImageData {
 public:

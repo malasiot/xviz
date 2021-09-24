@@ -73,11 +73,11 @@ endif()
 
 # set include directories
 
-set(CLSIM_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/clsim/)
+set(XVIZ_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/xviz/)
 
 
 # Create 'version.hpp'
 configure_file(${CMAKE_SOURCE_DIR}/CMake/version.h.in  "${CMAKE_CURRENT_BINARY_DIR}/version.hpp" @ONLY)
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/version.hpp DESTINATION "${INSTALL_INCLUDE_DIR}/clsim" )
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/version.hpp DESTINATION "${INSTALL_INCLUDE_DIR}/xviz" )
 

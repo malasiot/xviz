@@ -1,8 +1,8 @@
-#ifndef CLSIM_RENDERER_MATERIAL_HPP
-#define CLSIM_RENDERER_MATERIAL_HPP
+#ifndef XVIZ_RENDERER_MATERIAL_HPP
+#define XVIZ_RENDERER_MATERIAL_HPP
 
 #include <Eigen/Geometry>
-#include <clsim/scene/scene_fwd.hpp>
+#include <xviz/scene/scene_fwd.hpp>
 
 #include "shader.hpp"
 
@@ -11,7 +11,7 @@
 
 enum MaterialProgramFlags { ENABLE_SKINNING = 1, ENABLE_SHADOWS = 2, HAS_DIFFUSE_TEXTURE = 4, HAS_SPECULAR_TEXTURE = 8 } ;
 
-namespace clsim { namespace impl {
+namespace xviz { namespace impl {
 
 class MaterialProgram ;
 using MaterialProgramPtr = std::shared_ptr<MaterialProgram> ;
@@ -118,6 +118,23 @@ public:
     static MaterialProgramPtr instance(int flags) {
         static std::map<int, MaterialProgramPtr> s_materials ;
         return materialSingleton<PerVertexColorMaterialProgram>(s_materials, flags) ;
+    }
+};
+
+class WireFrameMaterialProgram: public MaterialProgram {
+public:
+
+    WireFrameMaterialProgram(int flags) ;
+
+    void applyParams(const MaterialPtr &mat) override ;
+
+    void applyTransform(const Eigen::Matrix4f &cam, const Eigen::Matrix4f &view, const Eigen::Matrix4f &model) override {
+        applyDefaultPerspective(cam, view, model) ;
+    }
+
+    static MaterialProgramPtr instance(int flags) {
+        static std::map<int, MaterialProgramPtr> s_materials ;
+        return materialSingleton<WireFrameMaterialProgram>(s_materials, flags) ;
     }
 };
 

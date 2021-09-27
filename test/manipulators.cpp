@@ -19,39 +19,32 @@ using namespace std ;
 
 int main(int argc, char **argv)
 {
-     QApplication app(argc, argv);
-
-    NodePtr box_node(new Node) ;
-
-    GeometryPtr geom(new BoxGeometry({1, 2, 1})) ;
-
-    ConstantMaterial *material = new ConstantMaterial({1, 0, 1, 1}) ;
-
-    MaterialPtr mat(material) ;
-    box_node->addDrawable(geom, mat) ;
+    QApplication app(argc, argv);
+    SceneViewer::initDefaultGLContext();
 
     NodePtr scene(new Node) ;
 
+    NodePtr box_node(new Node) ;
+    GeometryPtr geom(new BoxGeometry({1, 2, 1})) ;
+    PhongMaterial *material = new PhongMaterial({1, 0, 1, 1}) ;
+    MaterialPtr mat(material) ;
+    box_node->addDrawable(geom, mat) ;
+    scene->addChild(box_node) ;
 
-    Translate1DManipulator *manip = new Translate1DManipulator({ -2.0, 0, 0}, {2, 0, 0});
+
+    TranslateXYZManipulator *manip = new TranslateXYZManipulator(box_node, 3.0);
 
     ManipulatorPtr m(manip) ;
 
-    m->addChild(box_node) ;
-
-    scene->addChild(m) ;
+    box_node->addChild(m) ;
 
     DirectionalLight *dl = new DirectionalLight(Vector3f(0.5, 0.5, 1)) ;
     dl->diffuse_color_ = Vector3f(1, 1, 1) ;
     scene->addLightNode(LightPtr(dl)) ;
 
-
     SceneViewer *viewer = new SceneViewer(scene) ;
-    viewer->addManipulator(m) ;
+    viewer->initCamera({0, 0, 0}, 4.0);
 
-
-
-    SceneViewer::initDefaultGLContext();
     QMainWindow window ;
     window.setCentralWidget(viewer) ;
     window.resize(512, 512) ;

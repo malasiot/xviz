@@ -163,7 +163,7 @@ void Renderer::renderShadowMap(const LightPtr &l) {
             shadow_map_shader_->setUniform("lightSpaceMatrix", ls_mat_);
             shadow_map_shader_->setUniform("model", node->globalTransform().matrix()) ;
             drawMeshData(*data, geom, true) ;
-            shadow_map_shader_.release() ;
+
         }
     }
 
@@ -281,8 +281,7 @@ void Renderer::renderQuad()
 }
 
 
-void Renderer::renderShadowDebug()
-{
+void Renderer::renderShadowDebug() {
 
     shadow_map_debug_shader_->use() ;
     shadow_map_debug_shader_->setUniform("depthMap", 0);
@@ -387,7 +386,7 @@ void Renderer::render(const Drawable &dr, const Affine3f &mat, const LightPtr &l
 
 void Renderer::initShadowMapRenderer()
 {
-    //if ( shadow_map_shader_.isLinked() ) return ;
+    if ( shadow_map_shader_ ) return ;
 
     shadow_map_shader_.reset(new OpenGLShaderProgram) ;
     shadow_map_shader_->addShaderFromFile(VERTEX_SHADER, "@shadow_map_shader_vs") ;

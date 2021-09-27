@@ -113,6 +113,7 @@ public:
     }
 
     void onUpdate(float delta) override {
+        return;
         NodePtr node = scene_->findNodeByName("ground") ;
         GeometryPtr geom = node->drawables()[0].geometry() ;
         auto &vertices = geom->vertices() ;
@@ -120,7 +121,7 @@ public:
         for( int i=0 ; i<vertices.size() ; i++ ) {
             vertices[i].y() -= 0.01 ;
         }
-    //    geom->setVerticesUpdated(true) ;
+        geom->setVerticesUpdated(true) ;
 
     }
 
@@ -135,10 +136,10 @@ int main(int argc, char **argv)
 
     NodePtr ground(new Node) ;
     ground->setName("ground");
-    ground->transform().translate(Vector3f{0, -0.1, 0}) ;
+    ground->transform().translate(Vector3f{0, -0.3, 0}) ;
     GeometryPtr plane(new Geometry(std::move(Geometry::makePlane(2, 2, 2, 2)))) ;
     MaterialPtr planeMat(new ConstantMaterial({0.6, 0.6, 0.6, 1})) ;
-   // planeMat->setSide(Material::Side::Both) ;
+    planeMat->setSide(Material::Side::Both) ;
     ground->addDrawable(plane, planeMat) ;
     scene->addChild(ground) ;
 
@@ -155,7 +156,7 @@ int main(int argc, char **argv)
 
     DirectionalLight *dl = new DirectionalLight(Vector3f(1, 4, 0.5)) ;
     dl->diffuse_color_ = Vector3f(0.72, 0.72, 0.72) ;
-    scene->addLightNode(LightPtr(dl)) ;
+    //scene->addLightNode(LightPtr(dl)) ;
 
     xviz::DirectionalLight *dl2 = new xviz::DirectionalLight(Vector3f(0, 4, 0.1)) ;
     dl2->diffuse_color_ = Vector3f(0.75, 1, 1) ;

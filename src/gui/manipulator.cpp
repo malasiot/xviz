@@ -31,6 +31,7 @@ float computeRayProjectionOnLine(const Eigen::Vector3f &pA, const Eigen::Vector3
     float s = (p2 - p1).dot(n2) / d1.dot(n2) ;
     float t = (p1 - p2).dot(n1) / d2.dot(n1) ;
 
+    // need to handle case that denominator is zero (parallel lines)
     qDebug() << s ;
     p = p1 + s * d1 ;
     auto q = p2 + t * d2 ;
@@ -38,7 +39,7 @@ float computeRayProjectionOnLine(const Eigen::Vector3f &pA, const Eigen::Vector3
     return ( q - p ).norm();
 }
 
-Translate1DManipulator::Translate1DManipulator(const Eigen::Vector3f &start, const Eigen::Vector3f &end): Manipulator(), start_(start), end_(end) {
+Translate1DManipulator::Translate1DManipulator(const NodePtr &node, const Eigen::Vector3f &start, const Eigen::Vector3f &end): Manipulator(node), start_(start), end_(end) {
     mat_.reset(new ConstantMaterial(clr_)) ;
 
     GeometryPtr line_geom(new Geometry(Geometry::Lines)) ;
@@ -74,6 +75,7 @@ Translate1DManipulator::Translate1DManipulator(const Eigen::Vector3f &start, con
 void Translate1DManipulator::setColor(const Eigen::Vector4f &clr)
 {
     clr_ = clr ;
+    setMaterialColor(clr);
 
 }
 
@@ -103,7 +105,7 @@ bool Translate1DManipulator::onMousePressed(QMouseEvent *event)
 
     if ( d < pick_threshold_ ) {
         dragging_ = true ;
-        translation_init_ = transform().translation() ;
+        translation_init_ = transform_node_->transform().translation() ;
         setMaterialColor(pick_clr_) ;
         return true ;
     }
@@ -132,8 +134,8 @@ bool Translate1DManipulator::onMouseMoved(QMouseEvent *event)
         float d = computeRayProjectionOnLine(start_, end_, tr.origin(), tr.dir(), p) ;
 
         Vector3f t = translation_init_ + p - start_drag_  ;
-        if ( container_ ) container_->transform().translation() = t  ;
-        else transform().translation() = t  ;
+        if ( transform_node_ ) transform_node_->transform().translation() = t  ;
+
 
         return true ;
 
@@ -143,10 +145,49 @@ bool Translate1DManipulator::onMouseMoved(QMouseEvent *event)
 
 }
 
+bool CompositeManipulator::onMousePressed(QMouseEvent *event) {
+    for( const auto &m: components_ ) {
+        if ( m->onMousePressed(event) ) return true ;
+    }
+    return false ;
+}
+
+bool CompositeManipulator::onMouseReleased(QMouseEvent *event) {
+    for( const auto &m: components_ ) {
+        if ( m->onMouseReleased(event) ) return true ;
+    }
+    return false ;
+}
+
+bool CompositeManipulator::onMouseMoved(QMouseEvent *event) {
+    for( const auto &m: components_ ) {
+        if ( m->onMouseMoved(event) ) return true ;
+    }
+    return false ;
+}
+
 void CompositeManipulator::addComponent(const ManipulatorPtr &m)
 {
-  components_.push_back(m) ;
-  m->container_ = this ;
+    components_.push_back(m) ;
+    addChild(m);
+}
+
+TranslateXYZManipulator::TranslateXYZManipulator(const NodePtr &n, float hw): CompositeManipulator(n) {
+    Translate1DManipulator *mx = new Translate1DManipulator(n, {-hw, 0, 0},{hw, 0, 0}) ;
+    mx->setColor({1, 0, 0, 1}) ;
+    mx_.reset(mx) ;
+
+    Translate1DManipulator *my = new Translate1DManipulator(n, {0, -hw, 0},{0, hw, 0}) ;
+    my->setColor({0, 1, 0, 1}) ;
+    my_.reset(my) ;
+
+    Translate1DManipulator *mz = new Translate1DManipulator(n, {0, 0, -hw},{0, 0, hw}) ;
+    mz->setColor({0, 0, 1, 1}) ;
+    mz_.reset(mz) ;
+
+    addComponent(mx_);
+    addComponent(my_) ;
+    addComponent(mz_) ;
 }
 
 

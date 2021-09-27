@@ -8,11 +8,6 @@
 using namespace std ;
 using namespace Eigen ;
 
-
-#include "shaders/common.vs.hpp"
-#include "shaders/phong.fs.hpp"
-#include "shaders/shadows.fs.hpp"
-
 namespace xviz { namespace impl {
 
 PhongMaterialProgram::PhongMaterialProgram(int flags): flags_(flags)
@@ -120,13 +115,9 @@ void MaterialProgram::applyDefaultLight(const LightPtr &light, const Affine3f &t
     }
 }
 
-
-#include "shaders/constant.fs.hpp"
-
 ConstantMaterialProgram::ConstantMaterialProgram(int flags): flags_(flags) {
-    OpenGLShaderPtr vs(new OpenGLShader(VERTEX_SHADER)) ;
-
     OpenGLShaderPreproc preproc ;
+
     if ( flags & ENABLE_SKINNING ) preproc.appendDefinition("USE_SKINNING");
     if ( flags & ENABLE_SHADOWS ) preproc.appendDefinition("HAS_SHADOWS") ;
 
@@ -142,8 +133,6 @@ void ConstantMaterialProgram::applyParams(const MaterialPtr &mat) {
 
     setUniform("color", material->color()) ;
 }
-
-#include "shaders/per_vertex.fs.hpp"
 
 PerVertexColorMaterialProgram::PerVertexColorMaterialProgram(int flags) {
 

@@ -57,10 +57,15 @@ Eigen::Matrix<typename Derived::Scalar,3,3> rotationBetween(Derived const & a, D
     auto s = u.squaredNorm() ;
     auto c = a.dot(b) ;
 
-    Matrix3 S ;
-    S << 0, -u.z(), u.y(), u.z(), 0, -u.x(), -u.y(), u.x(), 0 ;
+    if ( s < std::numeric_limits<typename Derived::Scalar>::min() ) {
+        if ( c > 0 ) return Matrix3::Identity() ;
+        else return -Matrix3::Identity() ;
+    } else {
+        Matrix3 S ;
+        S << 0, -u.z(), u.y(), u.z(), 0, -u.x(), -u.y(), u.x(), 0 ;
 
-    return Matrix3::Identity() + S + S*S*(1.0 - c)/s ;
+        return Matrix3::Identity() + S + S*S*(1.0 - c)/s ;
+    }
 
 
 }

@@ -32,3 +32,6 @@ SET(PHYSICS_SRC
 
 add_executable(test_cloth test_cloth.cpp sim_gui.cpp ${PHYSICS_SRC})
 target_link_libraries(test_cloth xviz)
+
+add_executable(test_manipulators manipulators.cpp )
+target_link_libraries(test_manipulators xviz)

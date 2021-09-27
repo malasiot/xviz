@@ -15,6 +15,9 @@
 
 namespace xviz {
 
+class Manipulator ;
+using ManipulatorPtr = std::shared_ptr<Manipulator> ;
+
 class SceneViewer : public QOpenGLWidget
 {
     Q_OBJECT
@@ -24,6 +27,7 @@ public:
     enum UpAxis { XAxis, YAxis, ZAxis } ;
 
     SceneViewer(const NodePtr &scene, QWidget *parent = nullptr)  ;
+    ~SceneViewer() ;
 
     static void initDefaultGLContext() {
 
@@ -50,6 +54,8 @@ public:
     void setScene(const ScenePtr &scene) ;
 
     void startAnimations() ;
+
+    void addManipulator(const ManipulatorPtr &m) ;
 
 public slots:
 
@@ -88,6 +94,8 @@ protected:
     float ts_ = 0 ;
 
     QElapsedTimer et_ ;
+
+    std::vector<ManipulatorPtr> manipulators_ ;
 
 };
 

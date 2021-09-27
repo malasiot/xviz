@@ -1,9 +1,10 @@
 #include <xviz/gui/viewer.hpp>
-
+#include <xviz/gui/manipulator.hpp>
 #include <xviz/scene/scene.hpp>
 #include <xviz/scene/light.hpp>
 #include <xviz/scene/node.hpp>
 #include <xviz/scene/node_helpers.hpp>
+
 
 #include <QTimer>
 #include <QPainter>
@@ -46,6 +47,11 @@ SceneViewer::SceneViewer(const NodePtr &scene, QWidget *parent): QOpenGLWidget(p
 
 }
 
+SceneViewer::~SceneViewer()
+{
+
+}
+
 void SceneViewer::setDrawAxes(bool draw_axes) {
     draw_axes_ = draw_axes ;
     axes_->setVisible(draw_axes) ;
@@ -81,9 +87,18 @@ void SceneViewer::startAnimations()
     timer->start(30);
 }
 
+void SceneViewer::addManipulator(const ManipulatorPtr &m) {
+    m->setCamera(camera_) ;
+    manipulators_.emplace_back(m) ;
+}
+
 void SceneViewer::mousePressEvent(QMouseEvent *event)
 {
     if ( !camera_ ) return ;
+
+    for( const auto &manip: manipulators_ ) {
+        if ( manip->onMousePressed(event) ) return ;
+    }
 
     switch ( event->button() ) {
     case Qt::LeftButton:
@@ -104,6 +119,10 @@ void SceneViewer::mouseReleaseEvent(QMouseEvent *event)
 {
     if ( !camera_ ) return ;
 
+    for( const auto &manip: manipulators_ ) {
+        if ( manip->onMouseReleased(event) ) return ;
+    }
+
     switch ( event->button() ) {
     case Qt::LeftButton:
         trackball_.setLeftClicked(false) ;
@@ -123,6 +142,10 @@ void SceneViewer::mouseReleaseEvent(QMouseEvent *event)
 void SceneViewer::mouseMoveEvent(QMouseEvent *event)
 {
     if ( !camera_ ) return ;
+
+    for( const auto &manip: manipulators_ ) {
+        if ( manip->onMouseMoved(event) ) return ;
+    }
 
     int x = event->x() ;
     int y = event->y() ;

@@ -47,3 +47,20 @@ Eigen::Matrix<Scalar,4,4> ortho( Scalar const& left,
     mat(3,2) = - (zFar + zNear) / (zFar - zNear);
     return mat;
 }
+
+template<typename Derived>
+Eigen::Matrix<typename Derived::Scalar,3,3> rotationBetween(Derived const & a, Derived const & b){
+  typedef Eigen::Matrix<typename Derived::Scalar,3,3> Matrix3;
+  typedef Eigen::Matrix<typename Derived::Scalar,3,1> Vector3;
+
+    Vector3 u = a.cross(b) ;
+    auto s = u.squaredNorm() ;
+    auto c = a.dot(b) ;
+
+    Matrix3 S ;
+    S << 0, -u.z(), u.y(), u.z(), 0, -u.x(), -u.y(), u.x(), 0 ;
+
+    return Matrix3::Identity() + S + S*S*(1.0 - c)/s ;
+
+
+}

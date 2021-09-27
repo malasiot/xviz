@@ -47,6 +47,7 @@ set(LIB_SOURCES
     gui/viewer.cpp
     gui/trackball.cpp
     gui/offscreen.cpp
+    gui/manipulator.cpp
 
     ${LIBRARY_INCLUDE_DIR}/gui/viewer.hpp
     ${LIBRARY_INCLUDE_DIR}/gui/offscreen.hpp

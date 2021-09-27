@@ -89,6 +89,10 @@ class ConstantMaterial: public Material {
 public:
     ConstantMaterial(const Eigen::Vector4f &clr): clr_(clr) {}
 
+    void setColor(const Eigen::Vector4f &clr) {
+        clr_ = clr ;
+    }
+
     const Eigen::Vector4f &color() const { return clr_ ; }
 
 private:

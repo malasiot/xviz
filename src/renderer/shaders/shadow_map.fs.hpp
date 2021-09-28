@@ -1,10 +1,12 @@
 static const char *shadow_map_shader_fs = R"(
+#version 330
   void main()
   {
   }
 )" ;
 
 static const char *shadow_debug_shader_fs = R"(
+#version 330
   out vec4 FragColor;
   in vec2 TexCoords;
 

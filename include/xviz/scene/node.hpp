@@ -32,6 +32,8 @@ public:
 
 
     Node() { mat_.setIdentity() ; }
+    virtual ~Node() = default;
+
 
     const Eigen::Affine3f &transform() const { return mat_ ; }
     Eigen::Affine3f &transform() { return mat_ ; }
@@ -122,6 +124,8 @@ public:
         }) ;
         return nodes ;
     }
+
+
 
     void addAnimation(Animation *anim) { animations_.emplace_back(anim) ; }
 

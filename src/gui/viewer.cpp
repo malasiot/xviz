@@ -76,6 +76,11 @@ void SceneViewer::initCamera(const Vector3f &c, float r, UpAxis axis) {
    trackball_.setZoomScale(0.1*r) ;
 
    camera_->setBgColor({1, 1, 1, 1}) ;
+
+   scene_->visit([this](Node &node) {
+      if ( Manipulator *m = dynamic_cast<Manipulator *>(&node) ) m->setCamera(camera_) ;
+   });
+
 }
 
 void SceneViewer::startAnimations()
@@ -88,7 +93,7 @@ void SceneViewer::startAnimations()
 }
 
 void SceneViewer::addManipulator(const ManipulatorPtr &m) {
-    m->setCamera(camera_) ;
+
     manipulators_.emplace_back(m) ;
 }
 
@@ -96,8 +101,10 @@ void SceneViewer::mousePressEvent(QMouseEvent *event)
 {
     if ( !camera_ ) return ;
 
-    for( const auto &manip: manipulators_ ) {
-        if ( manip->onMousePressed(event) ) return ;
+    for( const ManipulatorPtr &m: getManipulators() ) {
+        if ( m->onMousePressed(event) ) {
+            return ;
+        }
     }
 
     switch ( event->button() ) {
@@ -119,8 +126,11 @@ void SceneViewer::mouseReleaseEvent(QMouseEvent *event)
 {
     if ( !camera_ ) return ;
 
-    for( const auto &manip: manipulators_ ) {
-        if ( manip->onMouseReleased(event) ) return ;
+    for( const ManipulatorPtr &m: getManipulators() ) {
+        if ( m->onMouseReleased(event) ) {
+            update() ;
+            return ;
+        }
     }
 
     switch ( event->button() ) {
@@ -143,8 +153,10 @@ void SceneViewer::mouseMoveEvent(QMouseEvent *event)
 {
     if ( !camera_ ) return ;
 
-    for( const auto &manip: manipulators_ ) {
-        if ( manip->onMouseMoved(event) ) return ;
+    for( const ManipulatorPtr &m: getManipulators() ) {
+        if ( m->onMouseMoved(event) ) {
+            return ;
+        }
     }
 
     int x = event->x() ;
@@ -202,6 +214,15 @@ void SceneViewer::drawText(const Vector3f &c, const QString &text, const QColor 
     painter.setPen(clr) ;
     painter.drawText(p.x() - rect.width()/2, p.y() + rect.height()/2, text);
     painter.end();
+}
+
+std::vector<ManipulatorPtr> SceneViewer::getManipulators() {
+    std::vector<ManipulatorPtr> nodes ;
+    scene_->visit([&](Node &n) {
+        if ( ManipulatorPtr m = std::dynamic_pointer_cast<Manipulator>(n.shared_from_this()) )
+            nodes.push_back(m) ;
+    }) ;
+    return nodes ;
 }
 
 void SceneViewer::paintGL()

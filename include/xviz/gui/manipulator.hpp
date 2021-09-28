@@ -59,7 +59,7 @@ private:
     GeometryPtr cone_, line_ ;
     MaterialPtr mat_ ;
     bool dragging_ = false ;
-    float pick_threshold_ = 0.05 ;
+    float pick_threshold_  ;
 
     void setMaterialColor(const Eigen::Vector4f &clr);
 };

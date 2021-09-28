@@ -13,40 +13,6 @@ namespace xviz {
 
 // find closest point
 
-bool computeRayProjectionOnLine(const Eigen::Vector3f &pA, const Eigen::Vector3f &pB, // line segment
-                          const Eigen::Vector3f &o, const Eigen::Vector3f &v, // ray
-                          Eigen::Vector3f &p, float &d )
-{
-
-    Vector3f ab  = pB - pA ;
-    float len = ab.norm() ;
-    Vector3f d1 = ab / len ;
-
-    const auto &p1 =  pA ;
-    const auto &p2 = o ;
-    const auto d2 = v.normalized() ;
-
-    auto n = d1.cross(d2) ;
-    auto n2 = d2.cross(n) ;
-    auto n1 = d1.cross(n) ;
-
-    float denom = d1.dot(n2) ;
-
-    if ( denom < std::numeric_limits<float>::min() ) return false ;
-
-    float s = (p2 - p1).dot(n2) / denom ;
-    float t = (p1 - p2).dot(n1) / d2.dot(n1) ;
-
-    if ( s < 0 || s > len ) return false ;
-
-    qDebug() << s ;
-    p = p1 + s * d1 ;
-    auto q = p2 + t * d2 ;
-
-    d = ( q - p ).norm();
-
-    return true ;
-}
 
 Translate1DManipulator::Translate1DManipulator(const NodePtr &node, const Eigen::Vector3f &start, const Eigen::Vector3f &end): Manipulator(node), start_(start), end_(end) {
     mat_.reset(new ConstantMaterial(clr_)) ;
@@ -59,7 +25,7 @@ Translate1DManipulator::Translate1DManipulator(const NodePtr &node, const Eigen:
     float len = dir.norm() ;
     dir /= len ;
 
-    pick_threshold_ = 0.05 * len ;
+    pick_threshold_ = 0.075 * len ;
 
     GeometryPtr cone_geom(new Geometry(Geometry::createSolidCone(len * 0.025f, len * 0.1f, 10, 10))) ;
 
@@ -93,11 +59,6 @@ void Translate1DManipulator::setPickColor(const Vector4f &clr)
     pick_clr_ = clr ;
 }
 
-void Translate1DManipulator::setPickThreshold(float t)
-{
-    pick_threshold_ = t ;
-}
-
 void Translate1DManipulator::setMaterialColor(const Eigen::Vector4f &clr) {
     ConstantMaterial *cm = static_cast<ConstantMaterial *>(mat_.get()) ;
     cm->setColor(clr) ;
@@ -108,16 +69,16 @@ bool Translate1DManipulator::onMousePressed(QMouseEvent *event)
     Affine3f tf = parent()->globalTransform().inverse() ;
     Ray tr(ray, tf) ; // ray transform to local coordinate system
 
-    float d ;
+    float d, s, len = (end_ - start_).norm() ;
 
-    if ( computeRayProjectionOnLine(start_, end_, tr.origin(), tr.dir(), start_drag_, d ) && d < pick_threshold_ ) {
+    if ( impl::computeRayProjectionOnLine(start_, end_, tr.origin(), tr.dir(), start_drag_, d, s ) && d < pick_threshold_ && s >= 0 && s <= len ) {
         dragging_ = true ;
-        translation_init_ = transform().translation() ;
+        translation_init_ = transform_node_->transform().translation() ;
         setMaterialColor(pick_clr_) ;
         return true ;
     }
 
-    qDebug() << d << start_drag_.x() << start_drag_.y() << start_drag_.z() ;
+//    qDebug() << d << start_drag_.x() << start_drag_.y() << start_drag_.z() ;
 
     return false ;
 }
@@ -140,8 +101,8 @@ bool Translate1DManipulator::onMouseMoved(QMouseEvent *event)
         Ray tr(ray, tf) ; // ray transform to local coordinate system
 
         Vector3f p ;
-        float d ;
-        if ( computeRayProjectionOnLine(start_, end_, tr.origin(), tr.dir(), p, d) ) {
+        float d, s ;
+        if ( impl::computeRayProjectionOnLine(start_, end_, tr.origin(), tr.dir(), p, d, s) ) {
             Vector3f t = translation_init_ + p - start_drag_  ;
             if ( transform_node_ ) transform_node_->transform().translation() = t  ;
 

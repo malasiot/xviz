@@ -41,5 +41,42 @@ void CompositeManipulator::addComponent(const ManipulatorPtr &m)
     addChild(m);
 }
 
+namespace impl {
+
+bool computeRayProjectionOnLine(const Eigen::Vector3f &pA, const Eigen::Vector3f &pB, // line segment
+                          const Eigen::Vector3f &o, const Eigen::Vector3f &v, // ray
+                          Eigen::Vector3f &p, float &d, float &s )
+{
+
+    Vector3f ab  = pB - pA ;
+    float len = ab.norm() ;
+    Vector3f d1 = ab / len ;
+
+    const auto &p1 =  pA ;
+    const auto &p2 = o ;
+    const auto d2 = v.normalized() ;
+
+    auto n = d1.cross(d2) ;
+    auto n2 = d2.cross(n) ;
+    auto n1 = d1.cross(n) ;
+
+    float denom1 = d1.dot(n2) ;
+    float denom2 = d2.dot(n1) ;
+
+    if ( fabs(denom1) < std::numeric_limits<float>::min() ) return false ;
+
+    s = (p2 - p1).dot(n2) / denom1 ;
+    float t = (p1 - p2).dot(n1) / denom2 ;
+
+//    qDebug() << 'D' << denom1 << s ;
+    p = p1 + s * d1 ;
+    auto q = p2 + t * d2 ;
+
+    d = ( q - p ).norm();
+
+    return true ;
+}
+}
+
 
 }

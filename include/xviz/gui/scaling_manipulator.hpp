@@ -11,18 +11,19 @@ public:
 
     void setColor(const Eigen::Vector4f &clr) ;
     void setPickColor(const Eigen::Vector4f &clr) ;
-    void setPickThreshold(float t) ;
 
     bool onMousePressed(QMouseEvent *event) override ;
     bool onMouseReleased(QMouseEvent *event) override ;
     bool onMouseMoved(QMouseEvent *event) override ;
 
 private:
-    Eigen::Vector3f start_, end_, start_drag_, end_drag_, scaling_init_ ;
+    Eigen::Vector3f start_, end_, start_drag_, end_drag_ ;
+    Eigen::Matrix3f rotation_init_, scaling_init_ ;
+    float start_s_ ;
     Eigen::Vector4f clr_{1, 0, 0, 1}, pick_clr_{1, 1, 0, 1} ;
     MaterialPtr mat_ ;
     bool dragging_ = false ;
-    float pick_threshold_ = 0.05 ;
+    float pick_threshold_  ;
 
     void setMaterialColor(const Eigen::Vector4f &clr);
 };

@@ -44,6 +44,11 @@ protected:
     std::vector<ManipulatorPtr> components_ ;
 };
 
+namespace impl {
+bool computeRayProjectionOnLine(const Eigen::Vector3f &pA, const Eigen::Vector3f &pB, // line segment
+                          const Eigen::Vector3f &o, const Eigen::Vector3f &v, // ray
+                          Eigen::Vector3f &p, float &d, float &s );
+}
 
 }
 

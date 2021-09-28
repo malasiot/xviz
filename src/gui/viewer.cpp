@@ -165,7 +165,6 @@ void SceneViewer::mouseMoveEvent(QMouseEvent *event)
     trackball_.setClickPoint(x, y) ;
     trackball_.update() ;
 
-    update() ;
 }
 
 void SceneViewer::wheelEvent(QWheelEvent *event) {

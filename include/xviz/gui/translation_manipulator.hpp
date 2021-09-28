@@ -11,7 +11,6 @@ public:
 
     void setColor(const Eigen::Vector4f &clr) ;
     void setPickColor(const Eigen::Vector4f &clr) ;
-    void setPickThreshold(float t) ;
 
     bool onMousePressed(QMouseEvent *event) override ;
     bool onMouseReleased(QMouseEvent *event) override ;
@@ -23,7 +22,7 @@ private:
     GeometryPtr cone_, line_ ;
     MaterialPtr mat_ ;
     bool dragging_ = false ;
-    float pick_threshold_ = 0.05 ;
+    float pick_threshold_  ;
 
     void setMaterialColor(const Eigen::Vector4f &clr);
 };

@@ -1,5 +1,5 @@
 #include <xviz/gui/viewer.hpp>
-#include <xviz/gui/manipulator.hpp>
+#include <xviz/gui/translation_manipulator.hpp>
 
 #include <xviz/scene/scene.hpp>
 #include <xviz/scene/geometry.hpp>

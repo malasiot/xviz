@@ -7,9 +7,6 @@ if(CMAKE_VERSION VERSION_LESS "3.7.0")
     set(CMAKE_INCLUDE_CURRENT_DIR ON)
 endif()
 
-find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
-
-get_filename_component(LIBRARY_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../include/xviz/" ABSOLUTE)
 
 include_directories(
     3rdparty/
@@ -49,7 +46,7 @@ set(LIB_SOURCES
     gui/offscreen.cpp
     gui/manipulator.cpp
     gui/translation_manipulator.cpp
-    gui/scaling_manipulator.cpp
+    gui/rotation_manipulator.cpp
 
     ${LIBRARY_INCLUDE_DIR}/gui/viewer.hpp
     ${LIBRARY_INCLUDE_DIR}/gui/offscreen.hpp

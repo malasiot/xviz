@@ -250,7 +250,7 @@ Geometry Geometry::createWireCone(float radius, float height, size_t slices, siz
     return m ;
 }
 
-Geometry Geometry::createSolidCylinder(float radius, float height, size_t slices, size_t stacks)
+Geometry Geometry::createSolidCylinder(float radius, float height, size_t slices, size_t stacks, bool add_caps)
 {
 
     float z0,z1;
@@ -268,23 +268,29 @@ Geometry Geometry::createSolidCylinder(float radius, float height, size_t slices
     vector<Vector3f> vertices, normals ;
     vector<uint32_t> vtx_indices, nrm_indices ;
 
+    uint co = 0 ;
 
-    vertices.push_back({0, 0, z0}) ;
-    normals.push_back({0, 0, -1}) ;
+    if ( add_caps ) {
+        vertices.push_back({0, 0, z0}) ;
+        normals.push_back({0, 0, -1}) ;
+        co = 1 ;
+    }
 
     for( uint i=0 ; i<slices ; i++ ) {
         vertices.push_back({cost[i]*radius, sint[i]*radius, z0}) ;
     }
 
-    for( uint i=0 ; i<slices ; i++ ) {
+    if ( add_caps ) {
+        for( uint i=0 ; i<slices ; i++ ) {
 
-        vtx_indices.push_back(i+1) ;
-        vtx_indices.push_back(0) ;
-        vtx_indices.push_back(i == slices-1 ? 1 : i+2) ;
+            vtx_indices.push_back(i+1) ;
+            vtx_indices.push_back(0) ;
+            vtx_indices.push_back(i == slices-1 ? 1 : i+2) ;
 
-        nrm_indices.push_back(0) ;
-        nrm_indices.push_back(0) ;
-        nrm_indices.push_back(0) ;
+            nrm_indices.push_back(0) ;
+            nrm_indices.push_back(0) ;
+            nrm_indices.push_back(0) ;
+        }
     }
 
 
@@ -294,7 +300,7 @@ Geometry Geometry::createSolidCylinder(float radius, float height, size_t slices
         normals.push_back({cost[i], sint[i], 1.0}) ;
     }
 
-    for( size_t j = 1;  j <= stacks; j++ ) {
+    for( size_t j = 1 ;  j <= stacks; j++ ) {
 
         for( uint i=0 ; i<slices ; i++ ) {
             vertices.push_back({cost[i]*radius, sint[i]*radius, z1}) ;
@@ -302,21 +308,21 @@ Geometry Geometry::createSolidCylinder(float radius, float height, size_t slices
 
         for( uint i=0 ; i<slices ; i++ ) {
             size_t pn = ( i == slices - 1 ) ? 0 : i+1 ;
-            vtx_indices.push_back((j-1)*slices + i + 1) ;
-            vtx_indices.push_back((j-1)*slices + pn + 1) ;
-            vtx_indices.push_back((j)*slices + pn + 1) ;
+            vtx_indices.push_back((j-1)*slices + i + co) ;
+            vtx_indices.push_back((j-1)*slices + pn + co) ;
+            vtx_indices.push_back((j)*slices + pn + co) ;
 
-            vtx_indices.push_back((j-1)*slices + i + 1) ;
-            vtx_indices.push_back((j)*slices + pn + 1) ;
-            vtx_indices.push_back((j)*slices + i + 1) ;
+            vtx_indices.push_back((j-1)*slices + i + co) ;
+            vtx_indices.push_back((j)*slices + pn + co) ;
+            vtx_indices.push_back((j)*slices + i + co) ;
 
-            nrm_indices.push_back(i + 1) ;
-            nrm_indices.push_back(pn + 1) ;
-            nrm_indices.push_back(pn + 1) ;
+            nrm_indices.push_back(i + co) ;
+            nrm_indices.push_back(pn + co) ;
+            nrm_indices.push_back(pn + co) ;
 
-            nrm_indices.push_back(i + 1) ;
-            nrm_indices.push_back(pn + 1) ;
-            nrm_indices.push_back(i + 1) ;
+            nrm_indices.push_back(i + co) ;
+            nrm_indices.push_back(pn + co) ;
+            nrm_indices.push_back(i + co) ;
         }
 
         z1 += zStep;
@@ -324,20 +330,22 @@ Geometry Geometry::createSolidCylinder(float radius, float height, size_t slices
 
     // link apex with last stack
 
-    size_t offset = (stacks)*slices + 1;
+    size_t offset = (stacks)*slices + co;
 
-    vertices.push_back({0, 0, height/2.0}) ;
-    normals.push_back({0, 0, 1}) ;
+    if ( add_caps ) {
+        vertices.push_back({0, 0, height/2.0}) ;
+        normals.push_back({0, 0, 1}) ;
 
-    for( uint i=0 ; i<slices ; i++ ) {
-        size_t pn = ( i == slices - 1 ) ? 0 : i+1 ;
-        vtx_indices.push_back(offset + i) ;
-        vtx_indices.push_back(offset + pn) ;
-        vtx_indices.push_back(offset + slices) ;
+        for( uint i=0 ; i<slices ; i++ ) {
+            size_t pn = ( i == slices - 1 ) ? 0 : i+1 ;
+            vtx_indices.push_back(offset + i) ;
+            vtx_indices.push_back(offset + pn) ;
+            vtx_indices.push_back(offset + slices) ;
 
-        nrm_indices.push_back(slices+1) ;
-        nrm_indices.push_back(slices+1) ;
-        nrm_indices.push_back(slices+1) ;
+            nrm_indices.push_back(slices+1) ;
+            nrm_indices.push_back(slices+1) ;
+            nrm_indices.push_back(slices+1) ;
+        }
     }
 
     return flatten(vertices, vtx_indices, normals, nrm_indices) ;
@@ -463,8 +471,44 @@ Geometry Geometry::makePlane(const float width, const float height, uint32_t nx,
     return geom ;
 }
 
+Geometry Geometry::makeArc(const Vector3f &center, const Vector3f &normal, const Vector3f &axis, float radiusA, float radiusB, float minAngle, float maxAngle, bool drawSect, float stepDegrees)
+{
 
+    vector<Vector3f> ls ;
 
+    Vector3f vy = normal.cross(axis);
+    vy.normalize() ;
+    Vector3f vx = vy.cross(normal) ;
+
+    float step = stepDegrees * M_PI/180.0;
+    int nSteps = (int)fabs((maxAngle - minAngle) / step);
+    if ( nSteps == 0 ) nSteps = 1;
+    Vector3f prev = center + radiusA * vx * cos(minAngle) + radiusB * vy * sin(minAngle);
+
+    if (drawSect)
+        ls.emplace_back(center) ;
+
+    ls.emplace_back(prev) ;
+
+    for ( int i = 1; i <= nSteps; i++ )
+    {
+        float angle = minAngle + (maxAngle - minAngle) * i / float(nSteps);
+        Vector3f next = center + radiusA * vx * cos(angle) + radiusB * vy * sin(angle);
+        ls.emplace_back(next) ;
+    }
+
+    if (drawSect)
+        ls.emplace_back(center) ;
+
+    Geometry m(Geometry::Lines) ;
+    m.vertices() = ls ;
+    return m ;
+}
+
+Geometry Geometry::makeCircle(const Vector3f &center, const Vector3f &normal, float radius, uint num_segments) {
+    Vector3f axis = ( fabs(normal.y()) < std::numeric_limits<float>::min() ) ? Vector3f(normal.z(), 0, -normal.x()) : Vector3f(normal.y(), -normal.x(), normal.z()) ;
+    return makeArc(center, normal, axis, radius, radius, 0, 2*M_PI, false, 2* M_PI/num_segments) ;
+}
 
 static Vector3f normal_triangle(const Vector3f &v1, const Vector3f &v2, const Vector3f &v3)
 {

@@ -1,6 +1,6 @@
 #include <xviz/gui/viewer.hpp>
 #include <xviz/gui/translation_manipulator.hpp>
-#include <xviz/gui/scaling_manipulator.hpp>
+#include <xviz/gui/rotation_manipulator.hpp>
 
 #include <xviz/scene/scene.hpp>
 #include <xviz/scene/geometry.hpp>
@@ -33,7 +33,7 @@ int main(int argc, char **argv)
     scene->addChild(box_node) ;
 
 
-    Scale1DManipulator *manip = new Scale1DManipulator(box_node, {-2.0, 0, 0}, {2, 0, 0});
+    RotateXYZManipulator *manip = new RotateXYZManipulator(box_node, 4.0f);
 
     ManipulatorPtr m(manip) ;
 

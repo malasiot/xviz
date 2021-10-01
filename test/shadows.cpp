@@ -164,7 +164,7 @@ int main(int argc, char **argv)
     dl2->shadow_cam_right_ = dl2->shadow_cam_bottom_ = 0.5 ;
     dl2->shadow_cam_near_ = -0.1 ; dl2->shadow_cam_far_ = 10 ;
     dl2->shadow_bias_ = 0.00005 ;
-    dl2->casts_shadows_ = true;
+    dl2->casts_shadows_ = false;
     xviz::LightPtr light2(dl2) ;
     scene->addLightNode(light2) ;
 

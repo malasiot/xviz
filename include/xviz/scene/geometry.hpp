@@ -116,7 +116,7 @@ public:
     static Geometry createSolidCone(float radius, float height, size_t slices, size_t stacks) ;
 
     static Geometry createWireCylinder(float radius, float height, size_t slices, size_t stacks) ;
-    static Geometry createSolidCylinder(float radius, float height, size_t slices, size_t stacks) ;
+    static Geometry createSolidCylinder(float radius, float height, size_t slices, size_t stacks, bool add_caps = true) ;
 
     static Geometry createCapsule(float radius, float height, size_t slices, size_t head_stacks, size_t body_stacks) ;
 
@@ -126,7 +126,11 @@ public:
 
     static Geometry makePlane(const float width, const float height, uint32_t nx=1 , uint32_t ny = 1) ;
 
+    static Geometry makeArc(const Eigen::Vector3f& center, const Eigen::Vector3f& normal, const Eigen::Vector3f& axis,
+                            float radiusA, float radiusB,
+                            float minAngle, float maxAngle, bool drawSect, float stepDegrees) ;
 
+    static Geometry makeCircle(const Eigen::Vector3f &center, const Eigen::Vector3f &normal, float radius, uint num_segments);
 
     void computeNormals() ;
     void computeBoundingBox(Eigen::Vector3f &bmin, Eigen::Vector3f &bmax) const ;

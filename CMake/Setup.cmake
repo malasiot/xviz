@@ -1,10 +1,6 @@
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Set PROJECT_NAME_UPPERCASE and PROJECT_NAME_LOWERCASE variables
-string(TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPERCASE)
-string(TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWERCASE)
-
 # Version variables
 set(MAJOR_VERSION 0)
 set(MINOR_VERSION 1)
@@ -53,7 +49,7 @@ set(PROJECT_CMAKE_FILES ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY})
 # The RPATH to be used when installing
 set(CMAKE_INSTALL_RPATH ${INSTALL_LIB_DIR})
 
-option(BUILD_SHARED_LIBS "Build ${_PN} as a shared library." ON)
+option(BUILD_SHARED_LIBS "Build ${PROJECT_NAME} as a shared library." ON)
 
 if(BUILD_SHARED_LIBS)
   set(LIBRARY_TYPE SHARED)
@@ -73,11 +69,10 @@ endif()
 
 # set include directories
 
-set(XVIZ_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/xviz/)
-
+set(LIBRARY_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/${LIB_PREFIX}/)
 
 # Create 'version.hpp'
 configure_file(${CMAKE_SOURCE_DIR}/CMake/version.h.in  "${CMAKE_CURRENT_BINARY_DIR}/version.hpp" @ONLY)
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/version.hpp DESTINATION "${INSTALL_INCLUDE_DIR}/xviz" )
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/version.hpp DESTINATION "${INSTALL_INCLUDE_DIR}/${LIB_PREFIX}" )
 

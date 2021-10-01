@@ -1,6 +1,12 @@
-FIND_PACKAGE(Eigen3 REQUIRED)
-FIND_PACKAGE(Assimp REQUIRED)
-FIND_PACKAGE(ZLIB REQUIRED)
-FIND_PACKAGE(OpenGL REQUIRED)
+find_package(Eigen3 REQUIRED)
+find_package(Assimp REQUIRED)
+find_package(ZLIB REQUIRED)
+
+if( POLICY CMP0072 )
+  cmake_policy(SET CMP0072 NEW)
+endif()
+
+find_package(OpenGL QUIET REQUIRED)
+find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
 
 

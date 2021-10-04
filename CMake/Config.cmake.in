@@ -12,4 +12,6 @@ include("@INSTALL_CMAKE_DIR@/@PROJECT_NAME@Targets.cmake")
 # Set the expected library variable
 set(@PROJECT_NAME_UPPERCASE@_LIBRARIES @LIBRARY_NAME@)
 
+find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
+
 

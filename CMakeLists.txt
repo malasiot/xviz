@@ -2,11 +2,12 @@ project(xviz)
 
 cmake_minimum_required(VERSION 3.0.0)
 
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMake/ ${CMAKE_ROOT}/Modules/)
+set(CMAKE_MODULE_PATH ${CMAKE_ROOT}/Modules/ ${CMAKE_SOURCE_DIR}/CMake/ )
+
 set(LIB_PREFIX xviz)
 
-include(Setup)
-include(FindThirdParty)
+include(${CMAKE_SOURCE_DIR}/CMake/Setup.cmake)
+include(${CMAKE_SOURCE_DIR}/CMake/FindThirdParty.cmake)
 
 include_directories(src
     ${CMAKE_CURRENT_SOURCE_DIR}/include

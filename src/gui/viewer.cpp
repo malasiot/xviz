@@ -170,7 +170,7 @@ void SceneViewer::mouseMoveEvent(QMouseEvent *event)
 void SceneViewer::wheelEvent(QWheelEvent *event) {
     if ( !camera_ ) return ;
 
-    trackball_.setScrollDirection(event->delta()>0);
+    trackball_.setScrollDirection(event->angleDelta().y()>0);
     trackball_.update() ;
     update() ;
 }

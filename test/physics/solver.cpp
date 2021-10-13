@@ -28,7 +28,7 @@ void Solver::step(float dt) {
     dampVelocities() ;
     integrate(dt) ;
     processCollisions() ;
-    for( uint iter = 0 ; iter < num_iterations_ ; iter ++ ) {
+    for( unsigned int iter = 0 ; iter < num_iterations_ ; iter ++ ) {
             resolveContacts(dt) ;
         projectInternalConstraints() ;
 

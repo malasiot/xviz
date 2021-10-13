@@ -2,6 +2,7 @@
 #define RESOURCE_MANAGER_HPP
 
 #include <map>
+#include <string>
 
 namespace xviz { namespace impl {
 

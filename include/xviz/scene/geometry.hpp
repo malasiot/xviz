@@ -28,7 +28,7 @@ public:
     vb3_t &vertices() { return vertices_ ; }
     vb3_t &normals() { return normals_ ; }
     vb3_t &colors() { return colors_ ; }
-    vb2_t &texCoords(uint t) {
+    vb2_t &texCoords(unsigned int t) {
         assert(t<MAX_TEXTURES) ;
         return tex_coords_[t] ;
     }
@@ -39,7 +39,7 @@ public:
     const vb3_t &vertices() const { return vertices_ ; }
     const vb3_t &normals() const { return normals_ ; }
     const vb3_t &colors() const { return colors_ ; }
-    const vb2_t &texCoords(uint t) const {
+    const vb2_t &texCoords(unsigned int t) const {
         assert ( t < MAX_TEXTURES ) ;
         return tex_coords_[t] ;
     }
@@ -130,7 +130,7 @@ public:
                             float radiusA, float radiusB,
                             float minAngle, float maxAngle, bool drawSect, float stepDegrees) ;
 
-    static Geometry makeCircle(const Eigen::Vector3f &center, const Eigen::Vector3f &normal, float radius, uint num_segments);
+    static Geometry makeCircle(const Eigen::Vector3f &center, const Eigen::Vector3f &normal, float radius, unsigned int num_segments);
 
     void computeNormals() ;
     void computeBoundingBox(Eigen::Vector3f &bmin, Eigen::Vector3f &bmax) const ;

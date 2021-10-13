@@ -71,7 +71,7 @@ struct URDFContact {
 
     float inertia_scaling_, lateral_friction_,
         rolling_friction_, restitution_, spinning_friction_, damping_, stiffness_ ;
-    uint flags_ = 0;
+    unsigned int flags_ = 0;
 };
 
 struct URDFLink {

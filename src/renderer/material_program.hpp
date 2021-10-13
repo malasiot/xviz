@@ -30,7 +30,7 @@ MaterialProgramPtr materialSingleton(std::map<int, MaterialProgramPtr> &instance
 
 
 struct MaterialInstanceParams {
-    uint num_shadow_lights_ =0 ;
+    GLuint num_shadow_lights_ =0 ;
     int flags = 0 ;
 };
 
@@ -40,7 +40,7 @@ public:
     virtual void applyParams(const MaterialPtr &mat) = 0 ;
     virtual void applyTransform(const Eigen::Matrix4f &cam, const Eigen::Matrix4f &view, const Eigen::Matrix4f &model) {}
     virtual void applyLight(const LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat) {}
-    virtual void applyBoneTransform(uint idx, const Eigen::Matrix4f &tf) ;
+    virtual void applyBoneTransform(GLuint idx, const Eigen::Matrix4f &tf) ;
 
 protected:
 

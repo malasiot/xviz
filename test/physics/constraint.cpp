@@ -7,7 +7,7 @@ namespace xviz {
 
 const float eps = static_cast<float>(1e-6);
 
-void Constraint::init(uint solver_iterations) {
+void Constraint::init(unsigned int solver_iterations) {
     kp_ = 1.0f - pow((1.0f - k_), 1.0f/solver_iterations);
     kp_ = std::min(1.0f, kp_) ;
 }

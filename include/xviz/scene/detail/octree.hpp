@@ -41,7 +41,7 @@ class Octree
 public:
 
     Octree() = default ;
-    Octree( uint max_depth = 5, uint max_count = 100);
+    Octree( unsigned max_depth = 5, unsigned max_count = 100);
 
     ~Octree() { delete root_; }
 
@@ -52,7 +52,7 @@ public:
     bool intersect(const Ray &ray, uint32_t tindex[3], float &t);
 
 private:
-    void insertTriangle( const Geometry &m, OctreeNode *node, const Vector3f &center, const Vector3f &hs, uint depth,
+    void insertTriangle( const Geometry &m, OctreeNode *node, const Vector3f &center, const Vector3f &hs, unsigned depth,
                          const uint32_t tindex[3], const Vector3f &v0, const Vector3f &v1, const Vector3f &v2);
 
     bool intersect(OctreeNode *node, const Ray &r, const Vector3f &center, const Vector3f &hs, uint32_t tindex[3], float &mint);
@@ -63,7 +63,7 @@ private:
 
     Vector3f center_, hs_ ;
 
-    uint max_depth_ = 5, max_count_ = 100 ;
+    unsigned max_depth_ = 5, max_count_ = 100 ;
     OctreeNode* root_;
     const Geometry *mesh_ = nullptr;
 

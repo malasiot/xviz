@@ -7,7 +7,7 @@ using namespace std ;
 
 namespace xviz {
 
-void Cloth::reset(uint n_iter) {
+void Cloth::reset(unsigned int n_iter) {
     for( auto &p: particles_ ) {
        p.x_ = p.x0_ ;
        p.p_ = p.x_ ;
@@ -27,9 +27,9 @@ void Cloth::reset(uint n_iter) {
 
 void Cloth::getMesh(std::vector<Vector3f> &vertices, std::vector<Vector3f> &normals, std::vector<uint32_t> &indices)
 {
-    std::map<Particle *, uint> idxs ;
+    std::map<Particle *, unsigned int> idxs ;
 
-    for( uint i=0 ; i<particles_.size() ; i++ ) {
+    for( unsigned int i=0 ; i<particles_.size() ; i++ ) {
         auto &p = particles_[i] ;
         Vector3f v = p.x_ ;
         vertices.push_back(v) ;
@@ -37,11 +37,11 @@ void Cloth::getMesh(std::vector<Vector3f> &vertices, std::vector<Vector3f> &norm
     }
 
     if ( indices.empty() ) {
-        for( uint i=0 ; i< faces_.size() ; i++ ) {
+        for( unsigned int i=0 ; i< faces_.size() ; i++ ) {
             const auto &face = faces_[i] ;
-            uint idx0 = face.v0_ ;
-            uint idx1 = face.v1_ ;
-            uint idx2 = face.v2_ ;
+            unsigned int idx0 = face.v0_ ;
+            unsigned int idx1 = face.v1_ ;
+            unsigned int idx2 = face.v2_ ;
             indices.push_back(idx0) ;
             indices.push_back(idx1) ;
             indices.push_back(idx2) ;
@@ -52,12 +52,12 @@ void Cloth::getMesh(std::vector<Vector3f> &vertices, std::vector<Vector3f> &norm
 }
 
 RectangularPatch::RectangularPatch(float mass, const Eigen::Vector3f &c00, const Eigen::Vector3f &c10, const Eigen::Vector3f &c01,
-                                   uint nvX, uint nvY, uint flags, float k_stretch, float k_bend)
+                                   unsigned int nvX, unsigned int nvY, unsigned int flags, float k_stretch, float k_bend)
 {
 #define IDX(_x_, _y_) ((_y_)*nvX + (_x_))
     /* Create nodes	*/
     assert( nvX >=2 && nvY >=2) ;
-    uint numNodes = nvX * nvY ;
+    unsigned int numNodes = nvX * nvY ;
 
     particles_.resize(numNodes) ;
 
@@ -68,9 +68,9 @@ RectangularPatch::RectangularPatch(float mass, const Eigen::Vector3f &c00, const
     Vector3f deltaY = (c01 - c00).normalized() * stepY ;
 
     Vector3f py = c00 ;
-    for ( uint iy = 0; iy < nvY; ++iy, py += deltaY ) {
+    for ( unsigned int iy = 0; iy < nvY; ++iy, py += deltaY ) {
         Vector3f px = py ;
-        for ( uint ix = 0; ix < nvX; ++ix, px += deltaX ) {
+        for ( unsigned int ix = 0; ix < nvX; ++ix, px += deltaX ) {
             auto &p = particles_[IDX(ix, iy)] ;
             p.x0_ = px ;
             p.mass_ = mass/numNodes ;
@@ -83,29 +83,29 @@ RectangularPatch::RectangularPatch(float mass, const Eigen::Vector3f &c00, const
     if (flags & BottomRight ) particles_[IDX(nvX - 1, nvY - 1)].mass_ = 0;
 
     if ( flags & TopEdge ) {
-        for( uint x=0 ; x<nvX ; x++ )
+        for( unsigned int x=0 ; x<nvX ; x++ )
             particles_[IDX(x, 0)].mass_ = 0 ;
     }
 
     if ( flags & BottomEdge ) {
-        for( uint x=0 ; x<nvX ; x++ )
+        for( unsigned int x=0 ; x<nvX ; x++ )
             particles_[IDX(x, nvY-1)].mass_ = 0 ;
     }
 
     if ( flags & LeftEdge ) {
-        for( uint y=0 ; y<nvY ; y++ )
+        for( unsigned int y=0 ; y<nvY ; y++ )
             particles_[IDX(0, y)].mass_ = 0 ;
     }
 
     if ( flags & RightEdge ) {
-        for( uint y=0 ; y<nvY ; y++ )
+        for( unsigned int y=0 ; y<nvY ; y++ )
             particles_[IDX(nvX-1, y)].mass_ = 0 ;
     }
 
     /* Create links	and faces */
-    for ( uint iy = 0; iy < nvY; ++iy) {
-        for (uint ix = 0; ix < nvX; ++ix) {
-            const uint idx = IDX(ix, iy);
+    for ( unsigned int iy = 0; iy < nvY; ++iy) {
+        for (unsigned int ix = 0; ix < nvX; ++ix) {
+            const unsigned int idx = IDX(ix, iy);
             const bool mdx = (ix + 1) < nvX;
             const bool mdy = (iy + 1) < nvY;
             if (mdx) distance_constraints_.emplace_back(particles_[idx], particles_[IDX(ix + 1, iy)], k_stretch);

@@ -4,8 +4,8 @@
 #include <fstream>
 #include <regex>
 #include <iostream>
+#include <cstdint>
 
-#include "gl/gl3w.h"
 
 #include "resource_manager.hpp"
 

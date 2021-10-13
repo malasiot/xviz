@@ -29,7 +29,7 @@ Renderer::Renderer(int flags) {
     default_material_.reset(mat) ;
 }
 
-void Renderer::setupTexture(const Material *mat, const Texture2D *texture, uint slot) {
+void Renderer::setupTexture(const Material *mat, const Texture2D *texture, unsigned int slot) {
     if ( textures_.count(mat) == 0 ) {
         textures_[mat] = {  } ;
     }
@@ -391,7 +391,7 @@ void Renderer::initShadowMapRenderer()
 
 void Renderer::setPose(const GeometryPtr &mesh, const MaterialProgramPtr &mat) {
     const auto &skeleton = mesh->skeleton() ;
-    for( uint i=0 ; i<skeleton.size() ; i++ ) {
+    for( unsigned int i=0 ; i<skeleton.size() ; i++ ) {
         const Geometry::Bone &b = skeleton[i] ;
         mat->applyBoneTransform(i, ( b.node_->globalTransform() * b.offset_).matrix()) ;
     }

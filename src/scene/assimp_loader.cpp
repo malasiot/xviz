@@ -102,14 +102,14 @@ static Sampler2D::TextureMapMode convertMapMode(aiTextureMapMode m) {
 static Image readTexture(aiTexture *t) {
 
     if ( t->mHeight == 0 ) {
-        return Image(reinterpret_cast<u_char *>(t->pcData), ImageFormat::encoded, t->mWidth, 0);
+        return Image(reinterpret_cast<unsigned char *>(t->pcData), ImageFormat::encoded, t->mWidth, 0);
     } else {
-        uint sz = t->mWidth * t->mHeight;
+        unsigned int sz = t->mWidth * t->mHeight;
 
         std::unique_ptr<unsigned char []> bytes(new unsigned char [sz * 4]) ;
         unsigned char *p = bytes.get() ;
 
-        for ( uint j = 0; j < sz; ++j ) {
+        for ( unsigned int j = 0; j < sz; ++j ) {
             *p++ = t->pcData[j].r;
             *p++ = t->pcData[j].g;
             *p++ = t->pcData[j].b;
@@ -167,7 +167,7 @@ MaterialPtr AssimpImporter::importMaterial(const aiScene *sc, const struct aiMat
 }
 
 bool AssimpImporter::importMaterials(const string &mpath, const aiScene *sc) {
-    for( uint m=0 ; m<sc->mNumMaterials ; m++ ) {
+    for( unsigned int m=0 ; m<sc->mNumMaterials ; m++ ) {
         const aiMaterial *material = sc->mMaterials[m] ;
         MaterialPtr smat = importMaterial(sc, material, mpath) ;
         materials_[material] = smat ;
@@ -178,7 +178,7 @@ bool AssimpImporter::importMaterials(const string &mpath, const aiScene *sc) {
 
 bool AssimpImporter::importMeshes(const aiScene *sc) {
 
-    for( uint m=0 ; m<sc->mNumMeshes ; m++ ) {
+    for( unsigned int m=0 ; m<sc->mNumMeshes ; m++ ) {
         const aiMesh *mesh = sc->mMeshes[m] ;
 
         //   if ( mesh->mPrimitiveTypes != aiPrimitiveType_TRIANGLE ) continue ;
@@ -191,7 +191,7 @@ bool AssimpImporter::importMeshes(const aiScene *sc) {
         else continue ;
 
         if ( mesh->HasPositions() ) {
-            uint n = mesh->mNumVertices ;
+            unsigned int n = mesh->mNumVertices ;
             smesh->vertices().resize(n) ;
 
             for(int i = 0; i < n; ++i)
@@ -199,7 +199,7 @@ bool AssimpImporter::importMeshes(const aiScene *sc) {
         }
 
         if ( mesh->HasNormals() ) {
-            uint n = mesh->mNumVertices ;
+            unsigned int n = mesh->mNumVertices ;
             smesh->normals().resize(n) ;
 
             for(int i = 0; i < n; ++i)
@@ -207,15 +207,15 @@ bool AssimpImporter::importMeshes(const aiScene *sc) {
         }
 
         if ( mesh->HasVertexColors(0) ) {
-            uint n = mesh->mNumVertices ;
+            unsigned int n = mesh->mNumVertices ;
             smesh->colors().resize(n) ;
 
             for(int i = 0; i < n; ++i)
                 smesh->colors().data()[i] = Vector3f(mesh->mColors[0][i].r, mesh->mColors[0][i].g, mesh->mColors[0][i].b) ;
         }
 
-        for( uint t=0 ; t<MAX_TEXTURES ; t++ ) {
-            uint n = mesh->mNumVertices ;
+        for( unsigned int t=0 ; t<MAX_TEXTURES ; t++ ) {
+            unsigned int n = mesh->mNumVertices ;
             if ( mesh->HasTextureCoords(t) ) {
                 smesh->texCoords(t).resize(n) ;
 
@@ -225,7 +225,7 @@ bool AssimpImporter::importMeshes(const aiScene *sc) {
         }
 
         if ( mesh->HasFaces() ) {
-            uint n = mesh->mNumFaces ;
+            unsigned int n = mesh->mNumFaces ;
             smesh->indices().resize(n * 3) ;
 
             for(int i = 0, k=0; i < n ; i++) {
@@ -280,7 +280,7 @@ bool AssimpImporter::importMeshes(const aiScene *sc) {
 }
 
 bool AssimpImporter::importLights(const aiScene *sc) {
-    for( uint m=0 ; m<sc->mNumLights ; m++ ) {
+    for( unsigned int m=0 ; m<sc->mNumLights ; m++ ) {
         const aiLight *light = sc->mLights[m] ;
 
         LightPtr slight ;
@@ -394,7 +394,7 @@ bool AssimpImporter::importAnimations(const aiScene *sc)
                 nanim->addTranslationKeyFrame(0.0, Vector3f(key.mValue.x, key.mValue.y, key.mValue.z)) ;
                 nanim->addTranslationKeyFrame(1.0, Vector3f(key.mValue.x, key.mValue.y, key.mValue.z)) ;
             } else {
-                for( uint k=0 ; k<channel->mNumPositionKeys ; k++ ) {
+                for( unsigned int k=0 ; k<channel->mNumPositionKeys ; k++ ) {
                     const aiVectorKey &key = channel->mPositionKeys[k] ;
                     nanim->addTranslationKeyFrame(key.mTime/anim->mDuration, Vector3f(key.mValue.x, key.mValue.y, key.mValue.z)) ;
                 }
@@ -404,7 +404,7 @@ bool AssimpImporter::importAnimations(const aiScene *sc)
                 nanim->addScalingKeyFrame(0.0, Vector3f(key.mValue.x, key.mValue.y, key.mValue.z)) ;
                 nanim->addScalingKeyFrame(1.0, Vector3f(key.mValue.x, key.mValue.y, key.mValue.z)) ;
             } else {
-                for( uint k=0 ; k<channel->mNumScalingKeys ; k++ ) {
+                for( unsigned int k=0 ; k<channel->mNumScalingKeys ; k++ ) {
                     const aiVectorKey &key = channel->mScalingKeys[k] ;
                     nanim->addScalingKeyFrame(key.mTime/anim->mDuration, Vector3f(key.mValue.x, key.mValue.y, key.mValue.z)) ;
                 }
@@ -415,7 +415,7 @@ bool AssimpImporter::importAnimations(const aiScene *sc)
                 nanim->addRotationKeyFrame(0.0, Quaternionf(key.mValue.w, key.mValue.x, key.mValue.y, key.mValue.z)) ;
                 nanim->addRotationKeyFrame(1.0, Quaternionf(key.mValue.w, key.mValue.x, key.mValue.y, key.mValue.z)) ;
             } else {
-                for( uint k=0 ; k<channel->mNumRotationKeys ; k++ ) {
+                for( unsigned int k=0 ; k<channel->mNumRotationKeys ; k++ ) {
                     const aiQuatKey &key = channel->mRotationKeys[k] ;
                     nanim->addRotationKeyFrame(key.mTime/anim->mDuration, Quaternionf(key.mValue.w, key.mValue.x, key.mValue.y, key.mValue.z)) ;
                 }

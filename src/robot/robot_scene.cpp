@@ -167,7 +167,7 @@ float RevoluteJoint::setPosition(float pos)
     pos = std::max(pos, lower_limit_) ;
     pos = std::min(pos, upper_limit_) ;
 
-    for( uint i=0 ; i<dependent_.size() ; i++ ) {
+    for( unsigned int i=0 ; i<dependent_.size() ; i++ ) {
         float vpos = multipliers_[i] * pos + offsets_[i] ;
         if ( auto j = std::dynamic_pointer_cast<RevoluteJoint>(dependent_[i]) ) {
             j->setPosition(vpos) ;

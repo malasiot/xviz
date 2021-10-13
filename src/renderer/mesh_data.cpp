@@ -127,7 +127,7 @@ MeshData::~MeshData()
      glDeleteBuffers(1, &normals_) ;
      glDeleteBuffers(1, &colors_) ;
 
-     for( uint i=0 ; i<max_textures_ ; i++ ) {
+     for( unsigned i=0 ; i<max_textures_ ; i++ ) {
          if ( tex_coords_[i] )
              glDeleteBuffers(1, &tex_coords_[i]);
      }

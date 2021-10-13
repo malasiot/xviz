@@ -34,7 +34,7 @@ public:
 
     void render(const CameraPtr &scene) ;
 
-    void setDefaultFBO(uint fbo) {
+    void setDefaultFBO(unsigned int fbo) {
         default_fbo_ = fbo ;
     }
 
@@ -52,7 +52,7 @@ private:
 
     float znear_, zfar_ ;
 
-    uint light_index_ = 0 ;
+    unsigned int light_index_ = 0 ;
 
     int flags_ ;
 
@@ -61,7 +61,7 @@ private:
     std::map<const Geometry *, std::unique_ptr<impl::MeshData>> meshes_ ;
     std::map<const Material *, impl::MaterialProgramPtr> materials_ ;
     std::map<const Material *, TextureBundle> textures_ ;
-    uint default_fbo_ ;
+    unsigned int default_fbo_ ;
 
     std::unique_ptr<impl::OpenGLShaderProgram> shadow_map_shader_, shadow_map_debug_shader_ ;
     std::unique_ptr<impl::ShadowMap> shadow_map_ ;
@@ -78,7 +78,7 @@ private:
     void drawMeshData(const impl::MeshData &data, GeometryPtr mesh, bool solid=false);
     void setLights(const impl::MaterialProgramPtr &material);
     void setLights(const NodePtr &node, const Eigen::Affine3f &parent_tf, const impl::MaterialProgramPtr &mat);
-    void setupTexture(const Material *mat, const Texture2D *texture, uint slot);
+    void setupTexture(const Material *mat, const Texture2D *texture, unsigned int slot);
     void setupCulling(const Material *mat);
     impl::MaterialProgramPtr instantiateMaterial(const Material *mat, int flags);
     void setPose(const GeometryPtr &mesh, const impl::MaterialProgramPtr &mat);

@@ -50,7 +50,7 @@ void PhongMaterialProgram::applyParams(const MaterialPtr &mat) {
 }
 
 
-void MaterialProgram::applyBoneTransform(uint idx, const Matrix4f &tf)
+void MaterialProgram::applyBoneTransform(GLuint idx, const Matrix4f &tf)
 {
     ostringstream name ;
     name << "g_bones[" << idx << "]" ;

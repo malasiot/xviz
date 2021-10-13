@@ -6,9 +6,11 @@
 #include <memory>
 #include <vector>
 #include <map>
-
+#include <cstdint>
 #include <Eigen/Core>
 #include <memory>
+
+#include "gl/gl3w.h"
 
 namespace xviz { namespace impl {
 
@@ -98,8 +100,8 @@ public:
     OpenGLShaderProgram(const char *vshader, const char *fshader) ;
 
     void setUniform(const std::string &name, float v) ;
-    void setUniform(const std::string &name, int v) ;
-    void setUniform(const std::string &name, uint v) ;
+    void setUniform(const std::string &name, GLint v) ;
+    void setUniform(const std::string &name, GLuint v) ;
     void setUniform(const std::string &name, const Eigen::Vector2f &v);
     void setUniform(const std::string &name, const Eigen::Vector3f &v) ;
     void setUniform(const std::string &name, const Eigen::Vector4f &v) ;

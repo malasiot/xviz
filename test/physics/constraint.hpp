@@ -12,7 +12,7 @@ class Constraint {
 public:
     Constraint(float k): k_(k) {}
 
-    void init(uint solver_iterations) ;
+    void init(unsigned int solver_iterations) ;
 
 protected:
     float k_, kp_ ; // k prime

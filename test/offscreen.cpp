@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
     scene->addLightNode(LightPtr(dl)) ;
 
     // create a camera
-    uint width = 480, height = 480 ;
+    unsigned int width = 480, height = 480 ;
     PerspectiveCamera *pcam = new PerspectiveCamera(1, // aspect ratio
                                                     50*M_PI/180,   // fov
                                                     0.0001,        // zmin

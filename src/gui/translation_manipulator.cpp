@@ -16,6 +16,7 @@ namespace xviz {
 
 Translate1DManipulator::Translate1DManipulator(const NodePtr &node, const Eigen::Vector3f &start, const Eigen::Vector3f &end): Manipulator(node), start_(start), end_(end) {
     mat_.reset(new ConstantMaterial(clr_)) ;
+    mat_->enableDepthTest(false) ;
 
     GeometryPtr line_geom(new Geometry(Geometry::Lines)) ;
     line_geom->vertices().push_back(start) ;
@@ -45,6 +46,8 @@ Translate1DManipulator::Translate1DManipulator(const NodePtr &node, const Eigen:
     addChild(line_node) ;
     addChild(left_cone) ;
     addChild(right_cone) ;
+
+
 }
 
 void Translate1DManipulator::setColor(const Eigen::Vector4f &clr)

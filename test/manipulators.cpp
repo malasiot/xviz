@@ -27,15 +27,16 @@ int main(int argc, char **argv)
 
     NodePtr box_node(new Node) ;
     GeometryPtr geom(new BoxGeometry({1, 2, 1})) ;
-    PhongMaterial *material = new PhongMaterial({1, 0, 1, 1}) ;
+    PhongMaterial *material = new PhongMaterial({1, 0, 1, 0.1}) ;
     MaterialPtr mat(material) ;
     box_node->addDrawable(geom, mat) ;
     scene->addChild(box_node) ;
 
 
-    RotateXYZManipulator *manip = new RotateXYZManipulator(box_node, 4.0f);
+    TranslateXYZManipulator *manip = new TranslateXYZManipulator(box_node, 2.1f);
 
     ManipulatorPtr m(manip) ;
+    m->setOrder(2) ;
 
     box_node->addChild(m) ;
 

@@ -35,6 +35,7 @@ bool intersectPlane(const Vector3f &n, const Vector3f &orig, const Vector3f &dir
 RotateAxisManipulator::RotateAxisManipulator(const NodePtr &node, const Eigen::Vector3f &axis, float radius): Manipulator(node), axis_(axis), radius_(radius) {
     mat_.reset(new ConstantMaterial(clr_)) ;
     mat_->setSide(Material::Side::Both);
+    mat_->enableDepthTest(false) ;
 
     GeometryPtr circle_geom(new Geometry(std::move(Geometry::createSolidCylinder(radius, 0.05 *radius, 36, 2, false)))) ;
 

@@ -125,7 +125,17 @@ public:
         return nodes ;
     }
 
+    std::vector<NodePtr> getOrderedNodes() {
+        std::vector<NodePtr> nodes = getNodesRecursive() ;
+        std::sort(nodes.begin(), nodes.end(), [](const NodePtr &a, const NodePtr &b ) { return a->order_ < b->order_ ; }) ;
+        return nodes ;
+    }
 
+    void setOrder(int order) {
+        order_ = order ;
+        for( auto &c: children_ )
+            c->setOrder(order) ;
+    }
 
     void addAnimation(Animation *anim) { animations_.emplace_back(anim) ; }
 
@@ -191,6 +201,8 @@ private:
     Node *parent_ = nullptr;
 
     bool visible_ = true ;
+
+    int order_ = 0 ;
 };
 
 

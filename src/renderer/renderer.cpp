@@ -183,6 +183,7 @@ void Renderer::render(const CameraPtr &cam) {
 
     // setup gl
 
+
     glEnable(GL_DEPTH_TEST) ;
     glDepthFunc(GL_LEQUAL);
 
@@ -207,11 +208,10 @@ void Renderer::render(const CameraPtr &cam) {
             if ( l->casts_shadows_ ) setupShadows(l) ;
 
 
-            glViewport(vp.x_, vp.y_, vp.width_, vp.height_);
-
             renderScene(l, ltr) ;
 
             first_pass = false ;
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         }
     }
@@ -283,7 +283,7 @@ void Renderer::renderShadowDebug() {
 
 void Renderer::renderScene(const LightPtr &l, const Affine3f &light_mat) {
 
-    for ( const ConstNodePtr &node: scene_->getNodesRecursive() ) {
+    for ( const ConstNodePtr &node: scene_->getOrderedNodes() ) {
         if ( !node->isVisible() ) continue ;
         for( const auto &drawable: node->drawables() )
             render(drawable, node->globalTransform(), l, light_mat ) ;
@@ -319,6 +319,10 @@ void Renderer::render(const Drawable &dr, const Affine3f &mat, const LightPtr &l
     prog = instantiateMaterial(material.get(), flags) ;
 
     setupCulling(material.get()) ;
+
+    if ( material->hasDepthTest() )
+        glEnable(GL_DEPTH_TEST) ;
+    else glDisable(GL_DEPTH_TEST) ;
 
     prog->use() ;
     prog->applyParams(material) ;

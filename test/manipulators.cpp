@@ -33,7 +33,7 @@ int main(int argc, char **argv)
     scene->addChild(box_node) ;
 
 
-    TranslateXYZManipulator *manip = new TranslateXYZManipulator(box_node, 2.1f);
+    RotateXYZManipulator *manip = new RotateXYZManipulator(box_node, 2.1f);
 
     ManipulatorPtr m(manip) ;
     m->setOrder(2) ;

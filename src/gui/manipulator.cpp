@@ -68,11 +68,13 @@ bool computeRayProjectionOnLine(const Eigen::Vector3f &pA, const Eigen::Vector3f
     s = (p2 - p1).dot(n2) / denom1 ;
     float t = (p1 - p2).dot(n1) / denom2 ;
 
-//    qDebug() << 'D' << denom1 << s ;
+
     p = p1 + s * d1 ;
     auto q = p2 + t * d2 ;
 
     d = ( q - p ).norm();
+
+//    qDebug() << 'D' << d << p.x() <<  p.y() << p.z() << s;
 
     return true ;
 }

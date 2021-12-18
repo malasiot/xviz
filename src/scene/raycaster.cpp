@@ -77,7 +77,7 @@ bool RayCaster::intersect(const Ray &tr, const GeometryPtr &geom, RayCastResult 
     } else if ( geom->ptype() == Geometry::Points ) {
         auto vertices = geom->vertices() ;
         bool found = false ;
-        for( uint i=0 ; i<vertices.size() ; i++ ) {
+        for( unsigned int i=0 ; i<vertices.size() ; i++ ) {
             const Vector3f &v = vertices[i] ;
             float t ;
             if ( detail::rayIntersectsPoint(tr, v, point_distance_thresh_sq_, t) && t<mint ) {

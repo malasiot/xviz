@@ -24,7 +24,7 @@ NodePtr Node::findNodeByName(const std::string &name)
 
 Vector3f Node::geomCenter() const {
     Vector3f center {0, 0, 0} ;
-    uint count = 0 ;
+    unsigned count = 0 ;
 
     visit([&](const Node &node){
         Affine3f tf = node.globalTransform() ;

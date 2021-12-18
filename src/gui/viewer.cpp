@@ -14,9 +14,19 @@ using namespace std ;
 using namespace Eigen ;
 
 namespace xviz {
-SceneViewer::SceneViewer(const NodePtr &scene, QWidget *parent): QOpenGLWidget(parent), scene_(new Node) {
+SceneViewer::SceneViewer(const NodePtr &scene, QWidget *parent): SceneViewer(parent) {
+    setScene(scene) ;
+}
+
+SceneViewer::SceneViewer(QWidget *parent): QOpenGLWidget(parent), scene_(new Node)
+{
     setFocusPolicy(Qt::StrongFocus) ;
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+}
+
+void SceneViewer::setScene(const NodePtr &scene) {
+    scene_->children().clear() ;
 
     scene_->addChild(scene) ;
 
@@ -44,7 +54,6 @@ SceneViewer::SceneViewer(const NodePtr &scene, QWidget *parent): QOpenGLWidget(p
 
     et_.start() ;
     timer->start(30);
-
 }
 
 SceneViewer::~SceneViewer()
@@ -170,7 +179,7 @@ void SceneViewer::mouseMoveEvent(QMouseEvent *event)
 void SceneViewer::wheelEvent(QWheelEvent *event) {
     if ( !camera_ ) return ;
 
-    trackball_.setScrollDirection(event->delta()>0);
+    trackball_.setScrollDirection(event->angleDelta().y()>0);
     trackball_.update() ;
     update() ;
 }

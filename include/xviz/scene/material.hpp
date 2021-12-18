@@ -49,8 +49,12 @@ public:
     void setSide(Side s) { side_ = s ; }
     Side side() const { return side_ ; }
 
+    void enableDepthTest(bool e) { enable_depth_test_ = e ; }
+    bool hasDepthTest() const { return enable_depth_test_ ; }
+
 private:
     Side side_ = Side::Front ;
+    bool enable_depth_test_ = true ;
 };
 
 

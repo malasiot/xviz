@@ -26,7 +26,7 @@ static Geometry flatten(const std::vector<Vector3f> &vertices, const std::vector
 
     size_t n_indices = vtx_indices.size() ;
 
-    for( uint i=0 ; i<n_indices ; i++) {
+    for( unsigned int i=0 ; i<n_indices ; i++) {
 
         uint32_t vidx = vtx_indices[i] ;
         const Vector3f &pos = vertices[vidx] ;
@@ -145,11 +145,11 @@ Geometry Geometry::createSolidCone(float radius, float height, size_t slices, si
     vertices.push_back({0, 0, z0}) ;
     normals.push_back({0, 0, -1}) ;
 
-    for( uint i=0 ; i<slices ; i++ ) {
+    for( unsigned int i=0 ; i<slices ; i++ ) {
         vertices.push_back({cost[i]*r0, sint[i]*r0, z0}) ;
     }
 
-    for( uint i=0 ; i<slices ; i++ ) {
+    for( unsigned int i=0 ; i<slices ; i++ ) {
 
         vtx_indices.push_back(i+1) ;
         vtx_indices.push_back(0) ;
@@ -162,17 +162,17 @@ Geometry Geometry::createSolidCone(float radius, float height, size_t slices, si
 
     // normals shared by all side vertices
 
-    for( uint i=0 ; i<slices ; i++ ) {
+    for( unsigned int i=0 ; i<slices ; i++ ) {
         normals.push_back({cost[i]*sinn, sint[i]*sinn, cosn}) ;
     }
 
     for( size_t j = 1;  j < stacks; j++ ) {
 
-        for( uint i=0 ; i<slices ; i++ ) {
+        for( unsigned int i=0 ; i<slices ; i++ ) {
             vertices.push_back({cost[i]*r1, sint[i]*r1, z1}) ;
         }
 
-        for( uint i=0 ; i<slices ; i++ ) {
+        for( unsigned int i=0 ; i<slices ; i++ ) {
             size_t pn = ( i == slices - 1 ) ? 0 : i+1 ;
             vtx_indices.push_back((j-1)*slices + i + 1) ;
             vtx_indices.push_back((j-1)*slices + pn + 1) ;
@@ -201,7 +201,7 @@ Geometry Geometry::createSolidCone(float radius, float height, size_t slices, si
 
     vertices.push_back({0, 0, z1}) ;
 
-    for( uint i=0 ; i<slices ; i++ ) {
+    for( unsigned int i=0 ; i<slices ; i++ ) {
         size_t pn = ( i == slices - 1 ) ? 0 : i+1 ;
         vtx_indices.push_back(offset + i) ;
         vtx_indices.push_back(offset + pn) ;
@@ -229,20 +229,20 @@ Geometry Geometry::createWireCone(float radius, float height, size_t slices, siz
     r0 = radius ;
     z1 = z0 + height ;
 
-    for( uint i=0 ; i<slices ; i++ ) {
+    for( unsigned int i=0 ; i<slices ; i++ ) {
         m.vertices().push_back({cost[i]*r0, sint[i]*r0, z0}) ;
     }
 
     m.vertices().push_back({0, 0, z1}) ;
 
-    for( uint i=0 ; i<slices-1 ; i++ ) {
+    for( unsigned int i=0 ; i<slices-1 ; i++ ) {
         m.indices().push_back(i) ;
         m.indices().push_back(i+1) ;
     }
     m.indices().push_back(slices-1) ;
     m.indices().push_back(0) ;
 
-    for( uint i=0 ; i<slices ; i++ ) {
+    for( unsigned int i=0 ; i<slices ; i++ ) {
         m.indices().push_back(i) ;
         m.indices().push_back(slices) ;
     }
@@ -268,7 +268,7 @@ Geometry Geometry::createSolidCylinder(float radius, float height, size_t slices
     vector<Vector3f> vertices, normals ;
     vector<uint32_t> vtx_indices, nrm_indices ;
 
-    uint co = 0 ;
+    unsigned int co = 0 ;
 
     if ( add_caps ) {
         vertices.push_back({0, 0, z0}) ;
@@ -276,12 +276,12 @@ Geometry Geometry::createSolidCylinder(float radius, float height, size_t slices
         co = 1 ;
     }
 
-    for( uint i=0 ; i<slices ; i++ ) {
+    for( unsigned int i=0 ; i<slices ; i++ ) {
         vertices.push_back({cost[i]*radius, sint[i]*radius, z0}) ;
     }
 
     if ( add_caps ) {
-        for( uint i=0 ; i<slices ; i++ ) {
+        for( unsigned int i=0 ; i<slices ; i++ ) {
 
             vtx_indices.push_back(i+1) ;
             vtx_indices.push_back(0) ;
@@ -296,17 +296,17 @@ Geometry Geometry::createSolidCylinder(float radius, float height, size_t slices
 
     // normals shared by all side vertices
 
-    for( uint i=0 ; i<slices ; i++ ) {
+    for( unsigned int i=0 ; i<slices ; i++ ) {
         normals.push_back({cost[i], sint[i], 1.0}) ;
     }
 
     for( size_t j = 1 ;  j <= stacks; j++ ) {
 
-        for( uint i=0 ; i<slices ; i++ ) {
+        for( unsigned int i=0 ; i<slices ; i++ ) {
             vertices.push_back({cost[i]*radius, sint[i]*radius, z1}) ;
         }
 
-        for( uint i=0 ; i<slices ; i++ ) {
+        for( unsigned int i=0 ; i<slices ; i++ ) {
             size_t pn = ( i == slices - 1 ) ? 0 : i+1 ;
             vtx_indices.push_back((j-1)*slices + i + co) ;
             vtx_indices.push_back((j-1)*slices + pn + co) ;
@@ -336,7 +336,7 @@ Geometry Geometry::createSolidCylinder(float radius, float height, size_t slices
         vertices.push_back({0, 0, height/2.0}) ;
         normals.push_back({0, 0, 1}) ;
 
-        for( uint i=0 ; i<slices ; i++ ) {
+        for( unsigned int i=0 ; i<slices ; i++ ) {
             size_t pn = ( i == slices - 1 ) ? 0 : i+1 ;
             vtx_indices.push_back(offset + i) ;
             vtx_indices.push_back(offset + pn) ;
@@ -369,23 +369,23 @@ Geometry Geometry::createCapsule(float radius, float height, size_t slices, size
     vector<Vector3f> vertices, normals ;
     vector<uint32_t> vtx_indices, nrm_indices ;
 
-    for( uint i=0 ; i<slices ; i++ ) {
+    for( unsigned int i=0 ; i<slices ; i++ ) {
         vertices.push_back({cost[i]*radius, sint[i]*radius, z0}) ;
     }
 
     // normals shared by all side vertices
 
-    for( uint i=0 ; i<slices ; i++ ) {
+    for( unsigned int i=0 ; i<slices ; i++ ) {
         normals.push_back({cost[i], sint[i], 1.0}) ;
     }
 
     for( size_t j = 1;  j <= body_stacks; j++ ) {
 
-        for( uint i=0 ; i<slices ; i++ ) {
+        for( unsigned int i=0 ; i<slices ; i++ ) {
             vertices.push_back({cost[i]*radius, sint[i]*radius, z1}) ;
         }
 
-        for( uint i=0 ; i<slices ; i++ ) {
+        for( unsigned int i=0 ; i<slices ; i++ ) {
             size_t pn = ( i == slices - 1 ) ? 0 : i+1 ;
             vtx_indices.push_back((j-1)*slices + i) ;
             vtx_indices.push_back((j-1)*slices + pn) ;
@@ -440,8 +440,8 @@ Geometry Geometry::makePlane(const float width, const float height, uint32_t nx,
 
     Geometry geom ;
 
-    for( uint i=0 ; i<ny+1 ; i++ )
-        for( uint j=0 ; j<nx+1 ; j++ ) {
+    for( unsigned int i=0 ; i<ny+1 ; i++ )
+        for( unsigned int j=0 ; j<nx+1 ; j++ ) {
             Vector3f v =  c + Vector3f(j* stepx, 0, i*stepy) ;
             Vector2f uv(j*stepu, 1.0f - i*stepv) ;
 
@@ -450,8 +450,8 @@ Geometry Geometry::makePlane(const float width, const float height, uint32_t nx,
             geom.normals().push_back({0, 1, 0}) ;
         }
 
-    for ( uint i = 0; i < ny; i ++ ) {
-        for ( uint j = 0; j < nx ; j++ ) {
+    for ( unsigned int i = 0; i < ny; i ++ ) {
+        for ( unsigned int j = 0; j < nx ; j++ ) {
             uint32_t a = j + (nx+1) * i;
             uint32_t b = j + (nx+1) * ( i + 1 );
             uint32_t c = ( j + 1 ) + (nx+1) * ( i + 1 );
@@ -505,7 +505,7 @@ Geometry Geometry::makeArc(const Vector3f &center, const Vector3f &normal, const
     return m ;
 }
 
-Geometry Geometry::makeCircle(const Vector3f &center, const Vector3f &normal, float radius, uint num_segments) {
+Geometry Geometry::makeCircle(const Vector3f &center, const Vector3f &normal, float radius, unsigned int num_segments) {
     Vector3f axis = ( fabs(normal.y()) < std::numeric_limits<float>::min() ) ? Vector3f(normal.z(), 0, -normal.x()) : Vector3f(normal.y(), -normal.x(), normal.z()) ;
     return makeArc(center, normal, axis, radius, radius, 0, 2*M_PI, false, 2* M_PI/num_segments) ;
 }
@@ -525,13 +525,13 @@ void Geometry::computeNormals() {
     size_t n = vertices().size() ;
     normals_.resize(n) ;
 
-    for( uint i=0 ; i<n ; i++ ) normals_.data()[i] = Vector3f::Zero() ;
+    for( unsigned int i=0 ; i<n ; i++ ) normals_.data()[i] = Vector3f::Zero() ;
 
-    for( uint i=0 ; i<indices_.size() ; i+=3 )
+    for( unsigned int i=0 ; i<indices_.size() ; i+=3 )
     {
-        uint idx0 = indices_[i] ;
-        uint idx1 = indices_[i+1] ;
-        uint idx2 = indices_[i+2] ;
+        unsigned int idx0 = indices_[i] ;
+        unsigned int idx1 = indices_[i+1] ;
+        unsigned int idx2 = indices_[i+2] ;
         Vector3f n = normal_triangle(vertices().data()[idx0], vertices().data()[idx1], vertices().data()[idx2]) ;
 
         normals_[idx0] += n ;
@@ -539,7 +539,7 @@ void Geometry::computeNormals() {
         normals_[idx2] += n ;
     }
 
-    for( uint i=0 ; i<n ; i++ ) normals_[i].normalize() ;
+    for( unsigned int i=0 ; i<n ; i++ ) normals_[i].normalize() ;
 }
 
 
@@ -571,7 +571,7 @@ bool Geometry::intersectTriangles(const Ray &ray, uint32_t t_idx[3], float &best
 
 
     if ( !indices_.empty() ) {
-        for( uint i=0, ti =0 ; i<indices_.size() ; i+=3, ti++ ) {
+        for( unsigned int i=0, ti =0 ; i<indices_.size() ; i+=3, ti++ ) {
             uint32_t idx0 = indices_[i] ;
             uint32_t idx1 = indices_[i+1] ;
             uint32_t idx2 = indices_[i+2] ;
@@ -589,7 +589,7 @@ bool Geometry::intersectTriangles(const Ray &ray, uint32_t t_idx[3], float &best
             }
         }
     } else {
-        for( uint i=0, ti =0 ; i<vertices_.size() ; i+=3, ti++ ) {
+        for( unsigned int i=0, ti =0 ; i<vertices_.size() ; i+=3, ti++ ) {
             uint32_t idx0 = i ;
             uint32_t idx1 = i+1 ;
             uint32_t idx2 = i+2 ;
@@ -618,7 +618,7 @@ bool Geometry::intersectLines(const Ray &ray, uint32_t t_idx[2], float thresh_sq
 
 
     if ( !indices_.empty() ) {
-        for( uint i=0, ti =0 ; i<indices_.size() ; i+=2, ti++ ) {
+        for( unsigned int i=0, ti =0 ; i<indices_.size() ; i+=2, ti++ ) {
             uint32_t idx0 = indices_[i] ;
             uint32_t idx1 = indices_[i+1] ;
 
@@ -634,7 +634,7 @@ bool Geometry::intersectLines(const Ray &ray, uint32_t t_idx[2], float thresh_sq
             }
         }
     } else {
-        for( uint i=0, ti =0 ; i<vertices_.size() ; i+=3, ti++ ) {
+        for( unsigned int i=0, ti =0 ; i<vertices_.size() ; i+=3, ti++ ) {
             uint32_t idx0 = i ;
             uint32_t idx1 = i+1 ;
 
@@ -668,31 +668,31 @@ Geometry Geometry::createWireCylinder(float radius, float height, size_t slices,
     z0 = 0.0;
 
 
-    for( uint i=0 ; i<slices ; i++ ) {
+    for( unsigned int i=0 ; i<slices ; i++ ) {
         m.vertices().push_back({cost[i]*radius, sint[i]*radius, z0}) ;
     }
 
-    for( uint i=0 ; i<slices ; i++ ) {
+    for( unsigned int i=0 ; i<slices ; i++ ) {
         m.vertices().push_back({cost[i]*radius, sint[i]*radius, z0 + height}) ;
     }
 
-    for( uint i=0 ; i<slices-1 ; i++ ) {
+    for( unsigned int i=0 ; i<slices-1 ; i++ ) {
         m.indices().push_back(i) ;
         m.indices().push_back(i+1) ;
     }
     m.indices().push_back(slices-1) ;
     m.indices().push_back(0) ;
 
-    uint offset = slices ;
+    unsigned int offset = slices ;
 
-    for( uint i=0 ; i<slices-1 ; i++ ) {
+    for( unsigned int i=0 ; i<slices-1 ; i++ ) {
         m.indices().push_back(offset + i) ;
         m.indices().push_back(offset + i+1) ;
     }
     m.indices().push_back(offset + slices-1) ;
     m.indices().push_back(offset) ;
 
-    for( uint i=0 ; i<slices ; i++ ) {
+    for( unsigned int i=0 ; i<slices ; i++ ) {
         m.indices().push_back(i) ;
         m.indices().push_back(i + offset) ;
     }
@@ -701,18 +701,18 @@ Geometry Geometry::createWireCylinder(float radius, float height, size_t slices,
 }
 
 
-static void exportToObj(const std::string &fname, const std::vector<Vector3f> &vertices, const std::vector<Vector3f> &normals, const std::vector<uint> &indices) {
+static void exportToObj(const std::string &fname, const std::vector<Vector3f> &vertices, const std::vector<Vector3f> &normals, const std::vector<unsigned int> &indices) {
     ofstream strm(fname) ;
 
-    for( uint i=0 ;i<vertices.size() ; i++ ) {
+    for( unsigned int i=0 ;i<vertices.size() ; i++ ) {
         strm << "v " << vertices[i].adjoint() << endl ;
     }
 
-    for( uint i=0 ;i<normals.size() ; i++ ) {
+    for( unsigned int i=0 ;i<normals.size() ; i++ ) {
         strm << "vn " << normals[i].adjoint() << endl ;
     }
 
-    for( uint i=0 ; i<indices.size() ; i+=3) {
+    for( unsigned int i=0 ; i<indices.size() ; i+=3) {
         strm << "f " << indices[i] + 1 << ' ' << indices[i+1] +1<< ' ' << indices[i+2] + 1<< endl ;
     }
 }
@@ -751,9 +751,9 @@ Geometry Geometry::createSolidSphere(float radius, size_t slices, size_t stacks)
     idx = 1;
 
     /* each stack */
-    for( uint i=1; i<stacks; i++ )
+    for( unsigned int i=1; i<stacks; i++ )
     {
-        for( uint j=0; j<slices; j++, idx++)
+        for( unsigned int j=0; j<slices; j++, idx++)
         {
             x = cost1[j]*sint2[i];
             y = sint1[j]*sint2[i];
@@ -772,7 +772,7 @@ Geometry Geometry::createSolidSphere(float radius, size_t slices, size_t stacks)
     /* top stack */
 
     idx = 0 ;
-    for ( uint j=0;  j<slices-1;  j++) {
+    for ( unsigned int j=0;  j<slices-1;  j++) {
         indices[idx++] = j+2 ;
         indices[idx++] = j+1 ;
         indices[idx++] = 0 ;
@@ -782,10 +782,10 @@ Geometry Geometry::createSolidSphere(float radius, size_t slices, size_t stacks)
     indices[idx++] = slices ;
     indices[idx++] = 0 ;
 
-    for ( uint i=0; i< stacks-2; i++ )
+    for ( unsigned int i=0; i< stacks-2; i++ )
     {
-        uint offset = 1+i*slices;                    /* triangle_strip indices start at 1 (0 is top vertex), and we advance one stack down as we go along */
-        uint j ;
+        unsigned int offset = 1+i*slices;                    /* triangle_strip indices start at 1 (0 is top vertex), and we advance one stack down as we go along */
+        unsigned int j ;
 
         for ( j=0; j<slices-1; j++ ) {
             indices[idx++] = offset + j + slices ;
@@ -810,7 +810,7 @@ Geometry Geometry::createSolidSphere(float radius, size_t slices, size_t stacks)
     /* bottom stack */
     int offset = 1+(stacks-2)*slices;               /* triangle_strip indices start at 1 (0 is top vertex), and we advance one stack down as we go along */
 
-    for ( uint j=0;  j<slices-1;  j++) {
+    for ( unsigned int j=0;  j<slices-1;  j++) {
         indices[idx++] = j + offset  ;
         indices[idx++] = j + offset + 1;
         indices[idx++] = n_vertices-1 ;

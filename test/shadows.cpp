@@ -145,7 +145,7 @@ int main(int argc, char **argv)
 
     scene->addChild(NodeHelpers::makeCircle({0, 0, 0}, {1, 0, 0}, 2, {1, 0, 0})) ;
 
-    for( uint i=0 ; i<10 ; i++ ) {
+    for( unsigned int i=0 ; i<10 ; i++ ) {
         Vector4f clr(0.5, rnd_uniform(0.0, 1.0), rnd_uniform(0.0, 1.0), 1.0) ;
         stringstream strm ;
         strm << "box" << i << endl ;

@@ -29,7 +29,7 @@ Renderer::Renderer(int flags) {
     default_material_.reset(mat) ;
 }
 
-void Renderer::setupTexture(const Material *mat, const Texture2D *texture, uint slot) {
+void Renderer::setupTexture(const Material *mat, const Texture2D *texture, unsigned int slot) {
     if ( textures_.count(mat) == 0 ) {
         textures_[mat] = {  } ;
     }
@@ -183,6 +183,7 @@ void Renderer::render(const CameraPtr &cam) {
 
     // setup gl
 
+
     glEnable(GL_DEPTH_TEST) ;
     glDepthFunc(GL_LEQUAL);
 
@@ -207,11 +208,10 @@ void Renderer::render(const CameraPtr &cam) {
             if ( l->casts_shadows_ ) setupShadows(l) ;
 
 
-            glViewport(vp.x_, vp.y_, vp.width_, vp.height_);
-
             renderScene(l, ltr) ;
 
             first_pass = false ;
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         }
     }
@@ -283,7 +283,7 @@ void Renderer::renderShadowDebug() {
 
 void Renderer::renderScene(const LightPtr &l, const Affine3f &light_mat) {
 
-    for ( const ConstNodePtr &node: scene_->getNodesRecursive() ) {
+    for ( const ConstNodePtr &node: scene_->getOrderedNodes() ) {
         if ( !node->isVisible() ) continue ;
         for( const auto &drawable: node->drawables() )
             render(drawable, node->globalTransform(), l, light_mat ) ;
@@ -319,6 +319,10 @@ void Renderer::render(const Drawable &dr, const Affine3f &mat, const LightPtr &l
     prog = instantiateMaterial(material.get(), flags) ;
 
     setupCulling(material.get()) ;
+
+    if ( material->hasDepthTest() )
+        glEnable(GL_DEPTH_TEST) ;
+    else glDisable(GL_DEPTH_TEST) ;
 
     prog->use() ;
     prog->applyParams(material) ;
@@ -391,7 +395,7 @@ void Renderer::initShadowMapRenderer()
 
 void Renderer::setPose(const GeometryPtr &mesh, const MaterialProgramPtr &mat) {
     const auto &skeleton = mesh->skeleton() ;
-    for( uint i=0 ; i<skeleton.size() ; i++ ) {
+    for( unsigned int i=0 ; i<skeleton.size() ; i++ ) {
         const Geometry::Bone &b = skeleton[i] ;
         mat->applyBoneTransform(i, ( b.node_->globalTransform() * b.offset_).matrix()) ;
     }

@@ -27,6 +27,7 @@ public:
     enum UpAxis { XAxis, YAxis, ZAxis } ;
 
     SceneViewer(const NodePtr &scene, QWidget *parent = nullptr)  ;
+    SceneViewer(QWidget *parent = nullptr)  ;
     ~SceneViewer() ;
 
     static void initDefaultGLContext() {
@@ -45,13 +46,13 @@ public:
         QSurfaceFormat::setDefaultFormat(format);
     }
 
+    void setScene(const NodePtr &s) ;
+
     void setDrawAxes(bool draw_axes);
 
     // should be called to initialized camera and trackball with given scene center and radius
 
     void initCamera(const Eigen::Vector3f &c, float r, UpAxis upAxis = YAxis );
-
-    void setScene(const ScenePtr &scene) ;
 
     void startAnimations() ;
 

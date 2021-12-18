@@ -160,7 +160,7 @@ public:
     void paintGL() override {
         SceneViewer::paintGL() ;
 
-        for( uint i=0 ; i<10 ; i++ ) {
+        for( unsigned int i=0 ; i<10 ; i++ ) {
             stringstream strm ;
             strm << "box" << i ;
             NodePtr node = scene_->findNodeByName(strm.str());
@@ -200,7 +200,7 @@ int main(int argc, char **argv)
 
     scene->addChild(model) ;
 
-    for( uint i=0 ; i<10 ; i++ ) {
+    for( unsigned int i=0 ; i<10 ; i++ ) {
         Vector4f clr(0.5, rnd_uniform(0.0, 1.0), rnd_uniform(0.0, 1.0), 1.0) ;
         stringstream strm ;
 

@@ -16,7 +16,7 @@ class Constraint ;
 class Cloth {
 public:
 
-    void reset(uint n_iterations) ;
+    void reset(unsigned int n_iterations) ;
 
     void getMesh(std::vector<Eigen::Vector3f> &vertices,
                                                std::vector<Eigen::Vector3f> &normals,
@@ -44,7 +44,7 @@ public:
                     TopEdge = 0x10, BottomEdge = 0x20, LeftEdge = 0x40, RightEdge = 0x80 } ;
 
     RectangularPatch(float mass, const Eigen::Vector3f &c00, const Eigen::Vector3f &c10, const Eigen::Vector3f &c01,
-                uint nvX, uint nvY, uint anchors, float k_stretch, float k_bend);
+                unsigned int nvX, unsigned int nvY, unsigned int anchors, float k_stretch, float k_bend);
 
 
 };

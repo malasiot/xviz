@@ -40,7 +40,7 @@ protected:
     World &world_ ;
 
     float k_damping_ = 0.00125f;
-    uint num_iterations_ = 2 ;
+    unsigned int num_iterations_ = 2 ;
     std::vector<ContactConstraint> contacts_ ;
 };
 

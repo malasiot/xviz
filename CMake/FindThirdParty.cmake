@@ -6,6 +6,6 @@ if( POLICY CMP0072 )
 endif()
 
 find_package(OpenGL QUIET REQUIRED)
-find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
+find_package(Qt5 COMPONENTS Core Widgets OpenGL REQUIRED)
 
 

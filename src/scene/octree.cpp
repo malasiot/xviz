@@ -21,9 +21,9 @@ const Vector3f Octree::offsets_[8] = { { -0.5, 0.5, -0.5 }, {0.5, 0.5, -0.5}, { 
                                        { -0.5, 0.5, 0.5 }, {0.5, 0.5, 0.5}, { -0.5, -0.5, 0.5 }, { 0.5, -0.5, 0.5 } } ;
 
 void Octree::getTriangleVertices(const Geometry &m, const uint32_t tindex[3], Eigen::Vector3f &v0, Eigen::Vector3f &v1, Eigen::Vector3f &v2) {
-    uint i0 = tindex[0] ;
-    uint i1 = tindex[1] ;
-    uint i2 = tindex[2] ;
+    unsigned int i0 = tindex[0] ;
+    unsigned int i1 = tindex[1] ;
+    unsigned int i2 = tindex[2] ;
     v0 = m.vertices()[i0] ;
     v1 = m.vertices()[i1] ;
     v2 = m.vertices()[i2] ;
@@ -47,7 +47,7 @@ void Octree::create(const Geometry &mesh) {
 
     uint32_t tidx[3] ;
 
-    for( uint i=0 ; i<mesh.indices().size() ; i+=3 ) {
+    for( unsigned int i=0 ; i<mesh.indices().size() ; i+=3 ) {
         tidx[0] = mesh.indices()[i] ;
         tidx[1] = mesh.indices()[i+1] ;
         tidx[2] = mesh.indices()[i+2] ;
@@ -62,12 +62,12 @@ void Octree::create(const Geometry &mesh) {
 
 }
 
-Octree::Octree(uint max_depth, uint max_count):
+Octree::Octree(unsigned int max_depth, unsigned int max_count):
     max_depth_(max_depth), max_count_(max_count), root_(new OctreeNode()) {
 
 }
 
-void Octree::insertTriangle(const Geometry &m, OctreeNode *node, const Eigen::Vector3f &center, const Eigen::Vector3f &hs, uint depth, const uint32_t tindex[3],
+void Octree::insertTriangle(const Geometry &m, OctreeNode *node, const Eigen::Vector3f &center, const Eigen::Vector3f &hs, unsigned int depth, const uint32_t tindex[3],
                             const Eigen::Vector3f &v0, const Eigen::Vector3f &v1, const Eigen::Vector3f &v2) {
 
     if ( node->is_leaf_ ) {
@@ -84,7 +84,7 @@ void Octree::insertTriangle(const Geometry &m, OctreeNode *node, const Eigen::Ve
             insertTriangle(m, node, center, hs, depth, tindex, v0, v1, v2) ;
         }
     } else {
-        for( uint i=0 ; i<8 ; i++ ) {
+        for( unsigned int i=0 ; i<8 ; i++ ) {
             Vector3f child_center  = center  + Vector3f((offsets_[i].array() * hs.array())) ;
 
       /*      if ( triangleInsideBox(v0, v1, v2, child_center, hs/2 ) ||
@@ -138,7 +138,7 @@ bool Octree::intersect(OctreeNode *node, const Ray &r, const Eigen::Vector3f &ce
 
     } else { // recurse on child nodes
         bool found = false ;
-        for( uint i=0 ; i<8 ; i++ ) {
+        for( unsigned int i=0 ; i<8 ; i++ ) {
             if ( node->children_[i] != nullptr ) {
                 Vector3f child_center  = center  + Vector3f((offsets_[i].array() * hs.array())) ;
 
@@ -156,7 +156,7 @@ bool Octree::intersect(OctreeNode *node, const Ray &r, const Eigen::Vector3f &ce
 
 }
 
-bool Octree::intersect(const Ray &ray, uint tindex[3], float &t) {
+bool Octree::intersect(const Ray &ray, unsigned int tindex[3], float &t) {
     t = std::numeric_limits<float>::max() ;
     return intersect(root_, ray, center_, hs_, tindex, t) ;
 }

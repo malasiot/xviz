@@ -6,6 +6,8 @@
 #include <QMouseEvent>
 #include <QDebug>
 
+#include <iostream>
+
 using namespace Eigen ;
 using namespace std ;
 
@@ -26,12 +28,16 @@ Translate1DManipulator::Translate1DManipulator(const NodePtr &node, const Eigen:
     float len = dir.norm() ;
     dir /= len ;
 
-    pick_threshold_ = 0.075 * len ;
+    pick_threshold_ = 3 ;
 
     GeometryPtr cone_geom(new Geometry(Geometry::createSolidCone(len * 0.025f, len * 0.1f, 10, 10))) ;
 
+    GeometryPtr cyl_geom(new Geometry(Geometry::createSolidCylinder(len * 0.01f, len, 10, 10)));
+
     NodePtr line_node(new Node) ;
-    line_node->addDrawable(line_geom, mat_) ;
+    line_node->addDrawable(cyl_geom, mat_) ;
+    line_node->transform().linear() = rotationBetween({0, 0, 1}, Vector3f(dir)) ;
+    line_node->transform().translation() = (start_ + end_)/2 ;
 
     NodePtr left_cone(new Node) ;
     left_cone->addDrawable(cone_geom, mat_) ;
@@ -74,14 +80,16 @@ bool Translate1DManipulator::onMousePressed(QMouseEvent *event)
 
     float d, s, len = (end_ - start_).norm() ;
 
-    if ( impl::computeRayProjectionOnLine(start_, end_, tr.origin(), tr.dir(), start_drag_, d, s ) && d < pick_threshold_ && s >= 0 && s <= len ) {
-        dragging_ = true ;
-        translation_init_ = transform_node_->transform().translation() ;
-        setMaterialColor(pick_clr_) ;
-        return true ;
+    if ( impl::computeRayProjectionOnLine(start_, end_, tr.origin(), tr.dir(), start_drag_, d, s )  && s >= 0 && s <= len ) {
+        Vector3f pj = static_cast<PerspectiveCamera *>(camera_.get())->project(parent()->globalTransform() *start_drag_ ) ;
+        float dist = sqrt( ( pj.x() - event->x()) * ( pj.x() - event->x()) + (pj.y() - event->y()) * ( pj.y() - event->y())) ;
+        if ( dist < pick_threshold_ ) {
+            dragging_ = true ;
+            translation_init_ = transform_node_->transform().translation() ;
+            setMaterialColor(pick_clr_) ;
+            return true ;
+        }
     }
-
-//    qDebug() << d << start_drag_.x() << start_drag_.y() << start_drag_.z() ;
 
     return false ;
 }
@@ -115,6 +123,11 @@ bool Translate1DManipulator::onMouseMoved(QMouseEvent *event)
     }
 
     return false ;
+}
+
+void Translate1DManipulator::onCameraUpdated()
+{
+
 }
 
 

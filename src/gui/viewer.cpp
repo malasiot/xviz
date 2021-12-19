@@ -86,6 +86,8 @@ void SceneViewer::initCamera(const Vector3f &c, float r, UpAxis axis) {
 
    camera_->setBgColor({1, 1, 1, 1}) ;
 
+   camera_->setViewport(width(), height()) ;
+
    scene_->visit([this](Node &node) {
       if ( Manipulator *m = dynamic_cast<Manipulator *>(&node) ) m->setCamera(camera_) ;
    });
@@ -182,6 +184,10 @@ void SceneViewer::wheelEvent(QWheelEvent *event) {
     trackball_.setScrollDirection(event->angleDelta().y()>0);
     trackball_.update() ;
     update() ;
+
+    for( const ManipulatorPtr &m: getManipulators() ) {
+        m->onCameraUpdated() ;
+    }
 }
 
 void SceneViewer::keyPressEvent(QKeyEvent *event)
@@ -204,11 +210,12 @@ void SceneViewer::initializeGL() {
 
 void SceneViewer::resizeGL(int w, int h) {
     if ( camera_ ) {
-        float ratio = w/(float)h ;
+        float ratio = w/(float)h  ;
         std::static_pointer_cast<PerspectiveCamera>(camera_)->setAspectRatio(ratio) ;
 
         trackball_.setScreenSize(w, h);
         camera_->setViewport(w, h) ;
+
     }
 }
 

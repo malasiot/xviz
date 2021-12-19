@@ -41,5 +41,10 @@ bool rayIntersectsPoint(const Ray &ray, const Eigen::Vector3f &p, float thresh, 
 bool rayIntersectsLine(const Ray &ray, const Eigen::Vector3f &p1, const Eigen::Vector3f &p2, float thresh, float &t) ;
 
 bool rayIntersectsCylinder(const Ray &ray, float radius, float height, float &t) ;
+
+// torus is on XZ plane
+bool rayIntersectsTorus(const Ray& ray, float a, float b, float& tmin) ;
+
+
 }}
 #endif

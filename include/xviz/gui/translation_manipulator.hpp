@@ -15,6 +15,7 @@ public:
     bool onMousePressed(QMouseEvent *event) override ;
     bool onMouseReleased(QMouseEvent *event) override ;
     bool onMouseMoved(QMouseEvent *event) override ;
+    void onCameraUpdated() override ;
 
 private:
     Eigen::Vector3f start_, end_, start_drag_, end_drag_, translation_init_ ;

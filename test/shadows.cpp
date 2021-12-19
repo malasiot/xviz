@@ -145,6 +145,14 @@ int main(int argc, char **argv)
 
     scene->addChild(NodeHelpers::makeCircle({0, 0, 0}, {1, 0, 0}, 2, {1, 0, 0})) ;
 
+    GeometryPtr torus(new Geometry(std::move(Geometry::createSolidTorus(2, 0.2, 21, 61)))) ;
+    PhongMaterial *material = new PhongMaterial({0, 0, 1, 1}) ;
+
+    MaterialPtr mat(material) ;
+    NodePtr torus_node(new Node) ;
+    torus_node->addDrawable(torus, mat) ;
+    scene->addChild(torus_node) ;
+
     for( unsigned int i=0 ; i<10 ; i++ ) {
         Vector4f clr(0.5, rnd_uniform(0.0, 1.0), rnd_uniform(0.0, 1.0), 1.0) ;
         stringstream strm ;

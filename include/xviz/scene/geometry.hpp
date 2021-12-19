@@ -118,6 +118,8 @@ public:
     static Geometry createWireCylinder(float radius, float height, size_t slices, size_t stacks) ;
     static Geometry createSolidCylinder(float radius, float height, size_t slices, size_t stacks, bool add_caps = true) ;
 
+    static Geometry createSolidTorus(float R, float r, size_t n_sides, size_t n_rings);
+
     static Geometry createCapsule(float radius, float height, size_t slices, size_t head_stacks, size_t body_stacks) ;
 
     static Geometry makePointCloud(const std::vector<Eigen::Vector3f> &pts) ;

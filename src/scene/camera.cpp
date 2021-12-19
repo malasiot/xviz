@@ -33,8 +33,8 @@ Ray PerspectiveCamera::getRay(float sx, float sy) const
 Eigen::Matrix4f PerspectiveCamera::projectionMatrix() const {
     assert(abs(aspect_ - std::numeric_limits<float>::epsilon()) > static_cast<float>(0));
 
-    float xfov = aspect_ * yfov_ ;
-    float const d = 1/tan(xfov / static_cast<float>(2));
+//    float xfov = aspect_ * yfov_ ;
+    float const d = 1/tan(yfov_ / static_cast<float>(2));
 
     Matrix4f result ;
     result.setZero() ;
@@ -46,6 +46,23 @@ Eigen::Matrix4f PerspectiveCamera::projectionMatrix() const {
     result(3, 2) = -1 ;
 
     return result;
+}
+
+Vector3f PerspectiveCamera::project(const Vector3f &p)
+{
+    Vector4f tmp { p.x(), p.y(), p.z(), 1.f };
+
+    tmp = mat_ * tmp;
+    tmp = getProjectionMatrix() * tmp;
+
+    tmp /= tmp.w() ;
+
+    tmp = tmp * 0.5 + Vector4f { 0.5, 0.5, 0.5, 0.5 } ;
+
+    tmp[0] = tmp[0] * vp_.width_ + vp_.x_;
+    tmp[1] = vp_.height_ - (tmp[1] * vp_.height_ + vp_.y_);
+
+    return Vector3f { tmp[0], tmp[1], tmp[2] } ;
 }
 
 

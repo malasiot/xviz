@@ -11,6 +11,7 @@ namespace xviz {
 
 void Manipulator::setCamera(const CameraPtr &cam) {
     camera_ = cam ;
+    onCameraUpdated() ;
 }
 
 
@@ -33,6 +34,13 @@ bool CompositeManipulator::onMouseMoved(QMouseEvent *event) {
         if ( m->onMouseMoved(event) ) return true ;
     }
     return false ;
+}
+
+void CompositeManipulator::onCameraUpdated()
+{
+    for( const auto &m: components_ ) {
+        m->onCameraUpdated();
+    }
 }
 
 void CompositeManipulator::addComponent(const ManipulatorPtr &m)

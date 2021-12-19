@@ -103,6 +103,11 @@ public:
     float zNear() const { return znear_ ; }
     float zFar() const { return zfar_ ; }
 
+    float yFov() const { return yfov_ ; }
+
+    Eigen::Vector3f project(const Eigen::Vector3f &p) ;
+    Eigen::Vector3f unProject(const Eigen::Vector3f &p) ;
+
 protected:
 
     float yfov_, aspect_, znear_, zfar_ ;

@@ -412,6 +412,84 @@ Geometry Geometry::createCapsule(float radius, float height, size_t slices, size
 
 }
 
+Geometry Geometry::createSolidTorus(float R, float r, size_t n_sides, size_t n_rings) {
+
+     float phi, theta1;
+     float cos_theta1, sin_theta1;
+
+     float ring_delta = 2.0 * M_PI / n_rings;
+     float side_delta = 2.0 * M_PI / n_sides;
+
+     float theta = 0.0;
+     float cos_theta = 1.0;
+     float sin_theta = 0.0;
+
+     Vector3f pv1, pv2, pn1, pn2 ;
+     int c = 0 ;
+     bool first = true ;
+
+     vector<Vector3f> vertices, normals ;
+     vector<uint32_t> vtx_indices, nrm_indices ;
+
+     for ( int i = n_rings - 1; i >= 0; i-- ) {
+       theta1 = theta + ring_delta;
+       cos_theta1 = cos(theta1);
+       sin_theta1 = sin(theta1);
+
+       phi = 0.0;
+       for ( int j = n_sides; j >= 0; j-- ) {
+         float cos_phi, sin_phi, dist;
+
+         phi += side_delta;
+         cos_phi = cos(phi);
+         sin_phi = sin(phi);
+         dist = R + r * cos_phi;
+
+         Vector3f n1 { cos_theta1 * cos_phi, -sin_theta1 * cos_phi, sin_phi } ;
+         Vector3f v1 { cos_theta1 * dist, -sin_theta1 * dist, r * sin_phi } ;
+
+         Vector3f n2 { cos_theta * cos_phi, -sin_theta * cos_phi, sin_phi } ;
+         Vector3f v2 { cos_theta * dist, -sin_theta * dist, r * sin_phi } ;
+
+         vertices.push_back(v2) ;
+         vertices.push_back(v1) ;
+
+         normals.push_back(n2) ;
+         normals.push_back(n1) ;
+
+         if ( !first ) {
+             vtx_indices.push_back(c) ;
+             vtx_indices.push_back(c+3) ;
+             vtx_indices.push_back(c+1) ;
+
+             vtx_indices.push_back(c) ;
+             vtx_indices.push_back(c+2) ;
+             vtx_indices.push_back(c+3) ;
+
+             nrm_indices.push_back(c) ;
+             nrm_indices.push_back(c+3) ;
+             nrm_indices.push_back(c+1) ;
+
+             nrm_indices.push_back(c) ;
+             nrm_indices.push_back(c+2) ;
+             nrm_indices.push_back(c+3) ;
+
+             c += 2 ;
+         }
+
+         pv1 = v1 ; pv2 = v2 ;
+         pn1 = n1 ; pn2 = n2 ;
+         first = false ;
+       }
+       theta = theta1;
+       cos_theta = cos_theta1;
+       sin_theta = sin_theta1;
+     }
+
+     return flatten(vertices, vtx_indices, normals, nrm_indices) ;
+
+}
+
 Geometry Geometry::makePointCloud(const std::vector<Vector3f> &pts) {
     Geometry m(Points) ;
     m.vertices() = pts ;

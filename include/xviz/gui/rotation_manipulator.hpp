@@ -15,6 +15,7 @@ public:
     bool onMousePressed(QMouseEvent *event) override ;
     bool onMouseReleased(QMouseEvent *event) override ;
     bool onMouseMoved(QMouseEvent *event) override ;
+    void onCameraUpdated() override ;
 
 private:
     Eigen::Vector3f axis_, start_drag_, end_drag_ ;
@@ -23,6 +24,7 @@ private:
     Eigen::Affine3f tr_init_ ;
     Eigen::Vector4f clr_{1, 0, 0, 1}, pick_clr_{1, 1, 0, 1} ;
     MaterialPtr mat_ ;
+    NodePtr scale_node_ ;
     bool dragging_ = false ;
     float pick_threshold_  ;
 

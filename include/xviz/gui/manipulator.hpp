@@ -21,6 +21,7 @@ public:
     virtual bool onMousePressed(QMouseEvent *event) = 0 ;
     virtual bool onMouseReleased(QMouseEvent *event) = 0;
     virtual bool onMouseMoved(QMouseEvent *event) = 0 ;
+    virtual void onCameraUpdated() = 0 ;
 
 protected:
     friend class CompositeManipulator ;
@@ -37,6 +38,7 @@ public:
     bool onMousePressed(QMouseEvent *event) override ;
     bool onMouseReleased(QMouseEvent *event) override ;
     bool onMouseMoved(QMouseEvent *event) override ;
+    void onCameraUpdated() override ;
 
 protected:
     void addComponent(const ManipulatorPtr &m) ;

@@ -20,6 +20,9 @@ public:
 private:
     Eigen::Vector3f start_, end_, start_drag_, end_drag_, translation_init_ ;
     Eigen::Vector4f clr_{1, 0, 0, 1}, pick_clr_{1, 1, 0, 1} ;
+    Eigen::Isometry3f linetr_ ;
+    Eigen::Affine3f tr_init_ ;
+    float len_ ;
     GeometryPtr cone_, line_ ;
     MaterialPtr mat_ ;
     bool dragging_ = false ;

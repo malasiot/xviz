@@ -22,13 +22,20 @@ bool intersectPlane(const Vector3f &n, const Vector3f &orig, const Vector3f &dir
 
     // assuming vectors are all normalized
     float denom = n.dot(l) ;
-    if (fabs(denom) > 1e-15) {
+    if (fabs(denom) > 0.1) {
         float t = -orig.dot(n)/ denom;
          p = orig + t * l ;
-         return true ;
+        return true ;
     }
 
     return false ;
+}
+
+bool intersectsSphere(const Ray &r, float rad, Vector3f &p) {
+    float t ;
+    if ( !detail::rayIntersectsSphere(r, Vector3f{0.f, 0.f, 0.f}, rad, t )) return false ;
+    p = r.origin() + t * r.dir() ;
+    return true ;
 }
 
 RotateAxisManipulator::RotateAxisManipulator(const NodePtr &node, const Eigen::Vector3f &axis, float radius): Manipulator(node), axis_(axis), radius_(radius) {
@@ -36,22 +43,14 @@ RotateAxisManipulator::RotateAxisManipulator(const NodePtr &node, const Eigen::V
     mat_->setSide(Material::Side::Both);
     mat_->enableDepthTest(false) ;
 
-  //  GeometryPtr circle_geom(new Geometry(std::move(Geometry::createSolidCylinder(radius, 0.05 *radius, 36, 2, false)))) ;
-      GeometryPtr circle_geom(new Geometry(std::move(Geometry::createSolidTorus(radius, 0.025 *radius, 21, 65)))) ;
+    GeometryPtr circle_geom(new Geometry(std::move(Geometry::createSolidTorus(radius, 0.025 *radius, 21, 65)))) ;
 
-    pick_threshold_ = 0.075 * radius_ ;
+    ctr_.setIdentity() ;
+    ctr_.linear() = rotationBetween({0, 1, 0}, axis_) ;
 
     NodePtr circle_node(new Node) ;
     circle_node->addDrawable(circle_geom, mat_) ;
-    circle_node->transform().linear() = rotationBetween({0, 0, 1}, axis) ;
-    /*
-    scale_node_.reset(new Node) ;
-
-    scale_node_->addChild(circle_node);
-*/
-    // cout << camera_->getViewMatrix().inverse() * Vector4f(0, 0, -1, 0) ;
-    //float dist = length(position - g.active_state.cam.position);
-    //   return std::tan(g.active_state.cam.yfov) * dist * (pixel_scale / g.active_state.viewport_size.y);
+    circle_node->transform().linear() = rotationBetween({0, 0, 1}, axis_) ;
 
     addChild(circle_node) ;
 }
@@ -74,23 +73,17 @@ void RotateAxisManipulator::setMaterialColor(const Eigen::Vector4f &clr) {
 }
 
 
-bool RotateAxisManipulator::onMousePressed(QMouseEvent *event)
-{
-
+bool RotateAxisManipulator::onMousePressed(QMouseEvent *event) {
     Ray ray = camera_->getRay(event->x(), event->y()) ;
     Affine3f tf = transform_node_->globalTransform().inverse() ;
-    Ray tr(ray, tf) ; // ray transform to local coordinate system
 
-
-    Isometry3f tt = Isometry3f::Identity() ;
-    tt.linear() = rotationBetween({0, 1, 0}, axis_) ;
-    Ray tr2(tr, tt) ;
+    Ray tr(ray, ctr_ * tf) ;
 
     float t ;
 
-    if ( detail::rayIntersectsTorus(tr2, radius_, 0.05 * radius_, t)) {
-        Vector3f p = tr2.origin() + t * tr2.dir() ;
-        start_drag_ = tt.inverse() * p ;
+    if ( detail::rayIntersectsTorus(tr, radius_, 0.05 * radius_, t)) {
+        Vector3f p = tr.origin() + t * tr.dir() ;
+        start_drag_ = ctr_.inverse() * p ;
         dragging_ = true ;
         rotation_init_ = transform_node_->transform().linear() ;
         tr_init_ = tf ;
@@ -115,13 +108,14 @@ bool RotateAxisManipulator::onMouseReleased(QMouseEvent *event) {
 bool RotateAxisManipulator::onMouseMoved(QMouseEvent *event)
 {
     Ray ray = camera_->getRay(event->x(), event->y()) ;
-    //   Affine3f tf = transform_node_->globalTransform().inverse() ;
-    Ray tr(ray, tr_init_) ; // ray transform to local coordinate system
+    Affine3f tf = transform_node_->globalTransform().inverse() ;
 
     if ( dragging_ ) {
+        Ray tr(ray, tr_init_) ; // ray transform to local coordinate system
+
         Vector3f p ;
 
-        if ( intersectPlane(axis_, tr.origin(), tr.dir(), p) ) {
+        if ( intersectPlane(axis_, tr.origin(), tr.dir(), p) || intersectsSphere(tr, radius_, p)) {
 
             float angle = acos(p.normalized().dot(start_drag_.normalized())) ;
             Vector3f vc = p.cross(start_drag_) ;
@@ -130,6 +124,17 @@ bool RotateAxisManipulator::onMouseMoved(QMouseEvent *event)
             //     qDebug() << p.x() << p.y() << p.z() << angle * 180 /M_PI ;
             transform_node_->transform().linear() = rotation_init_ * AngleAxisf(angle, axis_) ;
             return true;
+        }
+
+    } else {
+        Ray tr(ray, ctr_ * tf) ;
+
+        float t ;
+        if ( detail::rayIntersectsTorus(tr, radius_, 0.05 * radius_, t)) {
+            setMaterialColor(pick_clr_) ;
+            return true ;
+        } else {
+             setMaterialColor(clr_) ;
         }
 
     }

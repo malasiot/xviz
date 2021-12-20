@@ -22,6 +22,7 @@ SceneViewer::SceneViewer(QWidget *parent): QOpenGLWidget(parent), scene_(new Nod
 {
     setFocusPolicy(Qt::StrongFocus) ;
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    setMouseTracking(true) ;
 
 }
 

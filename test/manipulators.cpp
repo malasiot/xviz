@@ -33,12 +33,14 @@ int main(int argc, char **argv)
     scene->addChild(box_node) ;
 
 
-    RotateXYZManipulator *manip = new RotateXYZManipulator(box_node, 1.f);
+    RotateXYZManipulator *rmanip = new RotateXYZManipulator(box_node, 1.f);
+    TranslateXYZManipulator *tmanip = new TranslateXYZManipulator(box_node, 2.f);
 
-    ManipulatorPtr m(manip) ;
-    m->setOrder(2) ;
+    rmanip->setOrder(2) ;
+    tmanip->setOrder(2) ;
 
-    box_node->addChild(m) ;
+    box_node->addChild(ManipulatorPtr(rmanip)) ;
+    box_node->addChild(ManipulatorPtr(tmanip)) ;
 
     DirectionalLight *dl = new DirectionalLight(Vector3f(0.5, 0.5, 1)) ;
     dl->diffuse_color_ = Vector3f(1, 1, 1) ;

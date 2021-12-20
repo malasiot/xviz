@@ -2,6 +2,7 @@
 
 #include <xviz/gui/manipulator.hpp>
 #include <xviz/scene/node_helpers.hpp>
+#include <xviz/scene/detail/intersect.hpp>
 #include "renderer/util.hpp"
 #include <QMouseEvent>
 #include <QDebug>
@@ -20,24 +21,23 @@ Translate1DManipulator::Translate1DManipulator(const NodePtr &node, const Eigen:
     mat_.reset(new ConstantMaterial(clr_)) ;
     mat_->enableDepthTest(false) ;
 
-    GeometryPtr line_geom(new Geometry(Geometry::Lines)) ;
-    line_geom->vertices().push_back(start) ;
-    line_geom->vertices().push_back(end) ;
-
     Vector3f dir = (end_ - start_) ;
-    float len = dir.norm() ;
-    dir /= len ;
+    len_ = dir.norm() ;
+    dir /= len_ ;
 
     pick_threshold_ = 3 ;
 
-    GeometryPtr cone_geom(new Geometry(Geometry::createSolidCone(len * 0.025f, len * 0.1f, 10, 10))) ;
+    GeometryPtr cone_geom(new Geometry(Geometry::createSolidCone(len_ * 0.025f, len_ * 0.1f, 10, 10))) ;
 
-    GeometryPtr cyl_geom(new Geometry(Geometry::createSolidCylinder(len * 0.01f, len, 10, 10)));
+    GeometryPtr cyl_geom(new Geometry(Geometry::createSolidCylinder(len_ * 0.01f, len_, 10, 10)));
+
+    linetr_.setIdentity() ;
+    linetr_.linear() = rotationBetween({0, 0, 1}, Vector3f(dir)) ;
+    linetr_.translation() = (start_ + end_)/2 ;
 
     NodePtr line_node(new Node) ;
     line_node->addDrawable(cyl_geom, mat_) ;
-    line_node->transform().linear() = rotationBetween({0, 0, 1}, Vector3f(dir)) ;
-    line_node->transform().translation() = (start_ + end_)/2 ;
+    line_node->setTransform(linetr_) ;
 
     NodePtr left_cone(new Node) ;
     left_cone->addDrawable(cone_geom, mat_) ;
@@ -76,19 +76,19 @@ bool Translate1DManipulator::onMousePressed(QMouseEvent *event)
 {
     Ray ray = camera_->getRay(event->x(), event->y()) ;
     Affine3f tf = parent()->globalTransform().inverse() ;
-    Ray tr(ray, tf) ; // ray transform to local coordinate system
+    Ray tr(ray, linetr_ * tf) ; // ray transform to local coordinate system
 
-    float d, s, len = (end_ - start_).norm() ;
+    float t ;
 
-    if ( impl::computeRayProjectionOnLine(start_, end_, tr.origin(), tr.dir(), start_drag_, d, s )  && s >= 0 && s <= len ) {
-        Vector3f pj = static_cast<PerspectiveCamera *>(camera_.get())->project(parent()->globalTransform() *start_drag_ ) ;
-        float dist = sqrt( ( pj.x() - event->x()) * ( pj.x() - event->x()) + (pj.y() - event->y()) * ( pj.y() - event->y())) ;
-        if ( dist < pick_threshold_ ) {
-            dragging_ = true ;
-            translation_init_ = transform_node_->transform().translation() ;
-            setMaterialColor(pick_clr_) ;
-            return true ;
-        }
+    if ( detail::rayIntersectsCylinder(tr, len_ * 0.05f, len_ + 0.1f * len_, t )) {
+        Vector3f p = tr.origin() + t * tr.dir() ;
+        start_drag_ = linetr_.inverse() * p ;
+        dragging_ = true ;
+        translation_init_ = transform_node_->transform().translation() ;
+        tr_init_ = tf ;
+        setMaterialColor(pick_clr_) ;
+        return true ;
+
     }
 
     return false ;
@@ -106,18 +106,32 @@ bool Translate1DManipulator::onMouseReleased(QMouseEvent *event) {
 
 bool Translate1DManipulator::onMouseMoved(QMouseEvent *event)
 {
-    if ( dragging_ ) {
-        Ray ray = camera_->getRay(event->x(), event->y()) ;
-        Affine3f tf = parent()->globalTransform().inverse() ;
-        Ray tr(ray, tf) ; // ray transform to local coordinate system
+    Ray ray = camera_->getRay(event->x(), event->y()) ;
+    Affine3f tf = parent()->globalTransform().inverse() ;
 
+    if ( dragging_ ) {
+        Ray tr(ray, tr_init_) ; // ray transform to local coordinate system
         Vector3f p ;
         float d, s ;
         if ( impl::computeRayProjectionOnLine(start_, end_, tr.origin(), tr.dir(), p, d, s) ) {
+
             Vector3f t = translation_init_ + p - start_drag_  ;
+
             if ( transform_node_ ) transform_node_->transform().translation() = t  ;
 
             return true ;
+        }
+
+    } else {
+
+        float t ;
+        if ( detail::rayIntersectsCylinder(Ray(ray, linetr_ * tf), len_ * 0.05f, len_ + 0.1f * len_, t )) {
+            setMaterialColor(pick_clr_) ;
+            return true ;
+        }
+        else {
+             setMaterialColor(clr_) ;
+             return false ;
         }
 
     }

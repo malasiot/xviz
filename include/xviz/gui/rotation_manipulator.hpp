@@ -22,6 +22,7 @@ private:
     float radius_ ;
     Eigen::Matrix3f rotation_init_ ;
     Eigen::Affine3f tr_init_ ;
+    Eigen::Isometry3f ctr_ ;
     Eigen::Vector4f clr_{1, 0, 0, 1}, pick_clr_{1, 1, 0, 1} ;
     MaterialPtr mat_ ;
     NodePtr scale_node_ ;

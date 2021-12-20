@@ -459,7 +459,7 @@ static bool intersectsDisk(const Vector3f &p, const Vector3f &d, float radius, f
     Vector3f ip = p + t * d ;
 
     if ( ip.x()*ip.x() + ip.y()*ip.y() > radius * radius ) return false ;
-    cout << t << endl ;
+
     return true;
 }
 

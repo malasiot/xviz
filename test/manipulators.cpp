@@ -39,8 +39,11 @@ int main(int argc, char **argv)
     rmanip->setOrder(2) ;
     tmanip->setOrder(2) ;
 
-    box_node->addChild(ManipulatorPtr(rmanip)) ;
-    box_node->addChild(ManipulatorPtr(tmanip)) ;
+    ManipulatorPtr rm(rmanip) ;
+    ManipulatorPtr tm(tmanip) ;
+
+    box_node->addChild(rm) ;
+    box_node->addChild(tm) ;
 
     DirectionalLight *dl = new DirectionalLight(Vector3f(0.5, 0.5, 1)) ;
     dl->diffuse_color_ = Vector3f(1, 1, 1) ;
@@ -48,6 +51,8 @@ int main(int argc, char **argv)
 
     SceneViewer *viewer = new SceneViewer(scene) ;
     viewer->initCamera({0, 0, 0}, 4.0);
+    viewer->addManipulator(rm) ;
+    viewer->addManipulator(tm) ;
 
     QMainWindow window ;
     window.setCentralWidget(viewer) ;

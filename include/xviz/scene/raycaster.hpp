@@ -27,7 +27,9 @@ struct RayCastResult {
 class RayCaster {
 public:
     ~RayCaster() ;
-    RayCaster(const ScenePtr &scene) ;
+    RayCaster() ;
+
+    void addNode(const NodePtr &node, bool recursive) ;
 
     bool intersect(const Ray &ray, RayCastResult &result) ;
 
@@ -41,18 +43,22 @@ public:
         line_distance_thresh_sq_ = t * t;
     }
 
+     void updateBoxes(const NodePtr &n);
+
 private:
-    ScenePtr scene_ ;
+    std::vector<NodePtr> nodes_ ;
     std::map<const Geometry *, std::unique_ptr<detail::Octree>> octrees_ ;
     std::map<const Geometry *, std::unique_ptr<detail::AABB>> boxes_ ;
 
 private:
+
     bool intersect(const Ray &ray, const NodePtr &node, RayCastResult &res);
     bool intersect(const Ray &ray, const GeometryPtr &geom, RayCastResult &result, float &mint);
 
 private:
     float point_distance_thresh_sq_ = 0.001 ;
     float line_distance_thresh_sq_ = 0.001 ;
+
 };
 
 }

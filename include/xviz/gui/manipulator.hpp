@@ -16,7 +16,7 @@ public:
 
     Manipulator(const NodePtr &node): transform_node_(node) {}
 
-    void setCamera(const CameraPtr &cam) ;
+    virtual void setCamera(const CameraPtr &cam) ;
 
     virtual bool onMousePressed(QMouseEvent *event) = 0 ;
     virtual bool onMouseReleased(QMouseEvent *event) = 0;
@@ -39,6 +39,8 @@ public:
     bool onMouseReleased(QMouseEvent *event) override ;
     bool onMouseMoved(QMouseEvent *event) override ;
     void onCameraUpdated() override ;
+
+    void setCamera(const CameraPtr &cam) override ;
 
 protected:
     void addComponent(const ManipulatorPtr &m) ;

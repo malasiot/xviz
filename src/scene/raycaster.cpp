@@ -16,14 +16,31 @@ RayCaster::~RayCaster()
 
 }
 
-RayCaster::RayCaster(const ScenePtr &scene): scene_(scene)
-{
-    for( const Geometry *geom: scene_->geometries() ) {
+void RayCaster::updateBoxes(const NodePtr &node) {
+    for( const Geometry *geom: node->geometries() ) {
+        if ( boxes_.count(geom) ) continue ;
         if ( !geom->hasCheapIntersectionTest() ) {
             Vector3f bmin, bmax ;
             geom->computeBoundingBox(bmin, bmax);
             std::unique_ptr<detail::AABB> box(new detail::AABB(bmin, bmax)) ;
             boxes_.emplace(geom, std::move(box)) ;
+        }
+    }
+}
+
+RayCaster::RayCaster() {
+
+}
+
+void RayCaster::addNode(const NodePtr &node, bool recursive)
+{
+    nodes_.push_back(node) ;
+    updateBoxes(node) ;
+
+    if ( recursive ) {
+        for( const auto &n: node->getNodesRecursive() ) {
+            nodes_.push_back(n) ;
+            updateBoxes(n) ;
         }
     }
 
@@ -108,7 +125,7 @@ bool RayCaster::intersect(const Ray &ray, RayCastResult &result)
     bool found = false ;
 
 
-    for( NodePtr node: scene_->getNodesRecursive() ) {
+    for( NodePtr node: nodes_ ) {
         Affine3f tf = node->globalTransform().inverse() ;
         Ray tr(ray, tf) ; // ray transform to local coordinate system
 
@@ -130,12 +147,16 @@ bool RayCaster::intersect(const Ray &ray, RayCastResult &result)
 
 void RayCaster::buildOctrees()
 {
-    for ( const Geometry *geom: scene_->geometries() ) {
-        if ( !geom->hasCheapIntersectionTest() ) {
-            if ( geom->ptype() == Geometry::Triangles ) {
-                std::unique_ptr<detail::Octree> tree(new detail::Octree(5)) ;
-                tree->create(*geom) ;
-                octrees_.emplace(geom, std::move(tree)) ;
+    for ( const NodePtr &n: nodes_ ) {
+        for( const Drawable &d: n->drawables()) {
+            auto geom = d.geometry() ;
+
+            if ( !geom->hasCheapIntersectionTest() ) {
+                if ( geom->ptype() == Geometry::Triangles ) {
+                    std::unique_ptr<detail::Octree> tree(new detail::Octree(5)) ;
+                    tree->create(*geom) ;
+                    octrees_.emplace(geom.get(), std::move(tree)) ;
+                }
             }
         }
     }

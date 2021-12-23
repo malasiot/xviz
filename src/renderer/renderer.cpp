@@ -417,7 +417,14 @@ void Renderer::drawMeshData(const MeshData &data, GeometryPtr mesh, bool solid) 
                 glDrawArrays(GL_TRIANGLES, 0, data.elem_count_) ;
         }
         else if ( mesh->ptype() == Geometry::Lines && !solid ) {
-            glDrawArrays(GL_LINES, 0, data.elem_count_) ;
+            if ( data.index_ ) {
+                // bind index buffer if you want to render indexed data
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, data.index_);
+                // indexed draw call
+                glDrawElements(GL_LINES, data.indices_, GL_UNSIGNED_INT, nullptr);
+            }
+            else
+                glDrawArrays(GL_LINES, 0, data.elem_count_) ;
         }
         else if ( mesh->ptype() == Geometry::Points ) {
             glDrawArrays(GL_POINTS, 0, data.elem_count_) ;

@@ -83,7 +83,7 @@ protected:
 
     void drawText(const Eigen::Vector3f &c, const QString &label, const QColor &clr) ;
 
-    std::vector<ManipulatorPtr> getManipulators();
+    const std::vector<ManipulatorPtr> &getManipulators();
 
     NodePtr scene_, axes_ ;
     CameraPtr camera_ ;

@@ -109,8 +109,8 @@ NodePtr randomCylinder(ScenePtr &scene, const string &name, float r, float h, co
 
 class PickingViewer: public SceneViewer {
 public:
-    PickingViewer(ScenePtr scene, QWidget *parent = nullptr): SceneViewer(scene, parent),
-    ray_caster_(scene) {
+    PickingViewer(ScenePtr scene, QWidget *parent = nullptr): SceneViewer(scene, parent)
+    {
         setMouseTracking(true);
         trackball_.setZoomScale(1.2) ;
         ray_caster_.setPointDistanceThreshold(0.05);
@@ -118,6 +118,7 @@ public:
    //    ray_caster_.buildOctrees();
         highlight_.reset(new ConstantMaterial({1, 0, 0, 1})) ;
 
+        ray_caster_.addNode(scene_, true) ;
     }
 
     void mouseMoveEvent(QMouseEvent *event) override {

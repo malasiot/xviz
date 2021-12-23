@@ -43,6 +43,13 @@ void CompositeManipulator::onCameraUpdated()
     }
 }
 
+void CompositeManipulator::setCamera(const CameraPtr &cam)
+{
+    for( const auto &m: components_ ) {
+        m->setCamera(cam);
+    }
+}
+
 void CompositeManipulator::addComponent(const ManipulatorPtr &m)
 {
     components_.push_back(m) ;

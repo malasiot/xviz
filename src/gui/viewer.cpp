@@ -89,10 +89,6 @@ void SceneViewer::initCamera(const Vector3f &c, float r, UpAxis axis) {
 
    camera_->setViewport(width(), height()) ;
 
-   scene_->visit([this](Node &node) {
-      if ( Manipulator *m = dynamic_cast<Manipulator *>(&node) ) m->setCamera(camera_) ;
-   });
-
 }
 
 void SceneViewer::startAnimations()
@@ -107,6 +103,7 @@ void SceneViewer::startAnimations()
 void SceneViewer::addManipulator(const ManipulatorPtr &m) {
 
     manipulators_.emplace_back(m) ;
+    m->setCamera(camera_) ;
 }
 
 void SceneViewer::mousePressEvent(QMouseEvent *event)
@@ -232,13 +229,8 @@ void SceneViewer::drawText(const Vector3f &c, const QString &text, const QColor 
     painter.end();
 }
 
-std::vector<ManipulatorPtr> SceneViewer::getManipulators() {
-    std::vector<ManipulatorPtr> nodes ;
-    scene_->visit([&](Node &n) {
-        if ( ManipulatorPtr m = std::dynamic_pointer_cast<Manipulator>(n.shared_from_this()) )
-            nodes.push_back(m) ;
-    }) ;
-    return nodes ;
+const std::vector<ManipulatorPtr> &SceneViewer::getManipulators() {
+    return manipulators_ ;
 }
 
 void SceneViewer::paintGL()

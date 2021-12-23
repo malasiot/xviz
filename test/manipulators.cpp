@@ -36,6 +36,7 @@ int main(int argc, char **argv)
     RotateXYZManipulator *rmanip = new RotateXYZManipulator(box_node, 1.f);
     TranslateXYZManipulator *tmanip = new TranslateXYZManipulator(box_node, 2.f);
 
+    rmanip->setVisible(false) ;
     rmanip->setOrder(2) ;
     tmanip->setOrder(2) ;
 

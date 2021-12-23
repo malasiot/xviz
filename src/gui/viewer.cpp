@@ -111,6 +111,7 @@ void SceneViewer::mousePressEvent(QMouseEvent *event)
     if ( !camera_ ) return ;
 
     for( const ManipulatorPtr &m: getManipulators() ) {
+        if ( !m->isVisible() ) continue ;
         if ( m->onMousePressed(event) ) {
             return ;
         }
@@ -136,6 +137,7 @@ void SceneViewer::mouseReleaseEvent(QMouseEvent *event)
     if ( !camera_ ) return ;
 
     for( const ManipulatorPtr &m: getManipulators() ) {
+        if ( !m->isVisible() ) continue ;
         if ( m->onMouseReleased(event) ) {
             update() ;
             return ;
@@ -163,6 +165,7 @@ void SceneViewer::mouseMoveEvent(QMouseEvent *event)
     if ( !camera_ ) return ;
 
     for( const ManipulatorPtr &m: getManipulators() ) {
+        if ( !m->isVisible() ) continue ;
         if ( m->onMouseMoved(event) ) {
             return ;
         }

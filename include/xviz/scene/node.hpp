@@ -131,10 +131,12 @@ public:
         return nodes ;
     }
 
-    void setOrder(int order) {
+    void setOrder(int order, bool recursive = true) {
         order_ = order ;
-        for( auto &c: children_ )
-            c->setOrder(order) ;
+        if ( recursive ) {
+            for( auto &c: children_ )
+                c->setOrder(order) ;
+        }
     }
 
     void addAnimation(Animation *anim) { animations_.emplace_back(anim) ; }
@@ -179,7 +181,13 @@ public:
 
     NodePtr findNodeByName(const std::string &name) ;
 
-    void setVisible(bool v) { visible_ = v ; }
+    void setVisible(bool v, bool recursive = true) {
+        visible_ = v ;
+        if ( recursive ) {
+            for( auto &c: children_ )
+                c->setVisible(v) ;
+        }
+    }
 
     bool isVisible() const { return visible_ ; }
 

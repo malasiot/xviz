@@ -88,8 +88,10 @@ bool RotateAxisManipulator::onMousePressed(QMouseEvent *event) {
         rotation_init_ = transform_node_->transform().linear() ;
         tr_init_ = tf ;
         setMaterialColor(pick_clr_) ;
+        prev_tr_ = transform_node_->transform() ;
+        if ( callback_)
+            callback_(ManipulatorEvent::MOTION_STARTED, transform_node_->transform()) ;
         return true ;
-
     }
 
     return false ;
@@ -99,6 +101,8 @@ bool RotateAxisManipulator::onMouseReleased(QMouseEvent *event) {
     if ( dragging_ ) {
         dragging_ = false ;
         setMaterialColor(clr_) ;
+        if ( callback_)
+            callback_(ManipulatorEvent::MOTION_ENDED, transform_node_->transform()) ;
         return true ;
     }
 
@@ -123,6 +127,8 @@ bool RotateAxisManipulator::onMouseMoved(QMouseEvent *event)
                 angle = -angle ;
             //     qDebug() << p.x() << p.y() << p.z() << angle * 180 /M_PI ;
             transform_node_->transform().linear() = rotation_init_ * AngleAxisf(angle, axis_) ;
+            if ( callback_)
+                callback_(ManipulatorEvent::MOVING, transform_node_->transform()) ;
             return true;
         }
 

@@ -87,6 +87,9 @@ bool Translate1DManipulator::onMousePressed(QMouseEvent *event)
         translation_init_ = transform_node_->transform().translation() ;
         tr_init_ = tf ;
         setMaterialColor(pick_clr_) ;
+        prev_tr_ = transform_node_->transform() ;
+        if ( callback_)
+            callback_(ManipulatorEvent::MOTION_STARTED, transform_node_->transform()) ;
         return true ;
 
     }
@@ -98,6 +101,8 @@ bool Translate1DManipulator::onMouseReleased(QMouseEvent *event) {
     if ( dragging_ ) {
         dragging_ = false ;
         setMaterialColor(clr_) ;
+        if ( callback_)
+            callback_(ManipulatorEvent::MOTION_ENDED, transform_node_->transform()) ;
         return true ;
     }
 
@@ -118,6 +123,8 @@ bool Translate1DManipulator::onMouseMoved(QMouseEvent *event)
             Vector3f t = translation_init_ + p - start_drag_  ;
 
             if ( transform_node_ ) transform_node_->transform().translation() = t  ;
+            if ( callback_)
+                callback_(ManipulatorEvent::MOVING, transform_node_->transform()) ;
 
             return true ;
         }

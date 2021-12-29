@@ -114,10 +114,11 @@ void Renderer::setupShadows(const LightPtr &light) {
 
 const MeshData *Renderer::fetchMeshData(GeometryPtr &geom) {
      MeshData *data = nullptr ;
-    auto it = meshes_.find(geom.get()) ;
+
+    auto it = meshes_.find(geom) ;
     if ( it == meshes_.end() ) {
         data = new MeshData(*geom) ;
-        meshes_.emplace(geom.get(), std::unique_ptr<MeshData>(data)) ;
+        meshes_.emplace(geom, std::unique_ptr<MeshData>(data)) ;
     } else
         data = (*it).second.get() ;
 

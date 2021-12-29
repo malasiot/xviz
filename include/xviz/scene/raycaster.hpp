@@ -45,6 +45,8 @@ public:
 
      void updateBoxes(const NodePtr &n);
 
+     void setBackFaceCulling(bool v) { back_face_culling_ = v ; }
+
 private:
     std::vector<NodePtr> nodes_ ;
     std::map<const Geometry *, std::unique_ptr<detail::Octree>> octrees_ ;
@@ -58,6 +60,8 @@ private:
 private:
     float point_distance_thresh_sq_ = 0.001 ;
     float line_distance_thresh_sq_ = 0.001 ;
+
+    bool back_face_culling_ = true ;
 
 };
 

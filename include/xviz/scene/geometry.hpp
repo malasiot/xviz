@@ -141,7 +141,7 @@ public:
     virtual bool intersect(const Ray &, float &) const { return false ; }
 
     // this is the expensive test visiting all triangles of the geometry
-    bool intersectTriangles(const Ray &, uint32_t tidx[3], float &t) const ;
+    bool intersectTriangles(const Ray &, uint32_t tidx[3], float &t, bool back_face_culling) const ;
     bool intersectLines(const Ray &, uint32_t tidx[2], float line_thresh_sq, float &t) const ;
 
     void setVerticesUpdated(bool state) {

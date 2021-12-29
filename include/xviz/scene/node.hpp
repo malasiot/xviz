@@ -195,7 +195,7 @@ private:
 
     std::string name_ ;
 
-    Eigen::Affine3f mat_ ;             // transformation matrix to apply to child nodes and attached geometries
+    Eigen::Affine3f mat_ = Eigen::Affine3f::Identity();             // transformation matrix to apply to child nodes and attached geometries
 
     using children_t = std::vector<NodePtr> ;
 

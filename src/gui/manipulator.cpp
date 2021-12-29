@@ -50,6 +50,13 @@ void CompositeManipulator::setCamera(const CameraPtr &cam)
     }
 }
 
+void CompositeManipulator::setCallback(Callback c)
+{
+    for( const auto &m: components_ ) {
+        m->setCallback(c);
+    }
+}
+
 void CompositeManipulator::addComponent(const ManipulatorPtr &m)
 {
     components_.push_back(m) ;

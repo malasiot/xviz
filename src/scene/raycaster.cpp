@@ -61,7 +61,7 @@ bool RayCaster::intersect(const Ray &tr, const GeometryPtr &geom, RayCastResult 
                 mint = t ;
                 result.t_ = t ;
                 // call intersection to get the hit triangle
-                geom->intersectTriangles(tr, result.triangle_idx_, result.t_) ;
+                geom->intersectTriangles(tr, result.triangle_idx_, result.t_, back_face_culling_) ;
                 return true;
             }
         } else { // expensive test
@@ -81,7 +81,7 @@ bool RayCaster::intersect(const Ray &tr, const GeometryPtr &geom, RayCastResult 
             } else { // no octree expensive test
                 float t ;
                 uint32_t tindex[3] ;
-                if ( geom->intersectTriangles(tr, tindex, t) && t < mint ) {
+                if ( geom->intersectTriangles(tr, tindex, t, back_face_culling_) && t < mint ) {
                     mint = t ;
                     result.t_ = t ;
                     result.triangle_idx_[0] = tindex[0] ;

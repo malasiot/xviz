@@ -642,7 +642,7 @@ void Geometry::computeBoundingBox(Vector3f &vmin, Vector3f &vmax) const {
 }
 
 
-bool Geometry::intersectTriangles(const Ray &ray, uint32_t t_idx[3], float &bestt) const
+bool Geometry::intersectTriangles(const Ray &ray, uint32_t t_idx[3], float &bestt, bool back_face_culling) const
 {
     float mint = std::numeric_limits<float>::max() ;
     bool hit = false ;
@@ -659,7 +659,7 @@ bool Geometry::intersectTriangles(const Ray &ray, uint32_t t_idx[3], float &best
             const Vector3f &v2 = vertices_[idx2] ;
 
             float t ;
-            if ( detail::rayIntersectsTriangle(ray, v0, v1, v2, true, t)  && t < mint  ) {
+            if ( detail::rayIntersectsTriangle(ray, v0, v1, v2, back_face_culling, t)  && t < mint  ) {
                 mint = t ;
                 bestt = t ;
                 t_idx[0] = idx0 ; t_idx[1] = idx1 ; t_idx[2] = idx2 ;
@@ -677,7 +677,7 @@ bool Geometry::intersectTriangles(const Ray &ray, uint32_t t_idx[3], float &best
             const Vector3f &v2 = vertices_[idx2] ;
 
             float t ;
-            if ( detail::rayIntersectsTriangle(ray, v0, v1, v2, true, t)  && t < mint  ) {
+            if ( detail::rayIntersectsTriangle(ray, v0, v1, v2, back_face_culling, t)  && t < mint  ) {
                 mint = t ;
                 bestt = t ;
                 t_idx[0] = idx0 ; t_idx[1] = idx1 ; t_idx[2] = idx2 ;

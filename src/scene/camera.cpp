@@ -77,6 +77,18 @@ void Camera::lookAt(const Vector3f &eye, const Vector3f &center, const Vector3f 
             0, 0, 0, 1 ;
 }
 
+void PerspectiveCamera::viewSphere(const Vector3f &center, float radius)
+{
+
+    // Ensure the sphere fits in the view port even if aspect ratio < 1 (i.e. width < height)
+    float height = (1.05f * radius) / (aspect_ < 1.0f ? aspect_ : 1.0f);
+    float dist = height / std::sin(yfov_/2.0) / 2.0f;
+
+    Vector3f new_pos = center - Vector3f{0, 0, dist};
+    lookAt(new_pos, center, Vector3f{0, 1, 0}) ;
+
+}
+
 void Camera::lookAt(const Vector3f &eye, const Vector3f &center, float roll) {
     lookAt(eye, center, Vector3f(0, 1, 0)) ;
 
@@ -96,6 +108,24 @@ Ray::Ray(const Vector3f &orig, const Vector3f &dir) : orig_(orig), dir_(dir) {
 Ray::Ray(const Ray &other, const Eigen::Affine3f &tr):
     Ray((tr * other.orig_.homogeneous()).head<3>(), tr.linear() * other.dir_) {
     dir_.normalize() ;
+}
+
+Ray OrthographicCamera::getRay(float x, float y) const
+{
+
+}
+
+Matrix4f OrthographicCamera::getProjectionMatrix() const
+{
+    Matrix4f res ;
+    float left = -xmag_, right = xmag_, top = ymag_, bottom = -ymag_ ;
+
+    res <<  2.0f/(right - left), 0, 0, 0,
+            0, 2.0f/(top - bottom), 0, 0,
+            0, 0, 2.0f/(zfar_ - znear_), 0,
+    - (right + left) / (right - left), - (top + bottom) / (top - bottom), - (zfar_ + znear_) / (zfar_ - znear_), 1.0;
+
+    return res ;
 }
 
 } // namespace viz

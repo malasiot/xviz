@@ -28,11 +28,14 @@ int main(int argc, char *argv[]) {
 
     // create a camera
     unsigned int width = 480, height = 480 ;
-    PerspectiveCamera *pcam = new PerspectiveCamera(1, // aspect ratio
+  /*  PerspectiveCamera *pcam = new PerspectiveCamera(1, // aspect ratio
                                                     50*M_PI/180,   // fov
                                                     0.0001,        // zmin
                                                     10*r           // zmax
                                                     ) ;
+*/
+
+    OrthographicCamera *pcam = new OrthographicCamera(0.6*r, 0.6*r, 0.0001, 10*r) ;
 
     CameraPtr cam(pcam) ;
 
@@ -40,7 +43,8 @@ int main(int argc, char *argv[]) {
 
     // position camera to look at the center of the object
 
-    pcam->lookAt(c + Vector3f{0.3, 0.8, 2*r}, c, {0, 1, 0}) ;
+  //  pcam->viewSphere(c, r) ;
+    pcam->lookAt(c + Vector3f{0, 0, 2*r}, c, {0, 1, 0}) ;
 
     // set camera viewpot
 

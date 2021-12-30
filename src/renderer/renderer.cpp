@@ -172,13 +172,11 @@ void Renderer::render(const CameraPtr &cam) {
 
     // setup camera matrices
 
-    if ( const auto &pcam = dynamic_pointer_cast<PerspectiveCamera>(cam) ) {
-        perspective_ = pcam->projectionMatrix() ;
-        znear_ = pcam->zNear() ;
-        zfar_ = pcam->zFar() ;
-    }
+    perspective_ = cam->getProjectionMatrix() ;
 
     const Viewport &vp = cam->getViewport() ;
+
+    glViewport(vp.x_, vp.y_, vp.width_, vp.height_);
 
     proj_ = cam->getViewMatrix() ;
 

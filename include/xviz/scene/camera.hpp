@@ -105,6 +105,8 @@ public:
 
     float yFov() const { return yfov_ ; }
 
+    void viewSphere(const Eigen::Vector3f &center, float radius) ;
+
     Eigen::Vector3f project(const Eigen::Vector3f &p) ;
     Eigen::Vector3f unProject(const Eigen::Vector3f &p) ;
 
@@ -116,14 +118,17 @@ protected:
 // Orthographic camera
 
 class OrthographicCamera: public Camera {
-
-    OrthographicCamera() {}
+public:
+    OrthographicCamera(float xmag, float ymag, float znear = 0.01, float zfar = 10.0):
+        xmag_(xmag), ymag_(ymag), znear_(znear), zfar_(zfar) {}
 
     Ray getRay(float x, float y) const override ;
+
+    Eigen::Matrix4f getProjectionMatrix() const override ;
+
 protected:
     float xmag_, ymag_, znear_, zfar_ ;
-
-
+    float aspect_ ;
 };
 
 

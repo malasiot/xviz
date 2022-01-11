@@ -52,6 +52,11 @@ public:
         n->parent_ = this ;
     }
 
+    void removeChild(const NodePtr &n) {
+        auto it = std::find(children_.begin(), children_.end(), n) ;
+        if ( it != children_.end() ) children_.erase(it) ;
+    }
+
     void setTransform(const Eigen::Affine3f &tr) {
         mat_ = tr ;
     }

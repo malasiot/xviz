@@ -194,7 +194,7 @@ void Renderer::render(const CameraPtr &cam) {
 
     bool first_pass = true ;
     // render scene for each light
-    for( const ConstNodePtr &node: scene_->getNodesRecursive() ) {
+    for( ConstNodePtr node: scene_->getNodesRecursive() ) {
         LightPtr l = node->light() ;
         if ( l  ) {
             Affine3f ltr = node->globalTransform() ;
@@ -281,8 +281,7 @@ void Renderer::renderShadowDebug() {
 }
 
 void Renderer::renderScene(const LightPtr &l, const Affine3f &light_mat) {
-
-    for ( const ConstNodePtr &node: scene_->getOrderedNodes() ) {
+    for ( ConstNodePtr node: scene_->getOrderedNodes() ) {
         if ( !node->isVisible() ) continue ;
         for( const auto &drawable: node->drawables() )
             render(drawable, node->globalTransform(), l, light_mat ) ;

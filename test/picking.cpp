@@ -128,7 +128,7 @@ public:
         Ray ray = camera_->getRay(x, y) ;
 
         RayCastResult result ;
-        if ( ray_caster_.intersect(ray, scene_, result) ) {
+        if ( ray_caster_.intersect(ray, scene_->getNodesRecursive(), result) ) {
             if ( result.drawable_->geometry()->ptype() == Geometry::Triangles ) {
             cout << result.node_->name() << ' '
                  << result.triangle_idx_[0] << ' ' <<

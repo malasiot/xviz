@@ -21,6 +21,12 @@ RayCaster::RayCaster() {
 
 }
 
+bool RayCaster::intersect(const Ray &ray, const NodePtr &scene, RayCastResult &result) {
+    vector<NodePtr> nodes ;
+    nodes.push_back(scene) ;
+    return intersect(ray, nodes, result) ;
+}
+
 bool RayCaster::intersect(const Ray &tr, const GeometryPtr &geom, RayCastResult &result, float &mint) {
 
     if ( geom->ptype() == Geometry::Triangles ) { // triangle mesh ray intersection
@@ -81,13 +87,13 @@ bool RayCaster::intersect(const Ray &tr, const GeometryPtr &geom, RayCastResult 
 
 }
 
-bool RayCaster::intersect(const Ray &ray, const NodePtr &scene, RayCastResult &result)
+bool RayCaster::intersect(const Ray &ray, const std::vector<NodePtr> &nodes, RayCastResult &result)
 {
     float mint = std::numeric_limits<float>::max() ;
     bool found = false ;
 
 
-    for( NodePtr node: scene->getNodesRecursive() ) {
+    for( NodePtr node: nodes ) {
         Affine3f tf = node->globalTransform().inverse() ;
         Ray tr(ray, tf) ; // ray transform to local coordinate system
 

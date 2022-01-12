@@ -30,6 +30,7 @@ public:
     RayCaster() ;
 
     bool intersect(const Ray &ray, const NodePtr &scene, RayCastResult &result) ;
+    bool intersect(const Ray &ray, const std::vector<NodePtr> &nodes, RayCastResult &result) ;
 
     void setPointDistanceThreshold(float t) {
         point_distance_thresh_sq_ = t * t;

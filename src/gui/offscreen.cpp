@@ -39,7 +39,8 @@ OffscreenRenderer::OffscreenRenderer(QScreen *targetScreen, const QSize &size): 
 
 
 OffscreenRenderer::~OffscreenRenderer() {
-    if ( fbo_ ) delete fbo_ ;
+    delete context_ ;
+    delete fbo_ ;
 }
 
 QImage OffscreenRenderer::render(const xviz::NodePtr &scene, const xviz::CameraPtr &cam)

@@ -118,7 +118,7 @@ public:
    //    ray_caster_.buildOctrees();
         highlight_.reset(new ConstantMaterial({1, 0, 0, 1})) ;
 
-        ray_caster_.addNode(scene_, true) ;
+      //  ray_caster_.addNode(scene_, true) ;
     }
 
     void mouseMoveEvent(QMouseEvent *event) override {
@@ -128,7 +128,7 @@ public:
         Ray ray = camera_->getRay(x, y) ;
 
         RayCastResult result ;
-        if ( ray_caster_.intersect(ray, result) ) {
+        if ( ray_caster_.intersect(ray, scene_, result) ) {
             if ( result.drawable_->geometry()->ptype() == Geometry::Triangles ) {
             cout << result.node_->name() << ' '
                  << result.triangle_idx_[0] << ' ' <<

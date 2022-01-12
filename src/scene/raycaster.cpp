@@ -16,43 +16,12 @@ RayCaster::~RayCaster()
 
 }
 
-void RayCaster::updateBoxes(const NodePtr &node) {
-    for( const Geometry *geom: node->geometries() ) {
-        if ( boxes_.count(geom) ) continue ;
-        if ( !geom->hasCheapIntersectionTest() ) {
-            Vector3f bmin, bmax ;
-            geom->computeBoundingBox(bmin, bmax);
-            std::unique_ptr<detail::AABB> box(new detail::AABB(bmin, bmax)) ;
-            boxes_.emplace(geom, std::move(box)) ;
-        }
-    }
-}
 
 RayCaster::RayCaster() {
 
 }
 
-void RayCaster::addNode(const NodePtr &node, bool recursive)
-{
-    nodes_.push_back(node) ;
-    updateBoxes(node) ;
-
-    if ( recursive ) {
-        for( const auto &n: node->getNodesRecursive() ) {
-            nodes_.push_back(n) ;
-            updateBoxes(n) ;
-        }
-    }
-
-}
-
 bool RayCaster::intersect(const Ray &tr, const GeometryPtr &geom, RayCastResult &result, float &mint) {
-    auto it = boxes_.find(geom.get()) ;
-    if ( it != boxes_.end() ) { // quick test with AABB
-        const auto &box = (*it).second ;
-        float t ;
-        if ( !rayIntersectsAABB(tr, *box, t) ) return false ;
-    }
 
     if ( geom->ptype() == Geometry::Triangles ) { // triangle mesh ray intersection
         if ( geom->hasCheapIntersectionTest() ) {
@@ -65,21 +34,12 @@ bool RayCaster::intersect(const Ray &tr, const GeometryPtr &geom, RayCastResult 
                 return true;
             }
         } else { // expensive test
-            auto it = octrees_.find(geom.get()) ;
-            if ( it != octrees_.end() ) { // test if octree is available
-                const auto &octree = (*it).second ;
-                uint32_t tindex[3] ;
-                float t ;
-                if ( octree->intersect(tr, tindex, t) && t < mint ) {
-                    mint = t ;
-                    result.t_ = t ;
-                    result.triangle_idx_[0] = tindex[0] ;
-                    result.triangle_idx_[1] = tindex[1] ;
-                    result.triangle_idx_[2] = tindex[2] ;
-                    return true ;
-                }
-            } else { // no octree expensive test
-                float t ;
+            float t ;
+            const auto box = geom->getBoundingBox() ;
+            if ( !rayIntersectsAABB(tr, box, t) ) return false ;
+
+            // expensive test
+
                 uint32_t tindex[3] ;
                 if ( geom->intersectTriangles(tr, tindex, t, back_face_culling_) && t < mint ) {
                     mint = t ;
@@ -88,7 +48,7 @@ bool RayCaster::intersect(const Ray &tr, const GeometryPtr &geom, RayCastResult 
                     result.triangle_idx_[1] = tindex[1] ;
                     result.triangle_idx_[2] = tindex[2] ;
                     return true ;
-                }
+
             }
         }
     } else if ( geom->ptype() == Geometry::Points ) {
@@ -117,15 +77,17 @@ bool RayCaster::intersect(const Ray &tr, const GeometryPtr &geom, RayCastResult 
         }
     }
 
+    return false ;
+
 }
 
-bool RayCaster::intersect(const Ray &ray, RayCastResult &result)
+bool RayCaster::intersect(const Ray &ray, const NodePtr &scene, RayCastResult &result)
 {
     float mint = std::numeric_limits<float>::max() ;
     bool found = false ;
 
 
-    for( NodePtr node: nodes_ ) {
+    for( NodePtr node: scene->getNodesRecursive() ) {
         Affine3f tf = node->globalTransform().inverse() ;
         Ray tr(ray, tf) ; // ray transform to local coordinate system
 
@@ -144,24 +106,6 @@ bool RayCaster::intersect(const Ray &ray, RayCastResult &result)
 
     return found ;
 }
-
-void RayCaster::buildOctrees()
-{
-    for ( const NodePtr &n: nodes_ ) {
-        for( const Drawable &d: n->drawables()) {
-            auto geom = d.geometry() ;
-
-            if ( !geom->hasCheapIntersectionTest() ) {
-                if ( geom->ptype() == Geometry::Triangles ) {
-                    std::unique_ptr<detail::Octree> tree(new detail::Octree(5)) ;
-                    tree->create(*geom) ;
-                    octrees_.emplace(geom.get(), std::move(tree)) ;
-                }
-            }
-        }
-    }
-}
-
 
 
 }

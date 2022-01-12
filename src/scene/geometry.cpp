@@ -620,12 +620,18 @@ void Geometry::computeNormals() {
     for( unsigned int i=0 ; i<n ; i++ ) normals_[i].normalize() ;
 }
 
+detail::AABB Geometry::getBoundingBox() {
+    if ( !box_ ) {
+        Vector3f bmin, bmax ;
+        computeBoundingBox(bmin, bmax) ;
+        box_.reset(new detail::AABB{bmin, bmax}) ;
+    }
+    return *box_ ;
+}
+
 
 
 void Geometry::computeBoundingBox(Vector3f &vmin, Vector3f &vmax) const {
-
-    const float max_v = std::numeric_limits<float>::max() ;
-    const float min_v = -max_v ;
 
     assert( !vertices_.empty() ) ;
 

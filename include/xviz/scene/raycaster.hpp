@@ -29,11 +29,7 @@ public:
     ~RayCaster() ;
     RayCaster() ;
 
-    void addNode(const NodePtr &node, bool recursive) ;
-
-    bool intersect(const Ray &ray, RayCastResult &result) ;
-
-    void buildOctrees() ;
+    bool intersect(const Ray &ray, const NodePtr &scene, RayCastResult &result) ;
 
     void setPointDistanceThreshold(float t) {
         point_distance_thresh_sq_ = t * t;
@@ -43,18 +39,10 @@ public:
         line_distance_thresh_sq_ = t * t;
     }
 
-     void updateBoxes(const NodePtr &n);
-
      void setBackFaceCulling(bool v) { back_face_culling_ = v ; }
 
 private:
-    std::vector<NodePtr> nodes_ ;
-    std::map<const Geometry *, std::unique_ptr<detail::Octree>> octrees_ ;
-    std::map<const Geometry *, std::unique_ptr<detail::AABB>> boxes_ ;
 
-private:
-
-    bool intersect(const Ray &ray, const NodePtr &node, RayCastResult &res);
     bool intersect(const Ray &ray, const GeometryPtr &geom, RayCastResult &result, float &mint);
 
 private:

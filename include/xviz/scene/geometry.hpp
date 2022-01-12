@@ -1,8 +1,9 @@
-#ifndef XVIZ_SCENE_GEOMETRY_HPP
+﻿#ifndef XVIZ_SCENE_GEOMETRY_HPP
 #define XVIZ_SCENE_GEOMETRY_HPP
 
 #include <xviz/scene/camera.hpp>
 #include <xviz/scene/node.hpp>
+#include <xviz/scene/detail/intersect.hpp>
 
 namespace xviz {
 
@@ -135,6 +136,7 @@ public:
     static Geometry makeCircle(const Eigen::Vector3f &center, const Eigen::Vector3f &normal, float radius, unsigned int num_segments);
 
     void computeNormals() ;
+    detail::AABB getBoundingBox() ;
     void computeBoundingBox(Eigen::Vector3f &bmin, Eigen::Vector3f &bmax) const ;
 
     virtual bool hasCheapIntersectionTest() const { return false ; }
@@ -146,6 +148,7 @@ public:
 
     void setVerticesUpdated(bool state) {
         vertices_updated_ = state ;
+        if ( state ) box_.reset(nullptr) ;
     }
 
     void setNormalsUpdated(bool state) {
@@ -170,7 +173,7 @@ private:
     Eigen::Affine3f skeleton_inverse_global_transform_ = Eigen::Affine3f::Identity() ;
     bool casts_shadows_ = true ;
     bool vertices_updated_ = false, normals_updated_ = false, colors_updated_ = false ;
-
+    std::unique_ptr<detail::AABB> box_ ;
     PrimitiveType ptype_ = Triangles ;
 };
 

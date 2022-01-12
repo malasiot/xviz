@@ -419,7 +419,7 @@ bool rayIntersectsPoint(const Ray &ray, const Vector3f &p, float thresh_square, 
     Vector3f o = ray.origin(), d = ray.dir(), po = p-o ;
 
     float dist = d.cross(po).squaredNorm() ;
-    if ( dist < thresh_square ) return false ;
+    if ( dist > thresh_square ) return false ;
 
     t = po.dot(d) ;
     if ( t < 0 ) return false ;

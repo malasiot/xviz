@@ -133,6 +133,7 @@ bool RotateAxisManipulator::onMouseMoved(QMouseEvent *event)
         }
 
     } else {
+
         Ray tr(ray, ctr_ * tf) ;
 
         float t ;
@@ -170,6 +171,23 @@ void RotateAxisManipulator::onCameraUpdated()
      //   return std::tan(g.active_state.cam.yfov) * dist * (pixel_scale / g.active_state.viewport_size.y);
 */
 
+}
+
+bool RotateAxisManipulator::hitTest(const Ray &ray, float &t)
+{
+    Affine3f tf = transform_node_->globalTransform().inverse() ;
+    Ray tr(ray, ctr_ * tf) ;
+    return  detail::rayIntersectsTorus(tr, radius_, 0.05 * radius_, t) ;
+
+}
+
+void RotateAxisManipulator::setSelected(bool v)
+{
+        selected_ = v ;
+        if ( v )
+            setMaterialColor(pick_clr_) ;
+        else
+            setMaterialColor(clr_) ;
 }
 
 RotateXYZManipulator::RotateXYZManipulator(const Node::NodePtr &node, float radius): CompositeManipulator(node)

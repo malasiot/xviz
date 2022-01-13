@@ -192,25 +192,28 @@ void Renderer::render(const CameraPtr &cam) {
     glEnable(GL_LINE_SMOOTH) ;
     glLineWidth(1.0) ;
 
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     bool first_pass = true ;
     // render scene for each light
     for( ConstNodePtr node: scene_->getNodesRecursive() ) {
         LightPtr l = node->light() ;
         if ( l  ) {
             Affine3f ltr = node->globalTransform() ;
-
+/*
             if ( first_pass )
                 glBlendFunc(GL_ONE, GL_ZERO);
             else
                 glBlendFunc (GL_ONE, GL_ONE);
-
+*/
             if ( l->casts_shadows_ ) setupShadows(l) ;
 
 
             renderScene(l, ltr) ;
 
             first_pass = false ;
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 
         }
     }

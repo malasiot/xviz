@@ -61,6 +61,22 @@ SceneViewer::~SceneViewer()
 
 }
 
+void SceneViewer::initDefaultGLContext() {
+
+    QSurfaceFormat format;
+    format.setDepthBufferSize(24);
+    format.setMajorVersion(3);
+    format.setMinorVersion(3);
+    format.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
+    format.setSwapInterval(1);
+    format.setOption(QSurfaceFormat::DebugContext);
+
+    format.setSamples(4);
+    format.setProfile(QSurfaceFormat::CoreProfile);
+
+    QSurfaceFormat::setDefaultFormat(format);
+}
+
 void SceneViewer::setDrawAxes(bool draw_axes) {
     draw_axes_ = draw_axes ;
     if ( axes_ )
@@ -71,15 +87,15 @@ void SceneViewer::initCamera(const Vector3f &c, float r, UpAxis axis) {
 
     camera_.reset(new PerspectiveCamera(1.0, 70*M_PI/180, 0.01*r, 100*r)) ;
 
-   axis_ = axis ;
+    axis_ = axis ;
 
-   radius_ = r ;
-   aradius_ = 10 * r ;
+    radius_ = r ;
+    aradius_ = 10 * r ;
 
-   if ( axis == YAxis )
-       trackball_.setCamera(camera_, c + Vector3f{0.0, 0, 4*r}, c, {0, 1, 0}) ;
-   else if ( axis == XAxis )
-       trackball_.setCamera(camera_, c + Vector3f{0.0, 0, 4*r}, c, {1, 0, 0}) ;
+    if ( axis == YAxis )
+        trackball_.setCamera(camera_, c + Vector3f{0.0, 0, 4*r}, c, {0, 1, 0}) ;
+    else if ( axis == XAxis )
+        trackball_.setCamera(camera_, c + Vector3f{0.0, 0, 4*r}, c, {1, 0, 0}) ;
    else if ( axis == ZAxis )
        trackball_.setCamera(camera_, c + Vector3f{0.0, 4*r, 0.0}, c, {0, 0, 1});
 

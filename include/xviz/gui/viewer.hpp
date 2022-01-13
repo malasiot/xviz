@@ -30,21 +30,7 @@ public:
     SceneViewer(QWidget *parent = nullptr)  ;
     ~SceneViewer() ;
 
-    static void initDefaultGLContext() {
-
-        QSurfaceFormat format;
-        format.setDepthBufferSize(24);
-        format.setMajorVersion(3);
-        format.setMinorVersion(3);
-        format.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
-        format.setSwapInterval(1);
-        format.setOption(QSurfaceFormat::DebugContext);
-
-        format.setSamples(4);
-        format.setProfile(QSurfaceFormat::CoreProfile);
-
-        QSurfaceFormat::setDefaultFormat(format);
-    }
+    static void initDefaultGLContext();
 
     void setScene(const NodePtr &s) ;
 

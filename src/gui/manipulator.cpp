@@ -16,13 +16,32 @@ void Manipulator::setCamera(const CameraPtr &cam) {
 
 
 bool CompositeManipulator::onMousePressed(QMouseEvent *event) {
+    float mint = std::numeric_limits<float>::max() ;
+    Ray ray = camera_->getRay(event->x(), event->y()) ;
+
+    for( const auto &m: components_ ) {
+        float t ;
+        if ( m->hitTest(ray, t) && t < mint ) {
+            current_ = m ;
+            mint = t ;
+        }
+    }
+
+    if ( current_ )  {
+        current_->onMousePressed(event) ;
+        return true ;
+    }
+    return false ;
+    /*
     for( const auto &m: components_ ) {
         if ( m->onMousePressed(event) ) return true ;
     }
     return false ;
+    */
 }
 
 bool CompositeManipulator::onMouseReleased(QMouseEvent *event) {
+    current_ = nullptr ;
     for( const auto &m: components_ ) {
         if ( m->onMouseReleased(event) ) return true ;
     }
@@ -30,14 +49,26 @@ bool CompositeManipulator::onMouseReleased(QMouseEvent *event) {
 }
 
 bool CompositeManipulator::onMouseMoved(QMouseEvent *event) {
-    for( const auto &m: components_ ) {
-        if ( m->onMouseMoved(event)  ) {
-            if ( m->isSelected() ) {
-                for( const auto &c: components_ ) {
-                    if ( c != m )
-                        c->setSelected(false) ;
-                }
+    if ( current_ ) {
+        current_->onMouseMoved(event) ;
+        return true ;
+    } else {
+
+        float mint = std::numeric_limits<float>::max() ;
+        Ray ray = camera_->getRay(event->x(), event->y()) ;
+        ManipulatorPtr hit ;
+        for( const auto &m: components_ ) {
+            float t ;
+            if ( m->hitTest(ray, t) && t < mint ) {
+                hit = m ;
+                mint = t ;
             }
+        }
+
+        if ( selected_ && selected_ != hit ) selected_->setSelected(false) ;
+        selected_ = hit ;
+        if ( selected_ ) {
+            selected_->setSelected(true) ;
             return true ;
         }
     }
@@ -53,6 +84,7 @@ void CompositeManipulator::onCameraUpdated()
 
 void CompositeManipulator::setCamera(const CameraPtr &cam)
 {
+    camera_ = cam ;
     for( const auto &m: components_ ) {
         m->setCamera(cam);
     }
@@ -74,8 +106,8 @@ void CompositeManipulator::addComponent(const ManipulatorPtr &m)
 namespace impl {
 
 bool computeRayProjectionOnLine(const Eigen::Vector3f &pA, const Eigen::Vector3f &pB, // line segment
-                          const Eigen::Vector3f &o, const Eigen::Vector3f &v, // ray
-                          Eigen::Vector3f &p, float &d, float &s )
+                                const Eigen::Vector3f &o, const Eigen::Vector3f &v, // ray
+                                Eigen::Vector3f &p, float &d, float &s )
 {
 
     Vector3f ab  = pB - pA ;
@@ -104,7 +136,7 @@ bool computeRayProjectionOnLine(const Eigen::Vector3f &pA, const Eigen::Vector3f
 
     d = ( q - p ).norm();
 
-//    qDebug() << 'D' << d << p.x() <<  p.y() << p.z() << s;
+    //    qDebug() << 'D' << d << p.x() <<  p.y() << p.z() << s;
 
     return true ;
 }

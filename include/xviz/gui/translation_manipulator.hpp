@@ -17,6 +17,8 @@ public:
     bool onMouseMoved(QMouseEvent *event) override ;
     void onCameraUpdated() override ;
 
+    bool hitTest(const Ray &ray, float &t) override ;
+
 protected:
     void setSelected(bool v) override ;
 private:
@@ -45,11 +47,13 @@ public:
     bool onMouseMoved(QMouseEvent *event) override ;
     void onCameraUpdated() override ;
 
+    bool hitTest(const Ray &ray, float &t) override ;
+
 protected:
     void setSelected(bool v) override ;
 private:
     Eigen::Vector3f axis_, start_drag_, translation_init_, v0_, v1_, v2_, v3_ ;
-    Eigen::Vector4f clr_{1, 0, 0, 1}, pick_clr_{1, 1, 0, 1} ;
+    Eigen::Vector4f clr_{1, 0, 0, 0.5}, pick_clr_{1, 1, 0, 1} ;
     Eigen::Isometry3f planetr_ ;
     Eigen::Affine3f tr_init_ ;
     float sz_ ;
@@ -66,7 +70,7 @@ public:
     TranslateXYZManipulator(const NodePtr &node, float line_width) ;
 
 private:
-    ManipulatorPtr mx_, my_, mz_ ;
+    ManipulatorPtr mx_, my_, mz_, mxy_, myz_, mxz_ ;
 };
 
 

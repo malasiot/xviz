@@ -29,11 +29,12 @@ public:
     virtual void onCameraUpdated() = 0 ;
 
     virtual void setCallback(Callback cb) { callback_ = cb ; }
+    virtual bool hitTest(const Ray &ray, float &t) { return false ; }
 
     const Eigen::Affine3f &lastTransform() const { return prev_tr_ ; }
 
     bool isSelected() const { return selected_ ; }
-
+    bool isDragging() const { return dragging_ ; }
 
 protected:
     friend class CompositeManipulator ;
@@ -45,6 +46,7 @@ protected:
     Eigen::Affine3f prev_tr_ ;
     Callback callback_ = nullptr ;
     bool selected_ = false ;
+    bool dragging_ = false ;
 };
 
 class CompositeManipulator: public Manipulator {
@@ -64,6 +66,7 @@ protected:
     void addComponent(const ManipulatorPtr &m) ;
 
     std::vector<ManipulatorPtr> components_ ;
+    ManipulatorPtr selected_, current_ ;
 };
 
 namespace impl {

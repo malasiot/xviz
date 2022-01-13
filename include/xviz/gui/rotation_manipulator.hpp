@@ -16,6 +16,8 @@ public:
     bool onMouseReleased(QMouseEvent *event) override ;
     bool onMouseMoved(QMouseEvent *event) override ;
     void onCameraUpdated() override ;
+    bool hitTest(const Ray &r, float &t) override ;
+    void setSelected(bool v) override ;
 
 private:
     Eigen::Vector3f axis_, start_drag_, end_drag_ ;

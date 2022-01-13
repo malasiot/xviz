@@ -136,7 +136,7 @@ bool Translate1DManipulator::onMouseMoved(QMouseEvent *event)
         float t ;
         if ( detail::rayIntersectsCylinder(Ray(ray, linetr_ * tf), len_ * 0.05f, len_ + 0.1f * len_, t )) {
             setSelected(true) ;
-
+            cout << name() << ' ' << t << endl ;
             return true ;
         }
         else {
@@ -164,6 +164,12 @@ void Translate1DManipulator::onCameraUpdated()
 
 }
 
+bool Translate1DManipulator::hitTest(const Ray &ray, float &t)
+{
+     Affine3f tf = parent()->globalTransform().inverse() ;
+     return detail::rayIntersectsCylinder(Ray(ray, linetr_ * tf), len_ * 0.05f, len_ + 0.1f * len_, t ) ;
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -178,7 +184,7 @@ TranslatePlaneManipulator::TranslatePlaneManipulator(const NodePtr &node, float 
 
     planetr_.setIdentity() ;
     planetr_.linear() = rotationBetween({0, 1, 0}, nrm) ;
-    planetr_.translation() = planetr_.linear() * Vector3f{sz/2, 0, -sz/2} ;
+    planetr_.translation() = planetr_.linear().inverse() * Vector3f{sz, 0, sz} ;
 
     v0_ = planetr_ * Vector3f{-sz/2, 0, -sz/2} ;
     v1_ = planetr_ * Vector3f{sz/2, 0, -sz/2} ;
@@ -263,7 +269,6 @@ bool TranslatePlaneManipulator::onMouseMoved(QMouseEvent *event)
         if ( intersectPlane(axis_, tr.origin(), tr.dir(), p) ) {
             Vector3f t = translation_init_ + p - start_drag_  ;
 
-            cout << t << endl << endl;
             if ( transform_node_ ) transform_node_->transform().translation() = t  ;
             if ( callback_)
                 callback_(ManipulatorEvent::MOVING, transform_node_->transform()) ;
@@ -299,19 +304,48 @@ void TranslatePlaneManipulator::onCameraUpdated()
 
 }
 
+bool TranslatePlaneManipulator::hitTest(const Ray &ray, float &t) {
+    Affine3f tf = parent()->globalTransform().inverse() ;
+    Ray tr(ray, tf) ;
+    return (  detail::rayIntersectsTriangle(tr, v0_, v1_, v2_, false, t) ||
+          detail::rayIntersectsTriangle(tr, v0_, v2_, v3_, false, t) ) ;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 TranslateXYZManipulator::TranslateXYZManipulator(const NodePtr &n, float hw): CompositeManipulator(n) {
     Translate1DManipulator *mx = new Translate1DManipulator(n, {-hw, 0, 0},{hw, 0, 0}) ;
     mx->setColor({1, 0, 0, 1}) ;
     mx_.reset(mx) ;
+    mx_->setName("X") ;
 
     Translate1DManipulator *my = new Translate1DManipulator(n, {0, -hw, 0},{0, hw, 0}) ;
     my->setColor({0, 1, 0, 1}) ;
     my_.reset(my) ;
+    my_->setName("Y") ;
 
     Translate1DManipulator *mz = new Translate1DManipulator(n, {0, 0, -hw},{0, 0, hw}) ;
     mz->setColor({0, 0, 1, 1}) ;
     mz_.reset(mz) ;
+    mz_->setName("Z") ;
+
+    TranslatePlaneManipulator *myz = new TranslatePlaneManipulator(n, hw/4, {1, 0, 0}) ;
+    myz->setColor({1, 0, 0, 0.5}) ;
+    myz_.reset(myz) ;
+    myz_->setName("YZ") ;
+
+    TranslatePlaneManipulator *mxz = new TranslatePlaneManipulator(n, hw/4, {0, 1, 0}) ;
+    mxz->setColor({0, 1, 0, 0.5}) ;
+    mxz_.reset(mxz) ;
+    mxz_->setName("XZ") ;
+
+    TranslatePlaneManipulator *mxy = new TranslatePlaneManipulator(n, hw/4, {0, 0, 1}) ;
+    mxy->setColor({0, 0, 1, 0.5}) ;
+    mxy_.reset(mxy) ;
+    mxy_->setName("XY") ;
+
+    addComponent(myz_);
+    addComponent(mxz_) ;
+    addComponent(mxy_) ;
 
     addComponent(mx_);
     addComponent(my_) ;

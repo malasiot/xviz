@@ -33,23 +33,19 @@ int main(int argc, char **argv)
     scene->addChild(box_node) ;
 
 
-    RotateXYZManipulator *rmanip = new RotateXYZManipulator(box_node, 1.f);
+    RotateXYZManipulator *rmanip = new RotateXYZManipulator(box_node, 2.f);
     TranslateXYZManipulator *tmanip = new TranslateXYZManipulator(box_node, 2.f);
 
-    TranslatePlaneManipulator *tp = new TranslatePlaneManipulator(box_node, 0.5, Vector3f{0, 1, 0}) ;
-    tp->setOrder(3) ;
-
-    rmanip->setVisible(true) ;
+      rmanip->setVisible(true) ;
     rmanip->setOrder(2) ;
     tmanip->setOrder(2) ;
 
     ManipulatorPtr rm(rmanip) ;
     ManipulatorPtr tm(tmanip) ;
-    ManipulatorPtr tpm(tp) ;
 
     box_node->addChild(rm) ;
     box_node->addChild(tm) ;
-    box_node->addChild(tpm) ;
+
 
     DirectionalLight *dl = new DirectionalLight(Vector3f(0.5, 0.5, 1)) ;
     dl->diffuse_color_ = Vector3f(1, 1, 1) ;
@@ -57,7 +53,6 @@ int main(int argc, char **argv)
 
     SceneViewer *viewer = new SceneViewer(scene) ;
     viewer->initCamera({0, 0, 0}, 4.0);
-    viewer->addManipulator(tpm) ;
     viewer->addManipulator(rm) ;
     viewer->addManipulator(tm) ;
 

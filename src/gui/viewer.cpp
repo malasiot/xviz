@@ -41,20 +41,19 @@ void SceneViewer::setScene(const NodePtr &scene) {
         dl->diffuse_color_ = Vector3f(0.75, 0.75, 0.75) ;
         scene_->addLightNode(dl) ;
     }
+}
 
+void SceneViewer::makeAxes(float r) {
+     axes_ = NodeHelpers::makeAxes(r) ;
+     axes_->setVisible(false) ;
+     scene_->addChild(axes_) ;
+}
+
+void SceneViewer::setDefaultCamera() {
+    assert(scene_) ;
     auto c = scene_->geomCenter() ;
     auto r = scene_->geomRadius(c) ;
     initCamera(c, r, UpAxis::YAxis) ;
-
-    axes_ = NodeHelpers::makeAxes(r) ;
-    axes_->setVisible(false) ;
-    scene_->addChild(axes_) ;
-
-    QTimer *timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(updateAnimation()));
-
-    et_.start() ;
-    timer->start(30);
 }
 
 SceneViewer::~SceneViewer()
@@ -64,7 +63,8 @@ SceneViewer::~SceneViewer()
 
 void SceneViewer::setDrawAxes(bool draw_axes) {
     draw_axes_ = draw_axes ;
-    axes_->setVisible(draw_axes) ;
+    if ( axes_ )
+        axes_->setVisible(draw_axes) ;
 }
 
 void SceneViewer::initCamera(const Vector3f &c, float r, UpAxis axis) {
@@ -127,6 +127,7 @@ void SceneViewer::mousePressEvent(QMouseEvent *event)
     case Qt::RightButton:
         trackball_.setRightClicked(true) ;
         break ;
+    default: break ;
     }
     trackball_.setClickPoint(event->x(), event->y()) ;
     trackball_.update() ;
@@ -154,9 +155,12 @@ void SceneViewer::mouseReleaseEvent(QMouseEvent *event)
     case Qt::RightButton:
         trackball_.setRightClicked(false) ;
         break ;
+    default:
+        break ;
     }
     trackball_.setClickPoint(event->x(), event->y()) ;
     trackball_.update() ;
+    update() ;
 
 }
 
@@ -167,6 +171,7 @@ void SceneViewer::mouseMoveEvent(QMouseEvent *event)
     for( const ManipulatorPtr &m: getManipulators() ) {
         if ( !m->isVisible() ) continue ;
         if ( m->onMouseMoved(event) ) {
+            update() ;
             return ;
         }
     }
@@ -176,6 +181,7 @@ void SceneViewer::mouseMoveEvent(QMouseEvent *event)
 
     trackball_.setClickPoint(x, y) ;
     trackball_.update() ;
+    update() ;
 
 }
 

@@ -31,7 +31,15 @@ bool CompositeManipulator::onMouseReleased(QMouseEvent *event) {
 
 bool CompositeManipulator::onMouseMoved(QMouseEvent *event) {
     for( const auto &m: components_ ) {
-        if ( m->onMouseMoved(event) ) return true ;
+        if ( m->onMouseMoved(event)  ) {
+            if ( m->isSelected() ) {
+                for( const auto &c: components_ ) {
+                    if ( c != m )
+                        c->setSelected(false) ;
+                }
+            }
+            return true ;
+        }
     }
     return false ;
 }

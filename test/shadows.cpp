@@ -109,7 +109,7 @@ class Viewer: public SceneViewer {
 
 public:
     Viewer(ScenePtr scene): SceneViewer(scene) {
-
+        setDefaultCamera();
     }
 
     void onUpdate(float delta) override {
@@ -164,7 +164,7 @@ int main(int argc, char **argv)
 
     DirectionalLight *dl = new DirectionalLight(Vector3f(1, 4, 0.5)) ;
     dl->diffuse_color_ = Vector3f(0.72, 0.72, 0.72) ;
-    //scene->addLightNode(LightPtr(dl)) ;
+    scene->addLightNode(LightPtr(dl)) ;
 
     xviz::DirectionalLight *dl2 = new xviz::DirectionalLight(Vector3f(0, 4, 0.1)) ;
     dl2->diffuse_color_ = Vector3f(0.75, 1, 1) ;
@@ -172,7 +172,7 @@ int main(int argc, char **argv)
     dl2->shadow_cam_right_ = dl2->shadow_cam_bottom_ = 0.5 ;
     dl2->shadow_cam_near_ = -0.1 ; dl2->shadow_cam_far_ = 10 ;
     dl2->shadow_bias_ = 0.00005 ;
-    dl2->casts_shadows_ = false;
+    dl2->casts_shadows_ = true;
     xviz::LightPtr light2(dl2) ;
     scene->addLightNode(light2) ;
 

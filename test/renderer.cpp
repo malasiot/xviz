@@ -37,6 +37,8 @@ int main(int argc, char **argv)
     SceneViewer::initDefaultGLContext();
 
     SceneViewer *viewer = new SceneViewer(scene) ;
+    viewer->setDefaultCamera() ;
+    viewer->makeAxes(1.5) ;
     viewer->setDrawAxes(true);
     QMainWindow window ;
     window.setCentralWidget(viewer) ;

@@ -14,6 +14,7 @@ using namespace Eigen ;
 class RobotViewer: public SceneViewer {
 public:
     RobotViewer(URDFRobot &rb, RobotScenePtr scene, QWidget *parent = nullptr): SceneViewer(scene, parent), urdf_(rb) {
+        setDefaultCamera() ;
         camera_->setBgColor({0.4f, 0.4f, 0.4f, 1.0f});
     }
 
@@ -28,6 +29,8 @@ public:
         urdf_.computeLinkTransforms(transforms);
 
         scene_->updateTransforms(transforms) ;
+
+        update() ;
     }
 
     URDFRobot &urdf_ ;

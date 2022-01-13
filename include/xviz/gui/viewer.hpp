@@ -48,6 +48,10 @@ public:
 
     void setScene(const NodePtr &s) ;
 
+    void setDefaultCamera() ;
+
+    void makeAxes(float r) ;
+
     void setDrawAxes(bool draw_axes);
 
     // should be called to initialized camera and trackball with given scene center and radius

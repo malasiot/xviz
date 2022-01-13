@@ -27,6 +27,7 @@ int main(int argc, char **argv)
 
     SceneViewer::initDefaultGLContext();
     SceneViewer *viewer = new SceneViewer(model);
+    viewer->setDefaultCamera() ;
     viewer->startAnimations() ;
 
     QMainWindow window ;

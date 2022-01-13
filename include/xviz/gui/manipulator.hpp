@@ -32,13 +32,19 @@ public:
 
     const Eigen::Affine3f &lastTransform() const { return prev_tr_ ; }
 
+    bool isSelected() const { return selected_ ; }
+
+
 protected:
     friend class CompositeManipulator ;
+
+    virtual void setSelected(bool v) { selected_ = v ; }
 
     CameraPtr camera_ ;
     NodePtr transform_node_ ;
     Eigen::Affine3f prev_tr_ ;
     Callback callback_ = nullptr ;
+    bool selected_ = false ;
 };
 
 class CompositeManipulator: public Manipulator {

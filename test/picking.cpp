@@ -112,6 +112,8 @@ public:
     PickingViewer(ScenePtr scene, QWidget *parent = nullptr): SceneViewer(scene, parent)
     {
         setMouseTracking(true);
+        setDefaultCamera() ;
+
         trackball_.setZoomScale(1.2) ;
         ray_caster_.setPointDistanceThreshold(0.05);
         ray_caster_.setLineDistanceThreshold(0.05);

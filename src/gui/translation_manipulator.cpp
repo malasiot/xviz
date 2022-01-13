@@ -49,6 +49,7 @@ Translate1DManipulator::Translate1DManipulator(const NodePtr &node, const Eigen:
     right_cone->transform().linear() = rotationBetween({0, 0, 1}, dir) ;
     right_cone->transform().translation() = end_ ;
 
+
     addChild(line_node) ;
     addChild(left_cone) ;
     addChild(right_cone) ;
@@ -111,6 +112,7 @@ bool Translate1DManipulator::onMouseReleased(QMouseEvent *event) {
 
 bool Translate1DManipulator::onMouseMoved(QMouseEvent *event)
 {
+
     Ray ray = camera_->getRay(event->x(), event->y()) ;
     Affine3f tf = parent()->globalTransform().inverse() ;
 
@@ -133,17 +135,28 @@ bool Translate1DManipulator::onMouseMoved(QMouseEvent *event)
 
         float t ;
         if ( detail::rayIntersectsCylinder(Ray(ray, linetr_ * tf), len_ * 0.05f, len_ + 0.1f * len_, t )) {
-            setMaterialColor(pick_clr_) ;
+            setSelected(true) ;
+
             return true ;
         }
         else {
-             setMaterialColor(clr_) ;
-             return false ;
+            setMaterialColor(clr_) ;
+            setSelected(false) ;
+            return false ;
         }
 
     }
 
     return false ;
+}
+
+void Translate1DManipulator::setSelected(bool v)
+{
+    selected_ = v ;
+    if ( v )
+        setMaterialColor(pick_clr_) ;
+    else
+        setMaterialColor(clr_) ;
 }
 
 void Translate1DManipulator::onCameraUpdated()
@@ -152,6 +165,141 @@ void Translate1DManipulator::onCameraUpdated()
 }
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+TranslatePlaneManipulator::TranslatePlaneManipulator(const NodePtr &node, float sz, const Eigen::Vector3f &nrm):
+    Manipulator(node), sz_(sz), axis_(nrm) {
+    mat_.reset(new ConstantMaterial(clr_)) ;
+    mat_->setSide(Material::Side::Both) ;
+    mat_->enableDepthTest(false) ;
+
+    GeometryPtr plane_geom(new Geometry(Geometry::makePlane(sz, sz, 2, 2))) ;
+
+    planetr_.setIdentity() ;
+    planetr_.linear() = rotationBetween({0, 1, 0}, nrm) ;
+    planetr_.translation() = planetr_.linear() * Vector3f{sz/2, 0, -sz/2} ;
+
+    v0_ = planetr_ * Vector3f{-sz/2, 0, -sz/2} ;
+    v1_ = planetr_ * Vector3f{sz/2, 0, -sz/2} ;
+    v2_ = planetr_ * Vector3f{sz/2, 0, sz/2} ;
+    v3_ = planetr_ * Vector3f{-sz/2, 0, sz/2} ;
+
+    NodePtr plane_node(new Node) ;
+    plane_node->addDrawable(plane_geom, mat_) ;
+    plane_node->setTransform(planetr_) ;
+
+    addChild(plane_node) ;
+
+}
+
+
+
+void TranslatePlaneManipulator::setColor(const Eigen::Vector4f &clr)
+{
+    clr_ = clr ;
+    setMaterialColor(clr);
+
+}
+
+void TranslatePlaneManipulator::setPickColor(const Vector4f &clr)
+{
+    pick_clr_ = clr ;
+}
+
+void TranslatePlaneManipulator::setMaterialColor(const Eigen::Vector4f &clr) {
+    ConstantMaterial *cm = static_cast<ConstantMaterial *>(mat_.get()) ;
+    cm->setColor(clr) ;
+}
+bool TranslatePlaneManipulator::onMousePressed(QMouseEvent *event)
+{
+    Ray ray = camera_->getRay(event->x(), event->y()) ;
+    Affine3f tf = parent()->globalTransform().inverse() ;
+    Ray tr(ray,  tf) ; // ray transform to local coordinate system
+
+    float t ;
+    if (  detail::rayIntersectsTriangle(tr, v0_, v1_, v2_, false, t) ||
+          detail::rayIntersectsTriangle(tr, v0_, v2_, v3_, false, t) ) {
+        Vector3f p = tr.origin() + t * tr.dir() ;
+        start_drag_ =   p ;
+        translation_init_ = transform_node_->transform().translation() ;
+        dragging_ = true ;
+        tr_init_ = tf ;
+
+        if ( callback_)
+            callback_(ManipulatorEvent::MOTION_STARTED, transform_node_->transform()) ;
+        return true ;
+    }
+
+
+    return false ;
+}
+
+bool TranslatePlaneManipulator::onMouseReleased(QMouseEvent *event) {
+    if ( dragging_ ) {
+        dragging_ = false ;
+        setMaterialColor(clr_) ;
+        if ( callback_)
+            callback_(ManipulatorEvent::MOTION_ENDED, transform_node_->transform()) ;
+        return true ;
+    }
+
+    return false ;
+}
+
+extern bool intersectPlane(const Vector3f &n, const Vector3f &orig, const Vector3f &dir, Vector3f &p);
+
+bool TranslatePlaneManipulator::onMouseMoved(QMouseEvent *event)
+{
+
+    Ray ray = camera_->getRay(event->x(), event->y()) ;
+    Affine3f tf = parent()->globalTransform().inverse() ;
+    Ray tr(ray, tf) ; // ray transform to local coordinate system
+
+    if ( dragging_ ) {
+        Ray tr(ray, tr_init_) ; // ray transform to local coordinate system
+        Vector3f p ;
+
+        if ( intersectPlane(axis_, tr.origin(), tr.dir(), p) ) {
+            Vector3f t = translation_init_ + p - start_drag_  ;
+
+            cout << t << endl << endl;
+            if ( transform_node_ ) transform_node_->transform().translation() = t  ;
+            if ( callback_)
+                callback_(ManipulatorEvent::MOVING, transform_node_->transform()) ;
+
+            return true ;
+        }
+
+    } else {
+        float t ;
+        if (  detail::rayIntersectsTriangle(tr, v0_, v1_, v2_, false, t) ||
+              detail::rayIntersectsTriangle(tr, v0_, v2_, v3_, false, t) ) {
+
+            setSelected(true) ;
+        } else
+            setSelected(false) ;
+    }
+
+    return false ;
+}
+
+void TranslatePlaneManipulator::setSelected(bool v)
+{
+    selected_ = v ;
+    if ( v )
+        setMaterialColor(pick_clr_) ;
+    else
+        setMaterialColor(clr_) ;
+}
+
+
+void TranslatePlaneManipulator::onCameraUpdated()
+{
+
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
 TranslateXYZManipulator::TranslateXYZManipulator(const NodePtr &n, float hw): CompositeManipulator(n) {
     Translate1DManipulator *mx = new Translate1DManipulator(n, {-hw, 0, 0},{hw, 0, 0}) ;
     mx->setColor({1, 0, 0, 1}) ;
@@ -169,6 +317,8 @@ TranslateXYZManipulator::TranslateXYZManipulator(const NodePtr &n, float hw): Co
     addComponent(my_) ;
     addComponent(mz_) ;
 }
+
+
 
 
 }

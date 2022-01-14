@@ -125,6 +125,9 @@ bool Translate1DManipulator::onMouseMoved(QMouseEvent *event)
             Vector3f t = translation_init_ + p - start_drag_  ;
 
             if ( transform_node_ ) transform_node_->transform().translation() = t  ;
+          //  Isometry3f tr = Isometry3f::Identity() ;
+         //   tr.translation() = transform_node_->positionWorld() ;
+         //   setTransform(tr) ;
             if ( callback_)
                 callback_(ManipulatorEvent::MOVING, transform_node_->transform()) ;
 
@@ -166,7 +169,7 @@ void Translate1DManipulator::onCameraUpdated()
 
 bool Translate1DManipulator::hitTest(const Ray &ray, float &t)
 {
-     Affine3f tf = parent()->globalTransform().inverse() ;
+     Affine3f tf = transform_node_->globalTransform().inverse() ;
      return detail::rayIntersectsCylinder(Ray(ray, linetr_ * tf), len_ * 0.05f, len_ + 0.1f * len_, t ) ;
 }
 

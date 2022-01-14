@@ -89,4 +89,9 @@ const std::vector<Geometry *> Node::geometries() const {
 
     return { geometry_map.begin(), geometry_map.end() } ;
 }
+
+
+Eigen::Vector3f Node::positionWorld() const {
+    return globalTransform().translation() ;
+}
 }

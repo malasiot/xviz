@@ -48,6 +48,8 @@ public:
 
     void addManipulator(const ManipulatorPtr &m) ;
 
+    CameraPtr getCamera() const { return camera_ ; }
+
 public slots:
 
     void updateAnimation() ;

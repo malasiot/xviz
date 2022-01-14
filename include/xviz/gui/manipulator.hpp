@@ -1,4 +1,4 @@
-#ifndef XVIZ_GUI_MANIPULATOR_HPP
+﻿#ifndef XVIZ_GUI_MANIPULATOR_HPP
 #define XVIZ_GUI_MANIPULATOR_HPP
 
 #include <xviz/scene/node.hpp>
@@ -67,6 +67,45 @@ protected:
 
     std::vector<ManipulatorPtr> components_ ;
     ManipulatorPtr selected_, current_ ;
+};
+
+class TransformGizmo: public Manipulator {
+public:
+    TransformGizmo(const CameraPtr &cam, float radius, const NodePtr &node) ;
+
+    bool onMousePressed(QMouseEvent *event) override ;
+    bool onMouseReleased(QMouseEvent *event) override ;
+    bool onMouseMoved(QMouseEvent *event) override ;
+    void onCameraUpdated() override ;
+
+private:
+
+    enum ComponentId { TX = 0, TY = 1, TZ = 2, TXY = 3, TYZ = 4, TXZ = 5, RX = 7, RY = 8, RZ = 9, N_COMPONENTS  } ;
+
+    struct Component {
+        NodePtr node_ ;
+        MaterialPtr mat_ ;
+        Eigen::Vector4f clr_ ;
+
+        void setMaterialColor(const Eigen::Vector4f &clr) ;
+    };
+
+    int hitTest(QMouseEvent *e, RayCastResult &r) ;
+    void createAxisTranslationNode(Component &c, float len, const Eigen::Vector3f &axis, const Eigen::Vector4f &clr) ;
+    void createPlaneTranslationNode(Component &c, float sz, const Eigen::Vector3f &axis, const Eigen::Vector4f &clr) ;
+    void createRotateAxisNode(Component &c, float rad, const Eigen::Vector3f &axis, const Eigen::Vector4f &clr) ;
+    void translateAxis(const Eigen::Vector3f &axis, const Eigen::Vector3f &start_pt, const Ray &ray) ;
+
+    void setSelection(int c) ;
+     void highlight(int c, bool v);
+
+    Component components_[N_COMPONENTS] ;
+    RayCaster ray_caster_ ;
+    int selected_ = -1, dragging_ = -1 ;
+    Eigen::Vector4f pick_clr_{1, 1, 0, 1} ;
+    Eigen::Vector3f start_drag_ ;
+    Eigen::Isometry3f start_tr_ ;
+
 };
 
 namespace impl {

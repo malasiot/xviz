@@ -593,7 +593,5 @@ void Node::load(const aiScene *sc, const std::string &fname, int options) {
 
 }
 
-
-
 }
 

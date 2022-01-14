@@ -22,9 +22,7 @@ RayCaster::RayCaster() {
 }
 
 bool RayCaster::intersect(const Ray &ray, const NodePtr &scene, RayCastResult &result) {
-    vector<NodePtr> nodes ;
-    nodes.push_back(scene) ;
-    return intersect(ray, nodes, result) ;
+     return intersect(ray, scene->getNodesRecursive(), result) ;
 }
 
 bool RayCaster::intersect(const Ray &tr, const GeometryPtr &geom, RayCastResult &result, float &mint) {

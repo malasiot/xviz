@@ -36,15 +36,17 @@ int main(int argc, char **argv)
     RotateXYZManipulator *rmanip = new RotateXYZManipulator(box_node, 2.f);
     TranslateXYZManipulator *tmanip = new TranslateXYZManipulator(box_node, 2.f);
 
-      rmanip->setVisible(true) ;
+
+
+    rmanip->setVisible(true) ;
     rmanip->setOrder(2) ;
     tmanip->setOrder(2) ;
 
     ManipulatorPtr rm(rmanip) ;
     ManipulatorPtr tm(tmanip) ;
 
-    box_node->addChild(rm) ;
-    box_node->addChild(tm) ;
+  //  scene->addChild(rm) ;
+  //  scene->addChild(tm) ;
 
 
     DirectionalLight *dl = new DirectionalLight(Vector3f(0.5, 0.5, 1)) ;
@@ -53,8 +55,14 @@ int main(int argc, char **argv)
 
     SceneViewer *viewer = new SceneViewer(scene) ;
     viewer->initCamera({0, 0, 0}, 4.0);
-    viewer->addManipulator(rm) ;
-    viewer->addManipulator(tm) ;
+
+    ManipulatorPtr  gizmo( new TransformGizmo(viewer->getCamera(), 2.0, box_node) );
+    gizmo->setOrder(2) ;
+ //   viewer->addManipulator(rm) ;
+  //  viewer->addManipulator(tm) ;
+
+    viewer->addManipulator(ManipulatorPtr(gizmo)) ;
+    scene->addChild(gizmo);
 
 
     QMainWindow window ;

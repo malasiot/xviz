@@ -61,6 +61,8 @@ public:
         mat_ = tr ;
     }
 
+    Eigen::Vector3f positionWorld() const ;
+
 
     Node *parent() const { return parent_ ; }
 

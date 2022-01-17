@@ -15,7 +15,6 @@ public:
     bool onMousePressed(QMouseEvent *event) override ;
     bool onMouseReleased(QMouseEvent *event) override ;
     bool onMouseMoved(QMouseEvent *event) override ;
-    void onCameraUpdated() override ;
 
     bool hitTest(const Ray &ray, float &t) override ;
 

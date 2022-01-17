@@ -45,8 +45,8 @@ set(LIB_SOURCES
     gui/trackball.cpp
     gui/offscreen.cpp
     gui/manipulator.cpp
-    gui/translation_manipulator.cpp
-    gui/rotation_manipulator.cpp
+#    gui/translation_manipulator.cpp
+#    gui/rotation_manipulator.cpp
 
     ${LIBRARY_INCLUDE_DIR}/gui/viewer.hpp
     ${LIBRARY_INCLUDE_DIR}/gui/offscreen.hpp

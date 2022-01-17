@@ -12,78 +12,39 @@ namespace xviz {
 class Manipulator ;
 using ManipulatorPtr = std::shared_ptr<Manipulator> ;
 
-enum class ManipulatorEvent { MOTION_STARTED, MOVING, MOTION_ENDED } ;
 
-class Manipulator: public Node {
+
+class Manipulator {
 public:
-
-    using Callback = std::function<void(ManipulatorEvent e, const Eigen::Affine3f &tr)> ;
-
-    Manipulator(const NodePtr &node): transform_node_(node), prev_tr_(node->transform()) {}
-
-    virtual void setCamera(const CameraPtr &cam) ;
+    Manipulator() {}
 
     virtual bool onMousePressed(QMouseEvent *event) = 0 ;
     virtual bool onMouseReleased(QMouseEvent *event) = 0;
     virtual bool onMouseMoved(QMouseEvent *event) = 0 ;
-    virtual void onCameraUpdated() = 0 ;
-
-    virtual void setCallback(Callback cb) { callback_ = cb ; }
-    virtual bool hitTest(const Ray &ray, float &t) { return false ; }
-
-    const Eigen::Affine3f &lastTransform() const { return prev_tr_ ; }
-
-    bool isSelected() const { return selected_ ; }
-    bool isDragging() const { return dragging_ ; }
-
-protected:
-    friend class CompositeManipulator ;
-
-    virtual void setSelected(bool v) { selected_ = v ; }
-
-    CameraPtr camera_ ;
-    NodePtr transform_node_ ;
-    Eigen::Affine3f prev_tr_ ;
-    Callback callback_ = nullptr ;
-    bool selected_ = false ;
-    bool dragging_ = false ;
 };
 
-class CompositeManipulator: public Manipulator {
-public:
+enum TransformGizmoEvent { TRANSFORM_GIZMO_MOTION_STARTED, TRANSFORM_GIZMO_MOVING, TRANSFORM_GIZMO_MOTION_ENDED } ;
 
-    CompositeManipulator(const NodePtr &node): Manipulator(node) {}
+using TransformGizmoCallback = std::function<void (TransformGizmoEvent, const Eigen::Affine3f &tr)> ;
+
+class TransformGizmo: public Manipulator, public Node {
+public:
+    TransformGizmo(const CameraPtr &cam, float radius) ;
 
     bool onMousePressed(QMouseEvent *event) override ;
     bool onMouseReleased(QMouseEvent *event) override ;
     bool onMouseMoved(QMouseEvent *event) override ;
-    void onCameraUpdated() override ;
 
-    void setCamera(const CameraPtr &cam) override ;
-    void setCallback(Callback cb) override ;
-
-protected:
-    void addComponent(const ManipulatorPtr &m) ;
-
-    std::vector<ManipulatorPtr> components_ ;
-    ManipulatorPtr selected_, current_ ;
-};
-
-class TransformGizmo: public Manipulator {
-public:
-    TransformGizmo(const CameraPtr &cam, float radius, const NodePtr &node) ;
-
-    bool onMousePressed(QMouseEvent *event) override ;
-    bool onMouseReleased(QMouseEvent *event) override ;
-    bool onMouseMoved(QMouseEvent *event) override ;
-    void onCameraUpdated() override ;
+    void attachTo(const NodePtr &node) ;
+    void setLocalTransform(bool v) ;
+    void setCallback(TransformGizmoCallback cb) { cb_ = cb ; }
 
 private:
 
-    enum ComponentId { TX = 0, TY = 1, TZ = 2, TXY = 3, TYZ = 4, TXZ = 5, RX = 7, RY = 8, RZ = 9, N_COMPONENTS  } ;
+    enum ComponentId { TX = 0, TY = 1, TZ = 2, TXY = 3, TYZ = 4, TXZ = 5, RX = 6, RY = 7, RZ = 8, N_COMPONENTS  } ;
 
     struct Component {
-        NodePtr node_ ;
+        NodePtr node_, picking_  ;
         MaterialPtr mat_ ;
         Eigen::Vector4f clr_ ;
 
@@ -95,6 +56,8 @@ private:
     void createPlaneTranslationNode(Component &c, float sz, const Eigen::Vector3f &axis, const Eigen::Vector4f &clr) ;
     void createRotateAxisNode(Component &c, float rad, const Eigen::Vector3f &axis, const Eigen::Vector4f &clr) ;
     void setTranslation(const Eigen::Vector3f &v) ;
+    void setRotation(const Eigen::Matrix3f &m) ;
+    void updateTransforms() ;
 
     void setSelection(int c) ;
      void highlight(int c, bool v);
@@ -105,6 +68,12 @@ private:
     Eigen::Vector4f pick_clr_{1, 1, 0, 1} ;
     Eigen::Vector3f start_drag_, start_pos_ ;
     Eigen::Affine3f start_tr_ ;
+    Eigen::Vector3f position_ = {0, 0, 0};
+    Eigen::Matrix3f orientation_ = Eigen::Matrix3f::Identity(), start_orientation_;
+    CameraPtr camera_ ;
+    NodePtr transform_node_ ;
+    bool local_ = false ;
+    TransformGizmoCallback cb_ = nullptr ;
 
 };
 

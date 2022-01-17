@@ -117,9 +117,7 @@ void SceneViewer::startAnimations()
 }
 
 void SceneViewer::addManipulator(const ManipulatorPtr &m) {
-
     manipulators_.emplace_back(m) ;
-    m->setCamera(camera_) ;
 }
 
 void SceneViewer::mousePressEvent(QMouseEvent *event)
@@ -127,7 +125,6 @@ void SceneViewer::mousePressEvent(QMouseEvent *event)
     if ( !camera_ ) return ;
 
     for( const ManipulatorPtr &m: getManipulators() ) {
-        if ( !m->isVisible() ) continue ;
         if ( m->onMousePressed(event) ) {
             return ;
         }
@@ -154,7 +151,6 @@ void SceneViewer::mouseReleaseEvent(QMouseEvent *event)
     if ( !camera_ ) return ;
 
     for( const ManipulatorPtr &m: getManipulators() ) {
-        if ( !m->isVisible() ) continue ;
         if ( m->onMouseReleased(event) ) {
             update() ;
             return ;
@@ -185,7 +181,6 @@ void SceneViewer::mouseMoveEvent(QMouseEvent *event)
     if ( !camera_ ) return ;
 
     for( const ManipulatorPtr &m: getManipulators() ) {
-        if ( !m->isVisible() ) continue ;
         if ( m->onMouseMoved(event) ) {
             update() ;
             return ;
@@ -207,10 +202,6 @@ void SceneViewer::wheelEvent(QWheelEvent *event) {
     trackball_.setScrollDirection(event->angleDelta().y()>0);
     trackball_.update() ;
     update() ;
-
-    for( const ManipulatorPtr &m: getManipulators() ) {
-        m->onCameraUpdated() ;
-    }
 }
 
 void SceneViewer::keyPressEvent(QKeyEvent *event)

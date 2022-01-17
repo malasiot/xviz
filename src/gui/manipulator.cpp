@@ -10,142 +10,8 @@ using namespace std ;
 
 namespace xviz {
 
-void Manipulator::setCamera(const CameraPtr &cam) {
-    camera_ = cam ;
-    onCameraUpdated() ;
-}
-
-
-bool CompositeManipulator::onMousePressed(QMouseEvent *event) {
-    float mint = std::numeric_limits<float>::max() ;
-    Ray ray = camera_->getRay(event->x(), event->y()) ;
-
-    for( const auto &m: components_ ) {
-        float t ;
-        if ( m->hitTest(ray, t) && t < mint ) {
-            current_ = m ;
-            mint = t ;
-        }
-    }
-
-    if ( current_ )  {
-        current_->onMousePressed(event) ;
-        return true ;
-    }
-    return false ;
-    /*
-    for( const auto &m: components_ ) {
-        if ( m->onMousePressed(event) ) return true ;
-    }
-    return false ;
-    */
-}
-
-bool CompositeManipulator::onMouseReleased(QMouseEvent *event) {
-    current_ = nullptr ;
-    for( const auto &m: components_ ) {
-        if ( m->onMouseReleased(event) ) return true ;
-    }
-    return false ;
-}
-
-bool CompositeManipulator::onMouseMoved(QMouseEvent *event) {
-    if ( current_ ) {
-        current_->onMouseMoved(event) ;
-        return true ;
-    } else {
-
-        float mint = std::numeric_limits<float>::max() ;
-        Ray ray = camera_->getRay(event->x(), event->y()) ;
-        ManipulatorPtr hit ;
-        for( const auto &m: components_ ) {
-            float t ;
-            if ( m->hitTest(ray, t) && t < mint ) {
-                hit = m ;
-                mint = t ;
-            }
-        }
-
-        if ( selected_ && selected_ != hit ) selected_->setSelected(false) ;
-        selected_ = hit ;
-        if ( selected_ ) {
-            selected_->setSelected(true) ;
-            return true ;
-        }
-    }
-    return false ;
-}
-
-void CompositeManipulator::onCameraUpdated()
+TransformGizmo::TransformGizmo(const CameraPtr &cam, float radius): Manipulator(), camera_(cam)
 {
-    for( const auto &m: components_ ) {
-        m->onCameraUpdated();
-    }
-}
-
-void CompositeManipulator::setCamera(const CameraPtr &cam)
-{
-    camera_ = cam ;
-    for( const auto &m: components_ ) {
-        m->setCamera(cam);
-    }
-}
-
-void CompositeManipulator::setCallback(Callback c)
-{
-    for( const auto &m: components_ ) {
-        m->setCallback(c);
-    }
-}
-
-void CompositeManipulator::addComponent(const ManipulatorPtr &m)
-{
-    components_.push_back(m) ;
-    addChild(m);
-}
-
-namespace impl {
-
-bool computeRayProjectionOnLine(const Eigen::Vector3f &pA, const Eigen::Vector3f &pB, // line segment
-                                const Eigen::Vector3f &o, const Eigen::Vector3f &v, // ray
-                                Eigen::Vector3f &p, float &d, float &s )
-{
-
-    Vector3f ab  = pB - pA ;
-    float len = ab.norm() ;
-    Vector3f d1 = ab / len ;
-
-    const auto &p1 =  pA ;
-    const auto &p2 = o ;
-    const auto d2 = v.normalized() ;
-
-    auto n = d1.cross(d2) ;
-    auto n2 = d2.cross(n) ;
-    auto n1 = d1.cross(n) ;
-
-    float denom1 = d1.dot(n2) ;
-    float denom2 = d2.dot(n1) ;
-
-    if ( fabs(denom1) < std::numeric_limits<float>::min() ) return false ;
-
-    s = (p2 - p1).dot(n2) / denom1 ;
-    float t = (p1 - p2).dot(n1) / denom2 ;
-
-
-    p = p1 + s * d1 ;
-    auto q = p2 + t * d2 ;
-
-    d = ( q - p ).norm();
-
-    //    qDebug() << 'D' << d << p.x() <<  p.y() << p.z() << s;
-
-    return true ;
-}
-}
-
-TransformGizmo::TransformGizmo(const CameraPtr &cam, float radius, const Node::NodePtr &node): Manipulator(node)
-{
-    setCamera(cam) ;
     ray_caster_.setBackFaceCulling(false) ;
 
     createAxisTranslationNode(components_[TX], radius, {1, 0, 0}, {1, 0, 0, 1}) ;
@@ -192,6 +58,8 @@ void TransformGizmo::createAxisTranslationNode(TransformGizmo::Component &c, flo
     picking_node->setTransform(linetr) ;
     picking_node->setVisible(false) ;
 
+    c.picking_ = picking_node ;
+
     NodePtr left_cone(new Node) ;
     left_cone->addDrawable(cone_geom, mat) ;
     left_cone->transform().linear() = rotationBetween({0, 0, 1}, Vector3f(-axis)) ;
@@ -228,12 +96,7 @@ void TransformGizmo::createPlaneTranslationNode(TransformGizmo::Component &c, fl
     planetr.setIdentity() ;
     planetr.linear() = rotationBetween({0, 1, 0}, axis) ;
     planetr.translation() = planetr.linear().inverse() * Vector3f{sz, 0, sz} ;
-    /*
-    v0_ = planetr_ * Vector3f{-sz/2, 0, -sz/2} ;
-    v1_ = planetr_ * Vector3f{sz/2, 0, -sz/2} ;
-    v2_ = planetr_ * Vector3f{sz/2, 0, sz/2} ;
-    v3_ = planetr_ * Vector3f{-sz/2, 0, sz/2} ;
-*/
+
     NodePtr plane_node(new Node) ;
     plane_node->addDrawable(plane_geom, mat) ;
     plane_node->setTransform(planetr) ;
@@ -267,21 +130,48 @@ void TransformGizmo::createRotateAxisNode(TransformGizmo::Component &c, float ra
 
 void TransformGizmo::setTranslation(const Vector3f &v)
 {
-    transform_node_->transform().translation() =  start_tr_.translation() + v ;
-    transform().translation() = start_tr_.translation() + v ;
+    position_ = start_pos_ + v ;
+    updateTransforms() ;
+}
+
+void TransformGizmo::setRotation(const Matrix3f &m)
+{
+    if ( local_ )
+        orientation_ = start_orientation_ * m ;
+    else
+        orientation_ = m ;
+
+    updateTransforms() ;
+}
+
+void TransformGizmo::updateTransforms()
+{
+    Isometry3f tr = Isometry3f::Identity() ;
+
+     tr.translate(position_) ;
+    tr.rotate(orientation_) ;
+
+
+    transform_node_->transform() = tr ;
+
+    if ( local_ ) {
+        transform() = tr ;
+    } else {
+        transform().translation() = position_ ;
+    }
 
 }
 
 
 
-bool intersect_plane(const Vector3f &n, const Vector3f &orig, const Vector3f &dir, Vector3f &p) {
+bool intersect_plane(const Vector3f &n, const Vector3f &pos, const Vector3f &orig, const Vector3f &dir, Vector3f &p) {
 
     Vector3f l = dir.normalized() ;
 
     // assuming vectors are all normalized
     float denom = n.dot(l) ;
     if (fabs(denom) > 0.1) {
-        float t = -orig.dot(n)/ denom;
+        float t = (pos  - orig).dot(n)/ denom;
          p = orig + t * l ;
         return true ;
     }
@@ -293,15 +183,23 @@ static bool ray_plane_intersection(const Ray &r, const Vector3f &axis, const Vec
     const Vector3f plane_tangent = axis.cross(pos - eye);
     const Vector3f plane_normal = axis.cross(plane_tangent);
 
-    return intersect_plane(plane_normal, r.origin(), r.dir(), p) ;
+    return intersect_plane(plane_normal, pos, r.origin(), r.dir(), p) ;
 }
 
-static bool ray_plane_intersection(const Ray &r, const Vector3f &axis, Vector3f &p) {
-    return intersect_plane(axis, r.origin(), r.dir(), p) ;
+static bool ray_plane_intersection(const Ray &r, const Vector3f &axis, const Vector3f &pos, Vector3f &p) {
+    return intersect_plane(axis, pos, r.origin(), r.dir(), p) ;
 }
 
 static void project_on_axis(Vector3f &pt, const Vector3f &origin, const Vector3f &axis) {
      pt = origin + axis * axis.dot(pt - origin);
+}
+
+static float rotation_angle(const Vector3f &pt, const Vector3f &start_drag, const Vector3f &center, const Vector3f &axis) {
+    float angle = acos((pt - center).normalized().dot((start_drag - center).normalized())) ;
+    Vector3f vc = (pt - center).cross(start_drag - center) ;
+    if ( vc.dot(axis) > 0 )
+        angle = -angle ;
+    return angle ;
 }
 
 static Vector3f AXIS_X{1, 0, 0} ;
@@ -315,76 +213,120 @@ bool TransformGizmo::onMousePressed(QMouseEvent *event)
     if ( c == -1 ) return false ;
 
     Ray r = camera_->getRay(event->x(), event->y()) ;
-    start_pos_ = globalTransform().translation() ;
+
+    start_pos_ = position_ ;
+    start_orientation_ = orientation_ ;
+
+    Vector3f axis_x = ( local_ ) ? orientation_ * AXIS_X : AXIS_X ;
+    Vector3f axis_y = ( local_ ) ? orientation_ * AXIS_Y : AXIS_Y ;
+    Vector3f axis_z = ( local_ ) ? orientation_ * AXIS_Z : AXIS_Z ;
+
+    for( int i=0 ; i<N_COMPONENTS ; i++ ) {
+        if ( i != c )
+            components_[i].node_->setVisible(false) ;
+    }
 
     switch ( c ) {
     case TX:
-        ray_plane_intersection(r, AXIS_X, start_pos_, camera_->eye(), start_drag_); break ;
+        ray_plane_intersection(r, axis_x, start_pos_, camera_->eye(), start_drag_); break ;
     case TY:
-        ray_plane_intersection(r, AXIS_Y, start_pos_, camera_->eye(), start_drag_); break ;
+        ray_plane_intersection(r, axis_y, start_pos_, camera_->eye(), start_drag_); break ;
     case TZ:
-        ray_plane_intersection(r, AXIS_Z, start_pos_, camera_->eye(), start_drag_); break ;
+        ray_plane_intersection(r, axis_z, start_pos_, camera_->eye(), start_drag_); break ;
     case TYZ:
-        ray_plane_intersection(r, AXIS_X, start_drag_); break ;
+        ray_plane_intersection(r, axis_x, start_pos_, start_drag_); break ;
     case TXZ:
-        ray_plane_intersection(r, AXIS_Y, start_drag_); break ;
+        ray_plane_intersection(r, axis_y, start_pos_, start_drag_); break ;
     case TXY:
-        ray_plane_intersection(r, AXIS_Z, start_drag_); break ;
+        ray_plane_intersection(r, axis_z, start_pos_, start_drag_); break ;
+    case RX:
+         ray_plane_intersection(r, axis_x, start_pos_, start_drag_); break ;
+    case RY:
+        ray_plane_intersection(r, axis_y, start_pos_, start_drag_); break ;
+    case RZ:
+        ray_plane_intersection(r, axis_z, start_pos_, start_drag_); break ;
 
     }
 
-    cout << start_drag_ << endl ;
-
-    start_tr_ = transform_node_->transform() ;
+    if ( cb_) cb_(TRANSFORM_GIZMO_MOTION_STARTED, transform_node_->transform()) ;
 
     dragging_ = c ;
     return true ;
 }
 
 bool TransformGizmo::onMouseReleased(QMouseEvent *event) {
+    for( int i=0 ; i<N_COMPONENTS ; i++ ) {
+        if ( i != dragging_ ) {
+            components_[i].node_->setVisible(true) ;
+            if ( components_[i].picking_ )
+                 components_[i].picking_->setVisible(false) ;
+        }
+    }
     dragging_ = -1 ;
+    if ( cb_) cb_(TRANSFORM_GIZMO_MOTION_ENDED, transform_node_->transform()) ;
 
     return false ;
 }
 
 bool TransformGizmo::onMouseMoved(QMouseEvent *event) {
-
-
     if ( dragging_ != -1 ) {
         Ray r = camera_->getRay(event->x(), event->y()) ;
+
+        Vector3f axis_x = ( local_ ) ? orientation_ * AXIS_X : AXIS_X;
+        Vector3f axis_y = ( local_ ) ? orientation_ * AXIS_Y : AXIS_Y ;
+        Vector3f axis_z = ( local_ ) ? orientation_ * AXIS_Z : AXIS_Z ;
 
         Vector3f pt ;
         switch (dragging_) {
         case TX:
-            ray_plane_intersection(r, AXIS_X, start_pos_, camera_->eye(), pt);
-            project_on_axis(pt, start_pos_, AXIS_X) ;
-            setTranslation(Vector3f(pt.x() - start_drag_.x(), 0, 0)) ;
+            ray_plane_intersection(r, axis_x, start_pos_, camera_->eye(), pt);
+            project_on_axis(pt, start_pos_, axis_x) ;
+            setTranslation(pt - start_drag_) ;
            break ;
         case TY:
-            ray_plane_intersection(r, AXIS_Y, start_pos_, camera_->eye(), pt);
-            project_on_axis(pt, start_pos_, AXIS_Y) ;
-            setTranslation(Vector3f(0, pt.y() - start_drag_.y(), 0)) ;
+            ray_plane_intersection(r, axis_y, start_pos_, camera_->eye(), pt);
+            project_on_axis(pt, start_pos_, axis_y) ;
+            setTranslation(pt - start_drag_) ;
             break ;
         case TZ:
-            ray_plane_intersection(r, AXIS_Z, start_pos_, camera_->eye(), pt);
-            project_on_axis(pt, start_pos_, AXIS_Z) ;
-            setTranslation(Vector3f(0, 0, pt.z() - start_drag_.z())) ;
+            ray_plane_intersection(r, axis_z, start_pos_, camera_->eye(), pt);
+            project_on_axis(pt, start_pos_, axis_z) ;
+            setTranslation(pt - start_drag_) ;
             break ;
         case TYZ:
-            ray_plane_intersection(r, AXIS_X, pt);
-            setTranslation(Vector3f(0, pt.y() - start_drag_.y(), pt.z() - start_drag_.z()));
+            ray_plane_intersection(r, axis_x, start_pos_, pt);
+            setTranslation(pt - start_drag_) ;
             break ;
         case TXZ:
-            ray_plane_intersection(r, AXIS_Y, pt);
-            setTranslation(Vector3f(pt.x() - start_drag_.x(), 0, pt.z() - start_drag_.z()));
+            ray_plane_intersection(r, axis_y, start_pos_, pt);
+            setTranslation(pt - start_drag_) ;
             break ;
         case TXY:
-            ray_plane_intersection(r, AXIS_Z, pt);
-            setTranslation(Vector3f(pt.x() - start_drag_.x(), pt.y() - start_drag_.y(), 0));
+            ray_plane_intersection(r, axis_z, start_pos_, pt);
+            setTranslation(pt - start_drag_) ;
             break ;
-
+        case RX: {
+            ray_plane_intersection(r, axis_x, start_pos_, pt);
+            float angle = rotation_angle(pt, start_drag_, start_pos_, axis_x) ;
+            setRotation(AngleAxisf(angle, AXIS_X).matrix()) ;
+            break ;
+        }
+        case RY: {
+            ray_plane_intersection(r, axis_y, start_pos_, pt);
+            float angle = rotation_angle(pt, start_drag_, start_pos_, axis_y) ;
+            setRotation(AngleAxisf(angle, AXIS_Y).matrix()) ;
+            break ;
+        }
+        case RZ: {
+            ray_plane_intersection(r, axis_z, start_pos_, pt);
+            float angle = rotation_angle(pt, start_drag_, start_pos_, axis_z) ;
+            setRotation(AngleAxisf(angle, AXIS_Z).matrix()) ;
+            break ;
+        }
 
         }
+
+        if ( cb_) cb_(TRANSFORM_GIZMO_MOVING, transform_node_->transform()) ;
 
         return true ;
     } else {
@@ -414,9 +356,13 @@ void TransformGizmo::highlight(int c, bool v)
         comp.setMaterialColor(comp.clr_) ;
 }
 
-void TransformGizmo::onCameraUpdated()
-{
 
+void TransformGizmo::attachTo(const Node::NodePtr &node)
+{
+    transform_node_ = node ;
+    position_ = node->transform().translation() ;
+    orientation_ = node->transform().linear() ;
+    updateTransforms() ;
 }
 
 int TransformGizmo::hitTest(QMouseEvent *event, RayCastResult &res)

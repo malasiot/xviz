@@ -1,7 +1,5 @@
 #include <xviz/gui/viewer.hpp>
-#include <xviz/gui/translation_manipulator.hpp>
-#include <xviz/gui/rotation_manipulator.hpp>
-
+#include <xviz/gui/manipulator.hpp>
 #include <xviz/scene/scene.hpp>
 #include <xviz/scene/geometry.hpp>
 #include <xviz/scene/light.hpp>
@@ -26,27 +24,12 @@ int main(int argc, char **argv)
     NodePtr scene(new Node) ;
 
     NodePtr box_node(new Node) ;
+    box_node->transform().translation() = Vector3f{0, 0.5f, 0} ;
     GeometryPtr geom(new BoxGeometry({1, 2, 1})) ;
     PhongMaterial *material = new PhongMaterial({1, 0, 1, 0.1}) ;
     MaterialPtr mat(material) ;
     box_node->addDrawable(geom, mat) ;
     scene->addChild(box_node) ;
-
-
-    RotateXYZManipulator *rmanip = new RotateXYZManipulator(box_node, 2.f);
-    TranslateXYZManipulator *tmanip = new TranslateXYZManipulator(box_node, 2.f);
-
-
-
-    rmanip->setVisible(true) ;
-    rmanip->setOrder(2) ;
-    tmanip->setOrder(2) ;
-
-    ManipulatorPtr rm(rmanip) ;
-    ManipulatorPtr tm(tmanip) ;
-
-  //  scene->addChild(rm) ;
-  //  scene->addChild(tm) ;
 
 
     DirectionalLight *dl = new DirectionalLight(Vector3f(0.5, 0.5, 1)) ;
@@ -56,13 +39,14 @@ int main(int argc, char **argv)
     SceneViewer *viewer = new SceneViewer(scene) ;
     viewer->initCamera({0, 0, 0}, 4.0);
 
-    ManipulatorPtr  gizmo( new TransformGizmo(viewer->getCamera(), 2.0, box_node) );
+    TransformGizmo *gizmo = new TransformGizmo(viewer->getCamera(), 2.0) ;
     gizmo->setOrder(2) ;
- //   viewer->addManipulator(rm) ;
-  //  viewer->addManipulator(tm) ;
+    gizmo->attachTo(box_node) ;
 
-    viewer->addManipulator(ManipulatorPtr(gizmo)) ;
-    scene->addChild(gizmo);
+    std::shared_ptr<TransformGizmo> gz(gizmo) ;
+
+    viewer->addManipulator(gz) ;
+    scene->addChild(gz);
 
 
     QMainWindow window ;

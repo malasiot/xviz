@@ -128,5 +128,10 @@ Matrix4f OrthographicCamera::getProjectionMatrix() const
     return res ;
 }
 
+Vector3f Camera::eye() const {
+    auto v = getViewMatrix().inverse() * Vector4f(0, 0, -1, 1)  ;
+    return v.block<3, 1>(0, 0) ;
+}
+
 } // namespace viz
 

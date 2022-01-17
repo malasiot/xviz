@@ -94,7 +94,7 @@ private:
     void createAxisTranslationNode(Component &c, float len, const Eigen::Vector3f &axis, const Eigen::Vector4f &clr) ;
     void createPlaneTranslationNode(Component &c, float sz, const Eigen::Vector3f &axis, const Eigen::Vector4f &clr) ;
     void createRotateAxisNode(Component &c, float rad, const Eigen::Vector3f &axis, const Eigen::Vector4f &clr) ;
-    void translateAxis(const Eigen::Vector3f &axis, const Eigen::Vector3f &start_pt, const Ray &ray) ;
+    void setTranslation(const Eigen::Vector3f &v) ;
 
     void setSelection(int c) ;
      void highlight(int c, bool v);
@@ -103,8 +103,8 @@ private:
     RayCaster ray_caster_ ;
     int selected_ = -1, dragging_ = -1 ;
     Eigen::Vector4f pick_clr_{1, 1, 0, 1} ;
-    Eigen::Vector3f start_drag_ ;
-    Eigen::Isometry3f start_tr_ ;
+    Eigen::Vector3f start_drag_, start_pos_ ;
+    Eigen::Affine3f start_tr_ ;
 
 };
 

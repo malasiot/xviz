@@ -4,6 +4,7 @@
 #include <QMouseEvent>
 #include <QDebug>
 
+#include <iostream>
 using namespace Eigen ;
 using namespace std ;
 
@@ -264,10 +265,48 @@ void TransformGizmo::createRotateAxisNode(TransformGizmo::Component &c, float ra
     addChild(root) ;
 }
 
-void TransformGizmo::translateAxis(const Vector3f &axis, const Vector3f &start_pt, const Ray &ray)
+void TransformGizmo::setTranslation(const Vector3f &v)
 {
+    transform_node_->transform().translation() =  start_tr_.translation() + v ;
+    transform().translation() = start_tr_.translation() + v ;
 
 }
+
+
+
+bool intersect_plane(const Vector3f &n, const Vector3f &orig, const Vector3f &dir, Vector3f &p) {
+
+    Vector3f l = dir.normalized() ;
+
+    // assuming vectors are all normalized
+    float denom = n.dot(l) ;
+    if (fabs(denom) > 0.1) {
+        float t = -orig.dot(n)/ denom;
+         p = orig + t * l ;
+        return true ;
+    }
+
+    return false ;
+}
+
+static bool ray_plane_intersection(const Ray &r, const Vector3f &axis, const Vector3f &pos, const Vector3f &eye, Vector3f &p) {
+    const Vector3f plane_tangent = axis.cross(pos - eye);
+    const Vector3f plane_normal = axis.cross(plane_tangent);
+
+    return intersect_plane(plane_normal, r.origin(), r.dir(), p) ;
+}
+
+static bool ray_plane_intersection(const Ray &r, const Vector3f &axis, Vector3f &p) {
+    return intersect_plane(axis, r.origin(), r.dir(), p) ;
+}
+
+static void project_on_axis(Vector3f &pt, const Vector3f &origin, const Vector3f &axis) {
+     pt = origin + axis * axis.dot(pt - origin);
+}
+
+static Vector3f AXIS_X{1, 0, 0} ;
+static Vector3f AXIS_Y{0, 1, 0} ;
+static Vector3f AXIS_Z{0, 0, 1} ;
 
 bool TransformGizmo::onMousePressed(QMouseEvent *event)
 {
@@ -275,7 +314,27 @@ bool TransformGizmo::onMousePressed(QMouseEvent *event)
     int c = hitTest(event, rc) ;
     if ( c == -1 ) return false ;
 
-    start_drag_ = rc.pt_ ;
+    Ray r = camera_->getRay(event->x(), event->y()) ;
+    start_pos_ = globalTransform().translation() ;
+
+    switch ( c ) {
+    case TX:
+        ray_plane_intersection(r, AXIS_X, start_pos_, camera_->eye(), start_drag_); break ;
+    case TY:
+        ray_plane_intersection(r, AXIS_Y, start_pos_, camera_->eye(), start_drag_); break ;
+    case TZ:
+        ray_plane_intersection(r, AXIS_Z, start_pos_, camera_->eye(), start_drag_); break ;
+    case TYZ:
+        ray_plane_intersection(r, AXIS_X, start_drag_); break ;
+    case TXZ:
+        ray_plane_intersection(r, AXIS_Y, start_drag_); break ;
+    case TXY:
+        ray_plane_intersection(r, AXIS_Z, start_drag_); break ;
+
+    }
+
+    cout << start_drag_ << endl ;
+
     start_tr_ = transform_node_->transform() ;
 
     dragging_ = c ;
@@ -283,18 +342,48 @@ bool TransformGizmo::onMousePressed(QMouseEvent *event)
 }
 
 bool TransformGizmo::onMouseReleased(QMouseEvent *event) {
-    dragging_ = false ;
+    dragging_ = -1 ;
 
     return false ;
 }
 
 bool TransformGizmo::onMouseMoved(QMouseEvent *event) {
 
+
     if ( dragging_ != -1 ) {
-        Ray ray = camera_->getRay(event->x(), event->y()) ;
+        Ray r = camera_->getRay(event->x(), event->y()) ;
+
+        Vector3f pt ;
         switch (dragging_) {
         case TX:
-            translateAxis({1, 0, 0}, start_drag_, ray) ;
+            ray_plane_intersection(r, AXIS_X, start_pos_, camera_->eye(), pt);
+            project_on_axis(pt, start_pos_, AXIS_X) ;
+            setTranslation(Vector3f(pt.x() - start_drag_.x(), 0, 0)) ;
+           break ;
+        case TY:
+            ray_plane_intersection(r, AXIS_Y, start_pos_, camera_->eye(), pt);
+            project_on_axis(pt, start_pos_, AXIS_Y) ;
+            setTranslation(Vector3f(0, pt.y() - start_drag_.y(), 0)) ;
+            break ;
+        case TZ:
+            ray_plane_intersection(r, AXIS_Z, start_pos_, camera_->eye(), pt);
+            project_on_axis(pt, start_pos_, AXIS_Z) ;
+            setTranslation(Vector3f(0, 0, pt.z() - start_drag_.z())) ;
+            break ;
+        case TYZ:
+            ray_plane_intersection(r, AXIS_X, pt);
+            setTranslation(Vector3f(0, pt.y() - start_drag_.y(), pt.z() - start_drag_.z()));
+            break ;
+        case TXZ:
+            ray_plane_intersection(r, AXIS_Y, pt);
+            setTranslation(Vector3f(pt.x() - start_drag_.x(), 0, pt.z() - start_drag_.z()));
+            break ;
+        case TXY:
+            ray_plane_intersection(r, AXIS_Z, pt);
+            setTranslation(Vector3f(pt.x() - start_drag_.x(), pt.y() - start_drag_.y(), 0));
+            break ;
+
+
         }
 
         return true ;

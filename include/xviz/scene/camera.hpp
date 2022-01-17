@@ -66,6 +66,7 @@ public:
 
     void lookAt(const Eigen::Vector3f &eye, const Eigen::Vector3f &center, float roll = 0);
     void lookAt(const Eigen::Vector3f &eye, const Eigen::Vector3f &center, const Eigen::Vector3f &up);
+    Eigen::Vector3f eye() const;
 protected:
 
     Eigen::Matrix4f mat_ ; // view transformation

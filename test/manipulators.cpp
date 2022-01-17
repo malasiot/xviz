@@ -41,11 +41,11 @@ int main(int argc, char **argv)
 
     TransformGizmo *gizmo = new TransformGizmo(viewer->getCamera(), 2.0) ;
     gizmo->setOrder(2) ;
-    gizmo->attachTo(box_node) ;
+    gizmo->attachTo(box_node.get()) ;
 
     std::shared_ptr<TransformGizmo> gz(gizmo) ;
 
-    viewer->addManipulator(gz) ;
+    viewer->addManipulator(gizmo) ;
     scene->addChild(gz);
 
 

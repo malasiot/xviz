@@ -12,8 +12,6 @@ namespace xviz {
 class Manipulator ;
 using ManipulatorPtr = std::shared_ptr<Manipulator> ;
 
-
-
 class Manipulator {
 public:
     Manipulator() {}
@@ -21,6 +19,12 @@ public:
     virtual bool onMousePressed(QMouseEvent *event) = 0 ;
     virtual bool onMouseReleased(QMouseEvent *event) = 0;
     virtual bool onMouseMoved(QMouseEvent *event) = 0 ;
+
+    void setEnabled(bool v) { enabled_ = v ; }
+    bool enabled() const { return enabled_ ; }
+
+private:
+    bool enabled_ = true ;
 };
 
 enum TransformGizmoEvent { TRANSFORM_GIZMO_MOTION_STARTED, TRANSFORM_GIZMO_MOVING, TRANSFORM_GIZMO_MOTION_ENDED } ;
@@ -35,9 +39,10 @@ public:
     bool onMouseReleased(QMouseEvent *event) override ;
     bool onMouseMoved(QMouseEvent *event) override ;
 
-    void attachTo(const NodePtr &node) ;
+    void attachTo(Node *node) ;
     void setLocalTransform(bool v) ;
     void setCallback(TransformGizmoCallback cb) { cb_ = cb ; }
+    bool show(bool v) ;
 
 private:
 
@@ -71,8 +76,8 @@ private:
     Eigen::Vector3f position_ = {0, 0, 0};
     Eigen::Matrix3f orientation_ = Eigen::Matrix3f::Identity(), start_orientation_;
     CameraPtr camera_ ;
-    NodePtr transform_node_ ;
-    bool local_ = false ;
+    Node *transform_node_ = nullptr ;
+    bool local_ = true ;
     TransformGizmoCallback cb_ = nullptr ;
 
 };

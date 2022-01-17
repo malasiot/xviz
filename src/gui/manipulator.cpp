@@ -357,12 +357,25 @@ void TransformGizmo::highlight(int c, bool v)
 }
 
 
-void TransformGizmo::attachTo(const Node::NodePtr &node)
-{
+void TransformGizmo::attachTo(Node *node) {
     transform_node_ = node ;
     position_ = node->transform().translation() ;
     orientation_ = node->transform().linear() ;
     updateTransforms() ;
+}
+
+void TransformGizmo::setLocalTransform(bool v) {
+    local_ = v ;
+    attachTo(transform_node_);
+}
+
+bool TransformGizmo::show(bool v)
+{
+    setVisible(v) ;
+     for( uint i=0 ; i<N_COMPONENTS ; i++ ) {
+         if ( components_[i].picking_ && v )
+             components_[i].picking_->setVisible(false) ;
+     }
 }
 
 int TransformGizmo::hitTest(QMouseEvent *event, RayCastResult &res)

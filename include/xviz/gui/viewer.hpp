@@ -46,7 +46,7 @@ public:
 
     void startAnimations() ;
 
-    void addManipulator(const ManipulatorPtr &m) ;
+    void addManipulator(Manipulator *m) ;
 
     CameraPtr getCamera() const { return camera_ ; }
 
@@ -75,7 +75,7 @@ protected:
 
     void drawText(const Eigen::Vector3f &c, const QString &label, const QColor &clr) ;
 
-    const std::vector<ManipulatorPtr> &getManipulators();
+    const std::vector<Manipulator *> &getManipulators() const ;
 
     NodePtr scene_, axes_ ;
     CameraPtr camera_ ;
@@ -90,7 +90,7 @@ protected:
 
     QElapsedTimer et_ ;
 
-    std::vector<ManipulatorPtr> manipulators_ ;
+    std::vector<Manipulator *> manipulators_ ;
 
 };
 

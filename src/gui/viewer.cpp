@@ -116,7 +116,7 @@ void SceneViewer::startAnimations()
     timer->start(30);
 }
 
-void SceneViewer::addManipulator(const ManipulatorPtr &m) {
+void SceneViewer::addManipulator(Manipulator *m) {
     manipulators_.emplace_back(m) ;
 }
 
@@ -124,8 +124,8 @@ void SceneViewer::mousePressEvent(QMouseEvent *event)
 {
     if ( !camera_ ) return ;
 
-    for( const ManipulatorPtr &m: getManipulators() ) {
-        if ( m->onMousePressed(event) ) {
+    for( Manipulator *m: getManipulators() ) {
+        if ( m->enabled() && m->onMousePressed(event) ) {
             return ;
         }
     }
@@ -150,8 +150,8 @@ void SceneViewer::mouseReleaseEvent(QMouseEvent *event)
 {
     if ( !camera_ ) return ;
 
-    for( const ManipulatorPtr &m: getManipulators() ) {
-        if ( m->onMouseReleased(event) ) {
+    for( const auto &m: getManipulators() ) {
+        if ( m->enabled() && m->onMouseReleased(event) ) {
             update() ;
             return ;
         }
@@ -180,8 +180,8 @@ void SceneViewer::mouseMoveEvent(QMouseEvent *event)
 {
     if ( !camera_ ) return ;
 
-    for( const ManipulatorPtr &m: getManipulators() ) {
-        if ( m->onMouseMoved(event) ) {
+    for( const auto &m: getManipulators() ) {
+        if ( m->enabled() && m->onMouseMoved(event) ) {
             update() ;
             return ;
         }
@@ -245,7 +245,7 @@ void SceneViewer::drawText(const Vector3f &c, const QString &text, const QColor 
     painter.end();
 }
 
-const std::vector<ManipulatorPtr> &SceneViewer::getManipulators() {
+const std::vector<Manipulator *> &SceneViewer::getManipulators() const {
     return manipulators_ ;
 }
 

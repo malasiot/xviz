@@ -19,12 +19,6 @@ public:
     virtual bool onMousePressed(QMouseEvent *event) = 0 ;
     virtual bool onMouseReleased(QMouseEvent *event) = 0;
     virtual bool onMouseMoved(QMouseEvent *event) = 0 ;
-
-    void setEnabled(bool v) { enabled_ = v ; }
-    bool enabled() const { return enabled_ ; }
-
-private:
-    bool enabled_ = true ;
 };
 
 enum TransformGizmoEvent { TRANSFORM_GIZMO_MOTION_STARTED, TRANSFORM_GIZMO_MOVING, TRANSFORM_GIZMO_MOTION_ENDED } ;
@@ -49,7 +43,7 @@ private:
     enum ComponentId { TX = 0, TY = 1, TZ = 2, TXY = 3, TYZ = 4, TXZ = 5, RX = 6, RY = 7, RZ = 8, N_COMPONENTS  } ;
 
     struct Component {
-        NodePtr node_, picking_  ;
+        NodePtr node_  ;
         MaterialPtr mat_ ;
         Eigen::Vector4f clr_ ;
 

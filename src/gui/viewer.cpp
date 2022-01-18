@@ -116,19 +116,10 @@ void SceneViewer::startAnimations()
     timer->start(30);
 }
 
-void SceneViewer::addManipulator(Manipulator *m) {
-    manipulators_.emplace_back(m) ;
-}
 
 void SceneViewer::mousePressEvent(QMouseEvent *event)
 {
     if ( !camera_ ) return ;
-
-    for( Manipulator *m: getManipulators() ) {
-        if ( m->enabled() && m->onMousePressed(event) ) {
-            return ;
-        }
-    }
 
     switch ( event->button() ) {
     case Qt::LeftButton:
@@ -149,13 +140,6 @@ void SceneViewer::mousePressEvent(QMouseEvent *event)
 void SceneViewer::mouseReleaseEvent(QMouseEvent *event)
 {
     if ( !camera_ ) return ;
-
-    for( const auto &m: getManipulators() ) {
-        if ( m->enabled() && m->onMouseReleased(event) ) {
-            update() ;
-            return ;
-        }
-    }
 
     switch ( event->button() ) {
     case Qt::LeftButton:
@@ -179,13 +163,6 @@ void SceneViewer::mouseReleaseEvent(QMouseEvent *event)
 void SceneViewer::mouseMoveEvent(QMouseEvent *event)
 {
     if ( !camera_ ) return ;
-
-    for( const auto &m: getManipulators() ) {
-        if ( m->enabled() && m->onMouseMoved(event) ) {
-            update() ;
-            return ;
-        }
-    }
 
     int x = event->x() ;
     int y = event->y() ;
@@ -245,9 +222,6 @@ void SceneViewer::drawText(const Vector3f &c, const QString &text, const QColor 
     painter.end();
 }
 
-const std::vector<Manipulator *> &SceneViewer::getManipulators() const {
-    return manipulators_ ;
-}
 
 void SceneViewer::paintGL()
 {

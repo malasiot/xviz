@@ -46,8 +46,6 @@ public:
 
     void startAnimations() ;
 
-    void addManipulator(Manipulator *m) ;
-
     CameraPtr getCamera() const { return camera_ ; }
 
 public slots:
@@ -75,8 +73,6 @@ protected:
 
     void drawText(const Eigen::Vector3f &c, const QString &label, const QColor &clr) ;
 
-    const std::vector<Manipulator *> &getManipulators() const ;
-
     NodePtr scene_, axes_ ;
     CameraPtr camera_ ;
 
@@ -89,9 +85,6 @@ protected:
     float ts_ = 0 ;
 
     QElapsedTimer et_ ;
-
-    std::vector<Manipulator *> manipulators_ ;
-
 };
 
 }

@@ -15,11 +15,54 @@ using namespace xviz ;
 using namespace Eigen ;
 using namespace std ;
 
-
-int main(int argc, char **argv)
+class Gui : public xviz::SceneViewer
 {
-    QApplication app(argc, argv);
-    SceneViewer::initDefaultGLContext();
+public:
+    Gui() ;
+protected:
+
+    void mousePressEvent(QMouseEvent *event) override {
+        if ( gizmo_->onMousePressed(event) ) {
+            update() ;
+            return ;
+        }
+
+        SceneViewer::mousePressEvent(event) ;
+    };
+
+    void mouseReleaseEvent(QMouseEvent * event) override {
+        if ( gizmo_->onMouseReleased(event) ) {
+            update() ;
+            return ;
+        }
+
+        SceneViewer::mouseReleaseEvent(event) ;
+    }
+
+    void mouseMoveEvent(QMouseEvent *event) override {
+        if ( gizmo_->onMouseMoved(event) ) {
+            update() ;
+            return ;
+        }
+
+        SceneViewer::mouseMoveEvent(event) ;
+    }
+
+    void keyPressEvent(QKeyEvent *event) override {
+        if ( event->key() == Qt::Key_L )
+            gizmo_->setLocalTransform(true) ;
+        else if ( event->key() == Qt::Key_G )
+            gizmo_->setLocalTransform(false) ;
+        update() ;
+    }
+
+private:
+    std::shared_ptr<TransformGizmo> gizmo_ ;
+};
+
+Gui::Gui() {
+
+    initCamera({0, 0, 0}, 4.0);
 
     NodePtr scene(new Node) ;
 
@@ -36,18 +79,24 @@ int main(int argc, char **argv)
     dl->diffuse_color_ = Vector3f(1, 1, 1) ;
     scene->addLightNode(LightPtr(dl)) ;
 
-    SceneViewer *viewer = new SceneViewer(scene) ;
-    viewer->initCamera({0, 0, 0}, 4.0);
-
-    TransformGizmo *gizmo = new TransformGizmo(viewer->getCamera(), 2.0) ;
+    TransformGizmo *gizmo = new TransformGizmo(getCamera(), 2.0) ;
     gizmo->setOrder(2) ;
     gizmo->attachTo(box_node.get()) ;
 
-    std::shared_ptr<TransformGizmo> gz(gizmo) ;
+    gizmo_.reset(gizmo) ;
 
-    viewer->addManipulator(gizmo) ;
-    scene->addChild(gz);
+    scene->addChild(gizmo_);
 
+    setScene(scene) ;
+
+}
+
+int main(int argc, char **argv)
+{
+    QApplication app(argc, argv);
+    SceneViewer::initDefaultGLContext();
+
+    Gui *viewer = new Gui() ;
 
     QMainWindow window ;
     window.setCentralWidget(viewer) ;

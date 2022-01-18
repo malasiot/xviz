@@ -33,6 +33,9 @@ void TransformGizmo::createAxisTranslationNode(TransformGizmo::Component &c, flo
     mat.reset(new ConstantMaterial(clr)) ;
     mat->enableDepthTest(false) ;
 
+    MaterialPtr invisible(new ConstantMaterial({0, 0, 0, 0})) ;
+    invisible->enableDepthTest(false) ;
+
     c.clr_ = clr ;
 
     NodePtr root(new Node) ;
@@ -54,11 +57,9 @@ void TransformGizmo::createAxisTranslationNode(TransformGizmo::Component &c, flo
     line_node->setTransform(linetr) ;
 
     NodePtr picking_node(new Node) ;
-    picking_node->addDrawable(picking_geom, mat) ;
+    picking_node->addDrawable(picking_geom, invisible) ;
     picking_node->setTransform(linetr) ;
-    picking_node->setVisible(false) ;
 
-    c.picking_ = picking_node ;
 
     NodePtr left_cone(new Node) ;
     left_cone->addDrawable(cone_geom, mat) ;
@@ -113,18 +114,27 @@ void TransformGizmo::createRotateAxisNode(TransformGizmo::Component &c, float ra
     mat->enableDepthTest(false) ;
     mat->setSide(Material::Side::Both);
 
+    MaterialPtr invisible(new ConstantMaterial({0, 0, 0, 0})) ;
+    invisible->enableDepthTest(false) ;
+
     c.clr_ = clr ;
 
     NodePtr root(new Node) ;
 
-    GeometryPtr circle_geom(new Geometry(std::move(Geometry::createSolidTorus(radius, 0.025 *radius, 21, 65)))) ;
+    GeometryPtr circle_geom(new Geometry(Geometry::createSolidTorus(radius, 0.025 *radius, 21, 65))) ;
+    GeometryPtr picking_geom(new Geometry(Geometry::createSolidTorus(radius, 0.05 *radius, 21, 65))) ;
 
     NodePtr circle_node(new Node) ;
     circle_node->addDrawable(circle_geom, mat) ;
     circle_node->transform().linear() = rotationBetween({0, 0, 1}, axis) ;
 
+    NodePtr picking_node(new Node) ;
+    circle_node->addDrawable(picking_geom, invisible) ;
+    circle_node->transform().linear() = rotationBetween({0, 0, 1}, axis) ;
+
     c.node_ = root ;
     root->addChild(circle_node) ;
+    root->addChild(picking_node) ;
     addChild(root) ;
 }
 
@@ -148,7 +158,7 @@ void TransformGizmo::updateTransforms()
 {
     Isometry3f tr = Isometry3f::Identity() ;
 
-     tr.translate(position_) ;
+    tr.translate(position_) ;
     tr.rotate(orientation_) ;
 
 
@@ -158,6 +168,7 @@ void TransformGizmo::updateTransforms()
         transform() = tr ;
     } else {
         transform().translation() = position_ ;
+        transform().linear() = Matrix3f::Identity() ;
     }
 
 }
@@ -254,12 +265,10 @@ bool TransformGizmo::onMousePressed(QMouseEvent *event)
     return true ;
 }
 
-bool TransformGizmo::onMouseReleased(QMouseEvent *event) {
+bool TransformGizmo::onMouseReleased(QMouseEvent *) {
     for( int i=0 ; i<N_COMPONENTS ; i++ ) {
         if ( i != dragging_ ) {
             components_[i].node_->setVisible(true) ;
-            if ( components_[i].picking_ )
-                 components_[i].picking_->setVisible(false) ;
         }
     }
     dragging_ = -1 ;
@@ -360,7 +369,7 @@ void TransformGizmo::highlight(int c, bool v)
 void TransformGizmo::attachTo(Node *node) {
     transform_node_ = node ;
     position_ = node->transform().translation() ;
-    orientation_ = node->transform().linear() ;
+    orientation_ =  node->transform().rotation() ;
     updateTransforms() ;
 }
 
@@ -369,14 +378,7 @@ void TransformGizmo::setLocalTransform(bool v) {
     attachTo(transform_node_);
 }
 
-bool TransformGizmo::show(bool v)
-{
-    setVisible(v) ;
-     for( uint i=0 ; i<N_COMPONENTS ; i++ ) {
-         if ( components_[i].picking_ && v )
-             components_[i].picking_->setVisible(false) ;
-     }
-}
+
 
 int TransformGizmo::hitTest(QMouseEvent *event, RayCastResult &res)
 {

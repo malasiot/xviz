@@ -201,14 +201,11 @@ void Renderer::render(const CameraPtr &cam) {
         LightPtr l = node->light() ;
         if ( l  ) {
             Affine3f ltr = node->globalTransform() ;
-/*
-            if ( first_pass )
-                glBlendFunc(GL_ONE, GL_ZERO);
-            else
-                glBlendFunc (GL_ONE, GL_ONE);
-*/
-            if ( l->casts_shadows_ ) setupShadows(l) ;
 
+            if ( !first_pass )
+                glBlendFunc (GL_SRC_ALPHA, GL_ONE);
+
+            if ( l->casts_shadows_ ) setupShadows(l) ;
 
             renderScene(l, ltr) ;
 

@@ -9,6 +9,9 @@ namespace xviz {
 
 class RayCastResult ;
 
+namespace impl {
+    class MeshData ;
+}
 const int MAX_TEXTURES = 2 ;
 
 class Geometry {
@@ -165,6 +168,10 @@ public:
 
 private:
 
+    friend class Renderer ;
+
+    impl::MeshData *getMeshData() ;
+
     vb3_t vertices_, normals_, colors_ ;
     vb2_t tex_coords_[MAX_TEXTURES] ;
     indices_t indices_ ;
@@ -175,6 +182,8 @@ private:
     bool vertices_updated_ = false, normals_updated_ = false, colors_updated_ = false ;
     std::unique_ptr<detail::AABB> box_ ;
     PrimitiveType ptype_ = Triangles ;
+
+    impl::MeshData *data_ = nullptr ;
 };
 
 class BoxGeometry: public Geometry {

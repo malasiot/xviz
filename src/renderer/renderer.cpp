@@ -67,8 +67,6 @@ MaterialProgramPtr Renderer::instantiateMaterial(const Material *mat, int flags)
 void Renderer::init(const NodePtr &scene) {
     gl3wInit();
 
-    meshes_.clear() ;
-
     scene_ = scene ;
 }
 
@@ -113,17 +111,8 @@ void Renderer::setupShadows(const LightPtr &light) {
 }
 
 const MeshData *Renderer::fetchMeshData(GeometryPtr &geom) {
-     MeshData *data = nullptr ;
-
-    auto it = meshes_.find(geom) ;
-    if ( it == meshes_.end() ) {
-        data = new MeshData(*geom) ;
-        meshes_.emplace(geom, std::unique_ptr<MeshData>(data)) ;
-    } else
-        data = (*it).second.get() ;
-
+    MeshData *data = geom->getMeshData();
     data->update(*geom) ;
-
     return data ;
 
 }

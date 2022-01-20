@@ -4,6 +4,8 @@
 #include <xviz/scene/detail/octree.hpp>
 #include <xviz/scene/detail/intersect.hpp>
 
+#include "renderer/mesh_data.hpp"
+
 #include <fstream>
 
 using namespace Eigen ;
@@ -54,8 +56,8 @@ static Geometry flatten(const std::vector<Vector3f> &vertices, const std::vector
     return dst ;
 }
 
-Geometry::~Geometry()
-{
+Geometry::~Geometry() {
+    if ( data_ ) delete data_ ;
 
 }
 
@@ -736,6 +738,12 @@ bool Geometry::intersectLines(const Ray &ray, uint32_t t_idx[2], float thresh_sq
     }
 
     return hit ;
+}
+
+impl::MeshData *Geometry::getMeshData() {
+    if ( !data_ )
+        data_ = new impl::MeshData(*this) ;
+    return data_ ;
 }
 
 Geometry Geometry::createWireCylinder(float radius, float height, size_t slices, size_t stacks)

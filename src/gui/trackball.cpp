@@ -5,6 +5,8 @@
 
 #include <Eigen/Geometry>
 
+#include <iostream>
+
 using namespace std ;
 using namespace Eigen ;
 
@@ -314,7 +316,7 @@ void TrackBall::scroll()
     }
 }
 
-void TrackBall::setCamera(CameraPtr c, const Vector3f &eye, const Vector3f &center, const Vector3f &up) {
+void TrackBall::setCamera(const CameraPtr &c, const Vector3f &eye, const Vector3f &center, const Vector3f &up) {
     camera_ = c;
     eye_ = eye ; center_ = center ; up_ = up ;
     camera_->lookAt(eye, center, up) ;

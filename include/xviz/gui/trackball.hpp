@@ -30,7 +30,7 @@ public:
     CameraMotionType getMotionScroll();
 
     void setScrollDirection(bool up);
-    void setCamera(CameraPtr c, const Eigen::Vector3f &eye, const Eigen::Vector3f &center, const Eigen::Vector3f &up);
+    void setCamera(const CameraPtr &c, const Eigen::Vector3f &eye, const Eigen::Vector3f &center, const Eigen::Vector3f &up);
     void setZoomScale(float zoom_scale) ;
 	void setClickPoint(double x, double y);
 	void setLeftClicked(bool value);

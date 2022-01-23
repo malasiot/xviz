@@ -58,6 +58,7 @@ private:
 
     using TextureBundle = std::array<std::unique_ptr<impl::TextureData>, 4> ;
 
+    std::map<GeometryPtr, std::unique_ptr<impl::MeshData>> meshes_ ;
     std::map<const Material *, impl::MaterialProgramPtr> materials_ ;
     std::map<const Material *, TextureBundle> textures_ ;
     unsigned int default_fbo_ ;

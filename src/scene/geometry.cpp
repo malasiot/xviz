@@ -57,8 +57,6 @@ static Geometry flatten(const std::vector<Vector3f> &vertices, const std::vector
 }
 
 Geometry::~Geometry() {
-    if ( data_ ) delete data_ ;
-
 }
 
 Geometry Geometry::createWireCube(const Vector3f &hs) {
@@ -740,11 +738,6 @@ bool Geometry::intersectLines(const Ray &ray, uint32_t t_idx[2], float thresh_sq
     return hit ;
 }
 
-impl::MeshData *Geometry::getMeshData() {
-    if ( !data_ )
-        data_ = new impl::MeshData(*this) ;
-    return data_ ;
-}
 
 Geometry Geometry::createWireCylinder(float radius, float height, size_t slices, size_t stacks)
 {

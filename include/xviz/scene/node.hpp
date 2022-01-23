@@ -12,6 +12,7 @@
 #include <xviz/scene/scene_fwd.hpp>
 #include <xviz/scene/drawable.hpp>
 #include <xviz/scene/animation.hpp>
+#include <xviz/common/transform.hpp>
 
 class aiScene ;
 

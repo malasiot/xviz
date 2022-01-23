@@ -29,11 +29,11 @@ using namespace std ;
 
 namespace xviz {
 
-static Eigen::Vector3f bvh2eigen(const Vector3 &v) {
+static Eigen::Vector3f bvh2eigen(const ::Vector3 &v) {
     return {v[0], v[1], v[2]} ;
 }
 
-static Vector3 eigen2bvh(const Eigen::Vector3f &v) {
+static ::Vector3 eigen2bvh(const Eigen::Vector3f &v) {
     return {v[0], v[1], v[2]} ;
 }
 

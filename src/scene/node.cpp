@@ -92,6 +92,6 @@ const std::vector<Geometry *> Node::geometries() const {
 
 
 Eigen::Vector3f Node::positionWorld() const {
-    return globalTransform().translation() ;
+    return Vector3f(globalTransform().translation()) ;
 }
 }

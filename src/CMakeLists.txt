@@ -38,6 +38,9 @@ set(LIB_SOURCES
     robot/urdf_robot.cpp
 
     common/image.cpp
+    common/transform.cpp
+    common/vector.cpp
+    common/matrix.cpp
 
     3rdparty/pugi/pugixml.cpp
 

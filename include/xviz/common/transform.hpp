@@ -11,6 +11,7 @@ class Transform: public Matrix4x4 {
 public:
     Transform(): Matrix4x4(1.f) {}
     Transform(const Transform &o): Matrix4x4(o) {}
+    Transform(const Matrix4x4 &t): Matrix4x4(t) {}
 
     Matrix3x3 linear() const { return upperLeft() ; }
     Vector3 translation() const { return column(3).head() ; }

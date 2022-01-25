@@ -17,7 +17,7 @@ public:
     Vector4(float v) ;
     Vector4(float x, float y, float z, float w) ;
     Vector4(const Vector4 &v) ;
-    Vector4(const Vector3 &v, float w) ;
+    Vector4(const Vector3 &v, float w = 1.0f) ;
 
     float x() const ;
     float &x() ;

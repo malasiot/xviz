@@ -81,6 +81,10 @@ public:
     // Return the determinant
     float det() const ;
 
+    static Matrix4x4 lookAt(const Vector3 &eye, const Vector3 &center, const Vector3 &up) ;
+    static Matrix4x4 ortho( float left, float right, float bottom, float top, float zNear, float zFar) ;
+    static Matrix4x4 perspective(float yfov, float aspect, float znear, float zfar);
+
     // Matrix elements
 
 protected:
@@ -100,6 +104,49 @@ inline Matrix3x3 Matrix4x4::upperLeft() const {
         m_[1][0], m_[1][1], m_[1][2],
         m_[2][0], m_[2][1], m_[2][2]
     };
+}
+
+inline Matrix4x4 Matrix4x4::lookAt(const Vector3 &eye, const Vector3 &center, const Vector3 &up) {
+    Vector3 f = (center - eye).normalized();
+    Vector3 u = up.normalized();
+    Vector3 s = f.cross(u).normalized();
+    u = s.cross(f);
+    return  {
+        s.x(), s.y(), s.z(), -s.dot(eye),
+        u.x(), u.y(), u.z(), -u.dot(eye),
+       -f.x(),-f.y(),-f.z(),  f.dot(eye),
+          0.f, 0.f, 0.f, 1.f
+    };
+}
+
+inline Matrix4x4 Matrix4x4::ortho(float left, float right, float bottom, float top, float zNear, float zFar) {
+
+    Matrix4x4 mat(1.f) ;
+
+    mat(0,0) = 2.f / (right - left);
+    mat(1,1) = 2.f / (top - bottom);
+    mat(2,2) = - 2.f / (zFar - zNear);
+    mat(3,0) = - (right + left) / (right - left);
+    mat(3,1) = - (top + bottom) / (top - bottom);
+    mat(3,2) = - (zFar + zNear) / (zFar - zNear);
+    return mat;
+}
+
+inline Matrix4x4 Matrix4x4::perspective(float yfov, float aspect, float znear, float zfar) {
+    assert(abs(aspect - std::numeric_limits<float>::epsilon()) > static_cast<float>(0));
+
+//    float xfov = aspect_ * yfov_ ;
+    float const d = 1/tan(yfov / static_cast<float>(2));
+
+    Matrix4x4 result ;
+
+    result(0, 0) = d / aspect ;
+    result(1, 1) = d ;
+    result(2, 2) =  (zfar + znear) / (znear - zfar);
+    result(2, 3) =  2 * zfar * znear /(znear - zfar) ;
+    result(3, 2) = -1 ;
+
+    return result;
 }
 
 #include <xviz/common/matrix4x4.inl>

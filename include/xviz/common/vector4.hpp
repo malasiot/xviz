@@ -36,6 +36,8 @@ public:
     const Vector4 &operator +=(const Vector4 &v) ;
     const Vector4 &operator -=(const Vector4 &v) ;
 
+    Vector3 head() const ;
+
     float& operator[] (size_t i) ;
     const float& operator[] (size_t i) const ;
 

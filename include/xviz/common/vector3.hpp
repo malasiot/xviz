@@ -22,6 +22,16 @@ public:
     float z() const ;
     float &z() ;
 
+    static Vector3 AxisX() {
+        return { 1.f, 0.f, 0.f } ;
+    }
+    static Vector3 AxisY() {
+        return { 0.f, 1.f, 0.f } ;
+    }
+    static Vector3 AxisZ() {
+        return { 0.f, 0.f, 1.f } ;
+    }
+
     Vector3 &operator=(const Vector3 &v) ;
 
     friend Vector3 operator+(const Vector3 &v1, const Vector3 &v2) ;

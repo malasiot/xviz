@@ -117,6 +117,8 @@ inline const float& Vector4::operator[] (size_t i) const {
 
 }
 
+inline Vector3 Vector4::head() const { return { x_, y_, z_ } ; }
+
 inline Vector4 operator -(const Vector4 &v) { return Vector4(-v.x_, -v.y_, -v.z_, -v.w_) ; }
 
 inline float Vector4::length() const { return sqrt(dot(*this)) ; }

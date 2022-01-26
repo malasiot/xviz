@@ -50,6 +50,8 @@ bool ShadowMap::init(uint32_t width, uint32_t height)
   // Disable writes to the color buffer
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
+
+    return true ;
 }
 
 

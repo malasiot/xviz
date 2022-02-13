@@ -2,8 +2,6 @@
 static const char *vertex_shader_code = R"(
 #version 330
 
-const int MAX_LIGHTS = 10;
-
 layout (location = 0) in vec3 vposition;
 out vec3 position;
 
@@ -31,8 +29,8 @@ out vec2 uv;
 #endif
 
 #ifdef HAS_SHADOWS
-   uniform mat4 lsmat ;
-   out vec4 lspos ;
+   uniform mat4 lsmat[NUM_LIGHTS] ;
+   out vec4 lspos[NUM_LIGHTS] ;
 #endif
 
 uniform mat4 model ;
@@ -79,7 +77,8 @@ void main()
     position    = (mv * posl).xyz;
     vec3 fpos = vec3(model * posl);
 #ifdef HAS_SHADOWS
-    lspos = lsmat * vec4(fpos, 1);
+    for( int i=0 ; i<NUM_LIGHTS ; i++ )
+       lspos[i] = lsmat[i] * vec4(fpos, 1);
 #endif
 }
 )";

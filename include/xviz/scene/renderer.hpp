@@ -18,6 +18,11 @@ class TextureData ;
 using MaterialProgramPtr = std::shared_ptr<MaterialProgram> ;
 }
 
+struct LightData {
+    LightPtr light_ ;
+    Eigen::Affine3f lmat_ ;
+};
+
 class Renderer {
 public:
 
@@ -46,7 +51,7 @@ private:
 
     NodePtr scene_ ;
 
-    Eigen::Matrix4f perspective_, proj_, ls_mat_ ;
+    Eigen::Matrix4f perspective_, proj_ ;
 
     MaterialPtr default_material_ ;
 
@@ -64,33 +69,41 @@ private:
     unsigned int default_fbo_ ;
 
     std::unique_ptr<impl::OpenGLShaderProgram> shadow_map_shader_, shadow_map_debug_shader_ ;
-    std::unique_ptr<impl::ShadowMap> shadow_map_ ;
 
-    const uint32_t shadow_map_width_ = 1024 ;
-    const uint32_t shadow_map_height_ = 1024 ;
+    const uint32_t shadow_map_width_ = 2048 ;
+    const uint32_t shadow_map_height_ = 2048 ;
+
+    struct ShadowData {
+        std::unique_ptr<impl::ShadowMap> shadow_map_ ;
+        Eigen::Matrix4f ls_mat_ ;
+    };
+
+    std::map<LightPtr, ShadowData> shadow_data_ ;
 
     std::shared_ptr<ResourceLoader> resource_loader_ ;
 
 
 private:
-    void render(const NodePtr &node, const Eigen::Matrix4f &tf);
-    void render(const Drawable &geom, const Eigen::Matrix4f &mat);
+
+
     void drawMeshData(const impl::MeshData &data, GeometryPtr mesh, bool solid=false);
     void setLights(const impl::MaterialProgramPtr &material);
     void setLights(const NodePtr &node, const Eigen::Affine3f &parent_tf, const impl::MaterialProgramPtr &mat);
     void setupTexture(const Material *mat, const Texture2D *texture, unsigned int slot);
     void setupCulling(const Material *mat);
-    impl::MaterialProgramPtr instantiateMaterial(const Material *mat, int flags);
+    impl::MaterialProgramPtr instantiateMaterial(const Material *mat, const std::vector<LightData> &lights, int flags);
     void setPose(const GeometryPtr &mesh, const impl::MaterialProgramPtr &mat);
     void renderShadowMaps();
-    void renderScene(const LightPtr &l, const Eigen::Affine3f &light_mat);
-    void render(const Drawable &dr, const Eigen::Affine3f &mat, const LightPtr &l, const Eigen::Affine3f &lmat);
+    void renderScene(const CameraPtr &cam);
+    void render(const CameraPtr &cam, const Drawable &dr, const Eigen::Affine3f &mat);
     void initShadowMapRenderer() ;
-    void renderShadowMap(const LightPtr &l);
+    void renderShadowMap(const ShadowData &l);
     void setupShadows(const LightPtr &light);
-    void renderShadowDebug();
+    void renderShadowDebug(const ShadowData &sd);
     void renderQuad();
     void uploadTexture(impl::TextureData *data, const Material *material, int slot) ;
+    std::vector<LightData> getLights() ;
+
 
 
     const impl::MeshData *fetchMeshData(GeometryPtr &geom);

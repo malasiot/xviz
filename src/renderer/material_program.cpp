@@ -10,25 +10,28 @@ using namespace Eigen ;
 
 namespace xviz { namespace impl {
 
-PhongMaterialProgram::PhongMaterialProgram(int flags): flags_(flags)
+PhongMaterialProgram::PhongMaterialProgram(const MaterialInstanceParams &params): params_(params)
 {
     OpenGLShaderPreproc vs_preproc ;
 
     vs_preproc.appendDefinition("HAS_NORMALS") ;
+    vs_preproc.appendConstant("NUM_LIGHTS", std::to_string(params.num_lights_)) ;
 
-    if ( flags & HAS_DIFFUSE_TEXTURE ) vs_preproc.appendDefinition("HAS_UVs") ;
-    if ( flags & ENABLE_SKINNING ) vs_preproc.appendDefinition("USE_SKINNING");
-    if ( flags & ENABLE_SHADOWS ) vs_preproc.appendDefinition("HAS_SHADOWS") ;
+    if ( params.flags_ & HAS_DIFFUSE_TEXTURE ) vs_preproc.appendDefinition("HAS_UVs") ;
+    if ( params.flags_ & ENABLE_SKINNING ) vs_preproc.appendDefinition("USE_SKINNING");
+    if ( params.flags_ & ENABLE_SHADOWS ) vs_preproc.appendDefinition("HAS_SHADOWS") ;
 
     addShaderFromFile(VERTEX_SHADER, "@vertex_shader", vs_preproc) ;
 
     OpenGLShaderPreproc fs_preproc ;
 
-    if ( flags & HAS_DIFFUSE_TEXTURE )
+    if ( params.flags_ & HAS_DIFFUSE_TEXTURE )
         fs_preproc.appendDefinition("HAS_DIFFUSE_MAP") ;
 
-    if ( flags & ENABLE_SHADOWS )
+    if ( params.flags_ & ENABLE_SHADOWS )
         fs_preproc.appendDefinition("HAS_SHADOWS") ;
+
+    fs_preproc.appendConstant("NUM_LIGHTS", std::to_string(params.num_lights_)) ;
 
     addShaderFromFile(FRAGMENT_SHADER, "@phong_fragment_shader", fs_preproc) ;
 
@@ -44,7 +47,7 @@ void PhongMaterialProgram::applyParams(const MaterialPtr &mat) {
     setUniform("g_material.shininess", material->shininess());
     setUniform("g_material.diffuse", material->diffuseColor());
 
-    if ( flags_ & HAS_DIFFUSE_TEXTURE ) {
+    if ( params_.flags_ & HAS_DIFFUSE_TEXTURE ) {
         setUniform("diffuseMap", 0) ;
     }
 }
@@ -71,9 +74,11 @@ void MaterialProgram::applyDefaultPerspective(const Matrix4f &cam, const Matrix4
 }
 
 
-void MaterialProgram::applyDefaultLight(const LightPtr &light, const Affine3f &tf, const Matrix4f &lsmat)
+void MaterialProgram::applyDefaultLight(uint idx, const LightPtr &light, const Affine3f &tf, const Matrix4f &lsmat)
 {
-    string vname("g_light_source") ;
+    stringstream strm ;
+    strm << "g_light_source[" << idx << "]" ;
+    string vname = strm.str() ;
 
     if ( const auto &alight = std::dynamic_pointer_cast<AmbientLight>(light) ) {
 
@@ -106,20 +111,22 @@ void MaterialProgram::applyDefaultLight(const LightPtr &light, const Affine3f &t
         setUniform(vname + ".quadratic_attenuation", plight->quadratic_attenuation_) ;
     }
 
-    setUniform("light_casts_shadows", light->casts_shadows_) ;
+    setUniform(vname + ".light_casts_shadows", light->casts_shadows_) ;
 
     if ( light->casts_shadows_ ) {
-        setUniform("lsmat", Matrix4f(lsmat)) ;
-        setUniform("shadowMap", 4) ;
-        setUniform("shadowBias", light->shadow_bias_) ;
+        setUniform("lsmat[" + std::to_string(idx) + "]", Matrix4f(lsmat)) ;
+        setUniform(vname + ".shadowMap", 4+idx) ;
+        setUniform(vname + ".shadowBias", light->shadow_bias_) ;
     }
 }
 
-ConstantMaterialProgram::ConstantMaterialProgram(int flags): flags_(flags) {
+ConstantMaterialProgram::ConstantMaterialProgram(const MaterialInstanceParams &params): params_(params) {
     OpenGLShaderPreproc preproc ;
 
-    if ( flags & ENABLE_SKINNING ) preproc.appendDefinition("USE_SKINNING");
-    if ( flags & ENABLE_SHADOWS ) preproc.appendDefinition("HAS_SHADOWS") ;
+     preproc.appendConstant("NUM_LIGHTS", std::to_string(params.num_lights_)) ;
+
+    if ( params.flags_ & ENABLE_SKINNING ) preproc.appendDefinition("USE_SKINNING");
+    if ( params.flags_ & ENABLE_SHADOWS ) preproc.appendDefinition("HAS_SHADOWS") ;
 
     addShaderFromFile(VERTEX_SHADER, "@vertex_shader", preproc) ;
     addShaderFromFile(FRAGMENT_SHADER, "@constant_fragment_shader", preproc) ;
@@ -134,11 +141,13 @@ void ConstantMaterialProgram::applyParams(const MaterialPtr &mat) {
     setUniform("color", material->color()) ;
 }
 
-PerVertexColorMaterialProgram::PerVertexColorMaterialProgram(int flags) {
+PerVertexColorMaterialProgram::PerVertexColorMaterialProgram(const MaterialInstanceParams &params) {
 
     OpenGLShaderPreproc preproc ;
     preproc.appendDefinition("HAS_COLORS");
-    if ( flags & ENABLE_SKINNING ) preproc.appendDefinition("USE_SKINNING");
+    preproc.appendConstant("NUM_LIGHTS", std::to_string(params.num_lights_)) ;
+
+    if ( params.flags_ & ENABLE_SKINNING ) preproc.appendDefinition("USE_SKINNING");
 
     addShaderFromFile(VERTEX_SHADER, "@vertex_shader", preproc) ;
     addShaderFromFile(FRAGMENT_SHADER, "@per_vertex_color_fragment_shader", preproc) ;
@@ -154,11 +163,12 @@ void PerVertexColorMaterialProgram::applyParams(const MaterialPtr &mat) {
 }
 
 
-WireFrameMaterialProgram::WireFrameMaterialProgram(int flags) {
+WireFrameMaterialProgram::WireFrameMaterialProgram(const MaterialInstanceParams &params) {
 
     OpenGLShaderPreproc preproc ;
+    preproc.appendConstant("NUM_LIGHTS", std::to_string(params.num_lights_)) ;
 
-    if ( flags & ENABLE_SKINNING ) preproc.appendDefinition("USE_SKINNING");
+    if ( params.flags_ & ENABLE_SKINNING ) preproc.appendDefinition("USE_SKINNING");
 
     addShaderFromFile(VERTEX_SHADER, "@vertex_shader", preproc) ;
     addShaderFromFile(GEOMETRY_SHADER, "@wireframe_geometry_shader", preproc) ;
@@ -174,6 +184,12 @@ void WireFrameMaterialProgram::applyParams(const MaterialPtr &mat) {
     setUniform("color", material->lineColor()) ;
     setUniform("width", material->lineWidth()) ;
     setUniform("fill", material->fillColor()) ;
+}
+
+string MaterialInstanceParams::key() const {
+    std::stringstream strm ;
+    strm << num_lights_ << ',' << flags_ ;
+    return strm.str() ;
 }
 
 }}

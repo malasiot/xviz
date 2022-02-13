@@ -9,6 +9,7 @@
 
 #include "shaders/shadow_map.vs.hpp"
 #include "shaders/shadow_map.fs.hpp"
+#include "shaders/lights.hpp"
 
 
 #include <fstream>
@@ -47,6 +48,7 @@ OpenGLShaderResourceManager::OpenGLShaderResourceManager() {
     addSource("shadow_debug_shader_fs", shadow_debug_shader_fs) ;
     addSource("wireframe_fragment_shader", wireframe_shader_fs) ;
     addSource("wireframe_geometry_shader", wireframe_shader_gs) ;
+    addSource("light_vars", light_vars) ;
 }
 
 void OpenGLShaderResourceManager::addSource(const char * name, const char *src) {

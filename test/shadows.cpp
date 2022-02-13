@@ -137,9 +137,11 @@ int main(int argc, char **argv)
     NodePtr ground(new Node) ;
     ground->setName("ground");
     ground->transform().translate(Vector3f{0, -0.3, 0}) ;
+
     GeometryPtr plane(new Geometry(std::move(Geometry::makePlane(2, 2, 2, 2)))) ;
-    MaterialPtr planeMat(new ConstantMaterial({0.6, 0.6, 0.6, 1})) ;
-    planeMat->setSide(Material::Side::Both) ;
+
+    MaterialPtr planeMat(new ConstantMaterial({0.3, 0.3, 0.3, 1})) ;
+  //  planeMat->setSide(Material::Side::Both) ;
     ground->addDrawable(plane, planeMat) ;
     scene->addChild(ground) ;
 
@@ -162,16 +164,17 @@ int main(int argc, char **argv)
         else randomCylinder(scene, strm.str(), rnd_uniform(0.05, 0.1), rnd_uniform(0.1, 0.15), clr);
     }
 
-    DirectionalLight *dl = new DirectionalLight(Vector3f(1, 4, 0.5)) ;
-    dl->diffuse_color_ = Vector3f(0.72, 0.72, 0.72) ;
+    DirectionalLight *dl = new DirectionalLight(Vector3f(1, 4, 1.5)) ;
+    dl->diffuse_color_ = Vector3f(0.5, 0.5, 0.5) ;
     scene->addLightNode(LightPtr(dl)) ;
 
-    xviz::DirectionalLight *dl2 = new xviz::DirectionalLight(Vector3f(0, 4, 0.1)) ;
-    dl2->diffuse_color_ = Vector3f(0.75, 1, 1) ;
+    xviz::DirectionalLight *dl2 = new xviz::DirectionalLight(Vector3f(0, 4, 4)) ;
+    dl2->diffuse_color_ = Vector3f(0.15, 0.15, 0.15) ;
     dl2->shadow_cam_left_ = dl2->shadow_cam_top_ = -0.5 ;
     dl2->shadow_cam_right_ = dl2->shadow_cam_bottom_ = 0.5 ;
-    dl2->shadow_cam_near_ = -0.1 ; dl2->shadow_cam_far_ = 10 ;
-    dl2->shadow_bias_ = 0.00005 ;
+    dl2->shadow_cam_near_ = 0.01 ; dl2->shadow_cam_far_ = 3 ;
+    dl2->shadow_bias_ = 0.0005;
+
     dl2->casts_shadows_ = true;
     xviz::LightPtr light2(dl2) ;
     scene->addLightNode(light2) ;

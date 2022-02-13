@@ -116,7 +116,16 @@ void OpenGLShader::setSourceFile(const std::string &file_name, const OpenGLShade
     resource_name_ = file_name ;
 
     preproc(file_name, defines, false) ;
-
+#if 0
+    istringstream is(code_);
+    string str;
+    int line = 1 ;
+    while(getline(is, str))
+    {
+        cout << line << ":\t" << str << endl ;
+        ++line ;
+       }
+#endif
     compile() ;
 }
 

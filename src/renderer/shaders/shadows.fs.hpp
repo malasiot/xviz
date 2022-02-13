@@ -1,11 +1,9 @@
 static const char *shadows_fragment_shader = R"(
 #ifdef HAS_SHADOWS
 
-in vec4 lspos ;
-uniform sampler2DShadow shadowMap ;
-uniform float shadowBias ;
+in vec4 lspos[NUM_LIGHTS] ;
 
-float calcShadow(vec4 fragPosLightSpace, float shadowBias) {
+float calcShadow(vec4 fragPosLightSpace, sampler2DShadow shadowMap, float shadowBias) {
 
 // perform perspective divide
    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;

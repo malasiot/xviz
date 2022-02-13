@@ -45,20 +45,24 @@ void Renderer::setupTexture(const Material *mat, const Texture2D *texture, unsig
     }
 }
 
-MaterialProgramPtr Renderer::instantiateMaterial(const Material *mat, int flags) {
+MaterialProgramPtr Renderer::instantiateMaterial(const Material *mat, const std::vector<LightData> &lights, int flags) {
+    MaterialInstanceParams params ;
+    params.flags_ = flags ;
+    params.num_lights_ = lights.size() ;
+
     if ( const PhongMaterial *material = dynamic_cast<const PhongMaterial *>(mat)) {
         if ( material->diffuseTexture()  ) {
-            flags |= HAS_DIFFUSE_TEXTURE ;
+            params.flags_ |= HAS_DIFFUSE_TEXTURE ;
             setupTexture(mat, material->diffuseTexture(), 0);
         }
 
-        return PhongMaterialProgram::instance(flags) ;
+        return PhongMaterialProgram::instance(params) ;
     } else if ( const ConstantMaterial *material = dynamic_cast<const ConstantMaterial *>(mat)) {
-        return ConstantMaterialProgram::instance(flags) ;
+        return ConstantMaterialProgram::instance(params) ;
     } else if ( const PerVertexColorMaterial *material = dynamic_cast<const PerVertexColorMaterial *>(mat)) {
-        return PerVertexColorMaterialProgram::instance(flags) ;
+        return PerVertexColorMaterialProgram::instance(params) ;
     } else if ( const WireFrameMaterial *material = dynamic_cast<const WireFrameMaterial *>(mat)) {
-        return WireFrameMaterialProgram::instance(flags) ;
+        return WireFrameMaterialProgram::instance(params) ;
     }
 
     return nullptr ;
@@ -93,9 +97,12 @@ void Renderer::setupCulling(const Material *mat) {
 void Renderer::setupShadows(const LightPtr &light) {
     initShadowMapRenderer();
 
-    if ( !shadow_map_ ) {
-        shadow_map_.reset(new ShadowMap()) ;
-        shadow_map_->init(shadow_map_width_, shadow_map_height_) ;
+    auto it = shadow_data_.find(light) ;
+    if ( it == shadow_data_.end() ) {
+        ShadowData data ;
+        data.shadow_map_.reset(new ShadowMap()) ;
+        data.shadow_map_->init(shadow_map_width_, shadow_map_height_) ;
+        it = shadow_data_.emplace(light, std::move(data)).first ;
     }
     if ( const DirectionalLight *dl = dynamic_cast<const DirectionalLight *>(light.get()) ) {
         Matrix4f lightProjection =
@@ -104,9 +111,9 @@ void Renderer::setupShadows(const LightPtr &light) {
                       light->shadow_cam_near_, light->shadow_cam_far_);
         Matrix4f lightView = lookAt(dl->position_, dl->target_, Vector3f(0.0, 1.0, 0.0));
 
-        ls_mat_ = lightProjection * lightView;
+        it->second.ls_mat_ = lightProjection * lightView;
 
-        renderShadowMap(light);
+        renderShadowMap(it->second);
     }
 }
 
@@ -125,15 +132,19 @@ const MeshData *Renderer::fetchMeshData(GeometryPtr &geom) {
    return data ;
 }
 
-void Renderer::renderShadowMap(const LightPtr &l) {
-    shadow_map_->bind();
+void Renderer::renderShadowMap(const ShadowData &sd) {
+
+    sd.shadow_map_->bind();
 
     glViewport(0, 0, shadow_map_width_, shadow_map_height_);
 
-    shadow_map_->bindTexture(GL_TEXTURE0) ;
+    sd.shadow_map_->bindTexture(GL_TEXTURE0) ;
 
     glClear(GL_DEPTH_BUFFER_BIT);
     glCullFace(GL_FRONT);
+
+    shadow_map_shader_->use() ;
+    shadow_map_shader_->setUniform("lightSpaceMatrix", sd.ls_mat_);
 
     for ( const ConstNodePtr &node: scene_->getNodesRecursive() ) {
         for( const auto &dr: node->drawables() ) {
@@ -145,16 +156,12 @@ void Renderer::renderShadowMap(const LightPtr &l) {
 
             if ( !data ) continue ;
 
-            shadow_map_shader_->use() ;
-
-            shadow_map_shader_->setUniform("lightSpaceMatrix", ls_mat_);
             shadow_map_shader_->setUniform("model", node->globalTransform().matrix()) ;
             drawMeshData(*data, geom, true) ;
-
         }
     }
 
-    shadow_map_->unbind(default_fbo_) ;
+    sd.shadow_map_->unbind(default_fbo_) ;
 }
 
 void Renderer::render(const CameraPtr &cam) {
@@ -171,27 +178,15 @@ void Renderer::render(const CameraPtr &cam) {
 
     perspective_ = cam->getProjectionMatrix() ;
 
-    const Viewport &vp = cam->getViewport() ;
-
-    glViewport(vp.x_, vp.y_, vp.width_, vp.height_);
-
     proj_ = cam->getViewMatrix() ;
 
     // setup gl
 
 
-    glEnable(GL_DEPTH_TEST) ;
-    glDepthFunc(GL_LEQUAL);
-
-    glFrontFace(GL_CCW) ;
-    glEnable (GL_BLEND);
-
-    glEnable(GL_LINE_SMOOTH) ;
-    glLineWidth(1.0) ;
 
 
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+    renderScene(cam) ;
+/*
     bool first_pass = true ;
     // render scene for each light
     for( ConstNodePtr node: scene_->getNodesRecursive() ) {
@@ -204,14 +199,14 @@ void Renderer::render(const CameraPtr &cam) {
 
             if ( l->casts_shadows_ ) setupShadows(l) ;
 
+            glViewport(vp.x_, vp.y_, vp.width_, vp.height_);
+
             renderScene(l, ltr) ;
 
             first_pass = false ;
-
-
         }
     }
-
+*/
 /*
 glBlendFunc(GL_ONE, GL_ZERO);
       glViewport(0, 0, 256, 256);
@@ -266,22 +261,22 @@ void Renderer::renderQuad()
 }
 
 
-void Renderer::renderShadowDebug() {
+void Renderer::renderShadowDebug(const ShadowData &sd) {
 
     shadow_map_debug_shader_->use() ;
     shadow_map_debug_shader_->setUniform("depthMap", 0);
     shadow_map_debug_shader_->setUniform("near_plane", -10.f) ;
     shadow_map_debug_shader_->setUniform("far_plane", 7.0f) ;
 
-    shadow_map_->bindTexture(GL_TEXTURE0) ;
+    sd.shadow_map_->bindTexture(GL_TEXTURE0) ;
     renderQuad() ;
 }
 
-void Renderer::renderScene(const LightPtr &l, const Affine3f &light_mat) {
+void Renderer::renderScene(const CameraPtr &cam) {
     for ( ConstNodePtr node: scene_->getOrderedNodes() ) {
         if ( !node->isVisible() ) continue ;
         for( const auto &drawable: node->drawables() )
-            render(drawable, node->globalTransform(), l, light_mat ) ;
+            render(cam, drawable, node->globalTransform() ) ;
     }
 }
 
@@ -290,9 +285,27 @@ void Renderer::uploadTexture(TextureData *data, const Material *mat, int slot) {
     textures_[mat][slot].reset(data) ;
 }
 
+std::vector<LightData> Renderer::getLights()
+{
+    std::vector<LightData> lights ;
+
+    for ( NodePtr node: scene_->getNodesRecursive() ) {
+        LightPtr l = node->light() ;
+        if ( l ) {
+            LightData ld ;
+            ld.light_ = l ;
+            ld.lmat_ = node->globalTransform() ;
+            lights.push_back(ld) ;
+        }
+
+    }
+
+    return lights ;
+}
+
 #define MAX_LIGHTS 10
 
-void Renderer::render(const Drawable &dr, const Affine3f &mat, const LightPtr &l, const Affine3f &lmat)
+void Renderer::render(const CameraPtr &cam, const Drawable &dr, const Affine3f &mat)
 {
     GeometryPtr mesh = dr.geometry() ;
     if ( !mesh ) return ;
@@ -303,26 +316,54 @@ void Renderer::render(const Drawable &dr, const Affine3f &mat, const LightPtr &l
 
     MaterialProgramPtr prog ;
 
+    auto lights = getLights() ;
+
     int flags = 0 ;
     if ( mesh->hasSkeleton() ) flags |= ENABLE_SKINNING ;
-    if ( l->casts_shadows_ ) flags |= ENABLE_SHADOWS ;
+
+    for( const auto &ld: lights )  {
+        if ( ld.light_->casts_shadows_ ) {
+            flags |= ENABLE_SHADOWS ;
+            setupShadows(ld.light_) ;
+        }
+    }
+
 
     if ( !material ) {
         material = default_material_ ;
     }
 
-    prog = instantiateMaterial(material.get(), flags) ;
+
+    prog = instantiateMaterial(material.get(), lights, flags) ;
+
+    glDepthFunc(GL_LEQUAL);
+
+    glFrontFace(GL_CCW) ;
+    glEnable (GL_BLEND);
+
+    glEnable(GL_LINE_SMOOTH) ;
+    glLineWidth(1.0) ;
 
     setupCulling(material.get()) ;
 
     if ( material->hasDepthTest() )
         glEnable(GL_DEPTH_TEST) ;
-    else glDisable(GL_DEPTH_TEST) ;
+    else
+        glDisable(GL_DEPTH_TEST) ;
+
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     prog->use() ;
     prog->applyParams(material) ;
     prog->applyTransform(perspective_, proj_, mat.matrix()) ;
-    prog->applyLight(l, lmat, ls_mat_) ;
+
+    for( uint i=0 ; i<lights.size() ; i++ ) {
+        const auto &ld = lights[i] ;
+
+        const auto it = shadow_data_.find(ld.light_) ;
+        prog->applyLight(i, ld.light_, ld.lmat_, ( it != shadow_data_.end() ) ? it->second.ls_mat_: Eigen::Matrix4f::Identity()) ;
+    }
 
     // bind material textures
 
@@ -339,12 +380,22 @@ void Renderer::render(const Drawable &dr, const Affine3f &mat, const LightPtr &l
         }
     }
 
-    if ( l->casts_shadows_ )
-        shadow_map_->bindTexture(GL_TEXTURE0 + 4) ;
+
+    for( uint i=0 ; i<lights.size() ; i++ ) {
+        const auto &ld = lights[i] ;
+        auto it = shadow_data_.find(ld.light_) ;
+        if ( it != shadow_data_.end() )
+            it->second.shadow_map_->bindTexture(GL_TEXTURE0 + 4 + i) ;
+    }
+
 
 
     if ( mesh && mesh->hasSkeleton() )
         setPose(mesh, prog) ;
+
+    const Viewport &vp = cam->getViewport() ;
+    glViewport(vp.x_, vp.y_, vp.width_, vp.height_);
+
 
 #if 0
 

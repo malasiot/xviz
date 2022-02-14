@@ -19,12 +19,12 @@ enum OpenGLShaderType { VERTEX_SHADER,  FRAGMENT_SHADER, GEOMETRY_SHADER, COMPUT
 
 struct OpenGLShaderPreproc {
 
-    void appendDefinition(const std::string &def) {
-        defines_.push_back(def) ;
+    void appendDefinition(const std::string &def, bool condition = true) {
+        if ( condition ) defines_.push_back(def) ;
     }
 
-    void appendConstant(const std::string &name, const std::string &val) {
-        constants_.emplace(name, val) ;
+    void appendConstant(const std::string &name, const std::string &val, bool condition = true) {
+        if ( condition ) constants_.emplace(name, val) ;
     }
 
 private:
@@ -64,6 +64,7 @@ private:
 
     void create(OpenGLShaderType t) ;
     void preproc(const std::string &filename, const OpenGLShaderPreproc &defines, bool version_parsed) ;
+    void unrollLoop(const std::string &loop, const std::map<std::string, std::string> &constants) ;
 
     std::string header_ = "#version 330\n" ;
     std::string preproc_ ;

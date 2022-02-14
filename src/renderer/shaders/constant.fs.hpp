@@ -14,7 +14,7 @@ out vec4 FragColor;
 
 void main (void) {
 float shadow = 0.0;
-#ifdef HAS_SHADOWS
+/*#ifdef HAS_SHADOWS
         for(int i=0 ;i<NUM_LIGHTS ; i++ ) {
             if ( g_light_source[i].light_casts_shadows ) {
                 shadow += calcShadow(lspos[i], g_light_source[i].shadowMap, g_light_source[i].shadowBias);
@@ -22,7 +22,8 @@ float shadow = 0.0;
         }
 
         shadow = clamp(shadow, 0.0, 1.0) ;
-#endif
-    FragColor = color * vec4(1-shadow, 1-shadow, 1-shadow, 1.0);
+#endif*/
+    /*FragColor = color * vec4(1-shadow, 1-shadow, 1-shadow, 1.0);*/
+FragColor = color ;
 }
 )";

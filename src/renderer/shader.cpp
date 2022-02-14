@@ -73,6 +73,7 @@ void OpenGLShader::preproc(const std::string &file_name, const OpenGLShaderPrepr
     std::stringstream is(fragment);
 
     static const std::regex rx("[ \t]*#include[ \t]+<([@\\w\\d_./]+)>");
+
     std::smatch match;
 
     while ( is ) {
@@ -104,19 +105,97 @@ void OpenGLShader::preproc(const std::string &file_name, const OpenGLShaderPrepr
                 std::string include_str = sub_match.str();
                 preproc(include_str, defines, version_parsed) ;
             }
+        } else if ( line.find("#pragma unroll_loop_start") != string::npos ) {
+            string loop ;
+            while ( is ) {
+                std::getline(is, line,'\n') ;
+                if ( line.find("#pragma unroll_loop_end") != string::npos ) break ;
+                else loop += line + '\n';
+            }
+            unrollLoop(loop, defines.constants_) ;
+
         } else {
             code_.append(line) ;
             code_.append("\n") ;
         }
 
     }
+
+
+}
+
+void OpenGLShader::unrollLoop(const string &loop, const std::map<std::string, std::string> &constants )
+{
+
+ //   cout << loop << endl ;
+
+    static const std::regex for_loop_rx(R"(\s*for\s*\(\s*int\s+i\s*=\s*(\d+)\s*;\s*i\s*<\s*(\w+)\s*;\s*i\s*\+\+\s*\)\s*\{([\S\s]*)$)",
+                                         std::regex_constants::ECMAScript);
+
+    std::smatch match;
+
+    if ( !std::regex_match(loop, match, for_loop_rx) ) {
+        assert("Unsupported for loop construct") ;
+        return ;
+    }
+
+    auto loop_start = match[1].str() ;
+    auto loop_sz = match[2].str() ;
+    auto remaining = match[3].str() ;
+
+    // deal with nested blocks
+    string loop_body ;
+
+    int brackets = 1 ;
+    for( char c : remaining ) {
+        if ( c == '{' ) {
+            ++ brackets ;
+            loop_body.push_back(c) ;
+        } else if ( c == '}' ) {
+            --brackets ;
+            if ( brackets == 0 ) break ;
+            else loop_body.push_back(c) ;
+        } else
+            loop_body.push_back(c) ;
+    }
+
+    // replace loop sz with variable
+
+    for( const auto &cp: constants ) {
+        if ( cp.first == loop_sz ) {
+            loop_sz = cp.second ;
+            break ;
+        }
+    }
+
+
+    int loop_sz_num = 0 ;
+    try {
+        loop_sz_num = stoi(loop_sz) ;
+    } catch ( std::exception &e ) {
+        // if a variable was not defined ignore loop
+    }
+
+
+    // write the unrolled loop
+
+    static regex index_rx("\\[\\s*i\\s*\\]") ;
+    static regex var_rx("UNROLLED_LOOP_INDEX") ;
+    for ( int i=stoi(loop_start) ; i<loop_sz_num ; i++ ) {
+        string unrolled_body = std::regex_replace(loop_body, index_rx, "[" + to_string(i) + "]") ;
+        unrolled_body = std::regex_replace(unrolled_body, var_rx, to_string(i)) ;
+        code_ += "\n{" ;
+        code_ += unrolled_body ;
+        code_ += "\n}\n" ;
+    }
+
 }
 
 void OpenGLShader::setSourceFile(const std::string &file_name, const OpenGLShaderPreproc &defines) {
     resource_name_ = file_name ;
 
     preproc(file_name, defines, false) ;
-#if 0
+#if 1
     istringstream is(code_);
     string str;
     int line = 1 ;
@@ -124,7 +203,7 @@ void OpenGLShader::setSourceFile(const std::string &file_name, const OpenGLShade
     {
         cout << line << ":\t" << str << endl ;
         ++line ;
-       }
+    }
 #endif
     compile() ;
 }
@@ -283,7 +362,7 @@ void OpenGLShaderProgram::link(bool validate) {
 }
 
 void OpenGLShaderProgram::use() {
-   glUseProgram(handle_) ;
+    glUseProgram(handle_) ;
 }
 
 OpenGLShaderType type_from_string(const string &s) {
@@ -300,4 +379,4 @@ OpenGLShaderType type_from_string(const string &s) {
 OpenGLShaderError::OpenGLShaderError(const string &msg): std::runtime_error(msg) {}
 
 } // internal
-} // clsim
+               } // clsim

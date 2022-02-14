@@ -29,8 +29,19 @@ out vec2 uv;
 #endif
 
 #ifdef HAS_SHADOWS
-   uniform mat4 lsmat[NUM_LIGHTS] ;
-   out vec4 lspos[NUM_LIGHTS] ;
+#if NUM_DIRECTIONAL_LIGHTS_WITH_SHADOW > 0
+    uniform mat4 lsmat_d[NUM_DIRECTIONAL_LIGHTS_WITH_SHADOW] ;
+    out vec4 lspos_d[NUM_DIRECTIONAL_LIGHTS_WITH_SHADOW] ;
+#endif
+#if NUM_SPOT_LIGHTS_WITH_SHADOW > 0
+    uniform mat4 lsmat_s[NUM_SPOT_LIGHTS_WITH_SHADOW] ;
+    out vec4 lspos_s[NUM_SPOT_LIGHTS_WITH_SHADOW] ;
+#endif
+#if NUM_POINT_LIGHTS_WITH_SHADOW > 0
+    uniform mat4 lsmat_p[NUM_POINT_LIGHTS_WITH_SHADOW] ;
+    out vec4 lspos_p[NUM_POINT_LIGHTS_WITH_SHADOW] ;
+#endif
+
 #endif
 
 uniform mat4 model ;
@@ -77,8 +88,21 @@ void main()
     position    = (mv * posl).xyz;
     vec3 fpos = vec3(model * posl);
 #ifdef HAS_SHADOWS
-    for( int i=0 ; i<NUM_LIGHTS ; i++ )
-       lspos[i] = lsmat[i] * vec4(fpos, 1);
+#pragma unroll_loop_start
+    for( int i=0 ; i<NUM_DIRECTIONAL_LIGHTS_WITH_SHADOW ; i++ ) {
+       lspos_d[i] = lsmat_d[i] * vec4(fpos, 1);
+    }
+#pragma unroll_loop_end
+#pragma unroll_loop_start
+    for( int i=0 ; i<NUM_SPOT_LIGHTS_WITH_SHADOW ; i++ ) {
+       lspos_s[i] = lsmat_s[i] * vec4(fpos, 1);
+    }
+#pragma unroll_loop_end
+#pragma unroll_loop_start
+    for( int i=0 ; i<NUM_POINT_LIGHTS_WITH_SHADOW ; i++ ) {
+       lspos_p[i] = lsmat_p[i] * vec4(fpos, 1);
+    }
+#pragma unroll_loop_end
 #endif
 }
 )";

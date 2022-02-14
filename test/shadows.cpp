@@ -140,7 +140,7 @@ int main(int argc, char **argv)
 
     GeometryPtr plane(new Geometry(std::move(Geometry::makePlane(2, 2, 2, 2)))) ;
 
-    MaterialPtr planeMat(new ConstantMaterial({0.3, 0.3, 0.3, 1})) ;
+    MaterialPtr planeMat(new PhongMaterial({0.3, 0.3, 0.3, 1})) ;
   //  planeMat->setSide(Material::Side::Both) ;
     ground->addDrawable(plane, planeMat) ;
     scene->addChild(ground) ;
@@ -164,7 +164,8 @@ int main(int argc, char **argv)
         else randomCylinder(scene, strm.str(), rnd_uniform(0.05, 0.1), rnd_uniform(0.1, 0.15), clr);
     }
 
-    DirectionalLight *dl = new DirectionalLight(Vector3f(1, 4, 1.5)) ;
+    SpotLight *dl = new SpotLight(Vector3f(0, 4, 0.2), Vector3f(0, -1, 0).normalized()) ;
+    dl->falloff_angle_ = 70;
     dl->diffuse_color_ = Vector3f(0.5, 0.5, 0.5) ;
     scene->addLightNode(LightPtr(dl)) ;
 
@@ -177,7 +178,7 @@ int main(int argc, char **argv)
 
     dl2->casts_shadows_ = true;
     xviz::LightPtr light2(dl2) ;
-    scene->addLightNode(light2) ;
+  //  scene->addLightNode(light2) ;
 
     QApplication app(argc, argv);
 

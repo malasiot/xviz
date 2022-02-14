@@ -18,10 +18,7 @@ class TextureData ;
 using MaterialProgramPtr = std::shared_ptr<MaterialProgram> ;
 }
 
-struct LightData {
-    LightPtr light_ ;
-    Eigen::Affine3f lmat_ ;
-};
+
 
 class Renderer {
 public:
@@ -73,15 +70,14 @@ private:
     const uint32_t shadow_map_width_ = 2048 ;
     const uint32_t shadow_map_height_ = 2048 ;
 
-    struct ShadowData {
+    struct LightData {
+        LightPtr light_ ;
+        Eigen::Affine3f mat_ ;
         std::unique_ptr<impl::ShadowMap> shadow_map_ ;
         Eigen::Matrix4f ls_mat_ ;
     };
 
-    std::map<LightPtr, ShadowData> shadow_data_ ;
-
     std::shared_ptr<ResourceLoader> resource_loader_ ;
-
 
 private:
 
@@ -97,9 +93,9 @@ private:
     void renderScene(const CameraPtr &cam);
     void render(const CameraPtr &cam, const Drawable &dr, const Eigen::Affine3f &mat);
     void initShadowMapRenderer() ;
-    void renderShadowMap(const ShadowData &l);
-    void setupShadows(const LightPtr &light);
-    void renderShadowDebug(const ShadowData &sd);
+    void renderShadowMap(const LightData &l);
+    void setupShadows(LightData &light);
+    void renderShadowDebug(const LightData &sd);
     void renderQuad();
     void uploadTexture(impl::TextureData *data, const Material *material, int slot) ;
     std::vector<LightData> getLights() ;

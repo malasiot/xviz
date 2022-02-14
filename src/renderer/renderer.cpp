@@ -48,7 +48,21 @@ void Renderer::setupTexture(const Material *mat, const Texture2D *texture, unsig
 MaterialProgramPtr Renderer::instantiateMaterial(const Material *mat, const std::vector<LightData> &lights, int flags) {
     MaterialInstanceParams params ;
     params.flags_ = flags ;
-    params.num_lights_ = lights.size() ;
+
+    for( const auto &l: lights ) {
+        LightPtr light = l.light_ ;
+        if ( dynamic_cast<const DirectionalLight *>(l.light_.get()) ) {
+            if ( light->casts_shadows_ ) params.num_dir_lights_shadow_ ++ ;
+            else params.num_dir_lights_ ++ ;
+        } else if ( dynamic_cast<const SpotLight *>(l.light_.get()) ) {
+            if ( light->casts_shadows_ ) params.num_spot_lights_shadow_ ++ ;
+            else params.num_spot_lights_ ++ ;
+        } else if ( dynamic_cast<const PointLight *>(l.light_.get()) ) {
+            if ( light->casts_shadows_ ) params.num_point_lights_shadow_ ++ ;
+            else params.num_point_lights_ ++ ;
+        }
+    }
+
 
     if ( const PhongMaterial *material = dynamic_cast<const PhongMaterial *>(mat)) {
         if ( material->diffuseTexture()  ) {
@@ -94,16 +108,15 @@ void Renderer::setupCulling(const Material *mat) {
     }
 }
 
-void Renderer::setupShadows(const LightPtr &light) {
+void Renderer::setupShadows(LightData &ld) {
     initShadowMapRenderer();
 
-    auto it = shadow_data_.find(light) ;
-    if ( it == shadow_data_.end() ) {
-        ShadowData data ;
-        data.shadow_map_.reset(new ShadowMap()) ;
-        data.shadow_map_->init(shadow_map_width_, shadow_map_height_) ;
-        it = shadow_data_.emplace(light, std::move(data)).first ;
+    if ( !ld.shadow_map_ ) {
+        ld.shadow_map_.reset(new ShadowMap()) ;
+        ld.shadow_map_->init(shadow_map_width_, shadow_map_height_) ;
     }
+    LightPtr light = ld.light_ ;
+
     if ( const DirectionalLight *dl = dynamic_cast<const DirectionalLight *>(light.get()) ) {
         Matrix4f lightProjection =
                 ortho(light->shadow_cam_left_, light->shadow_cam_right_,
@@ -111,9 +124,9 @@ void Renderer::setupShadows(const LightPtr &light) {
                       light->shadow_cam_near_, light->shadow_cam_far_);
         Matrix4f lightView = lookAt(dl->position_, dl->target_, Vector3f(0.0, 1.0, 0.0));
 
-        it->second.ls_mat_ = lightProjection * lightView;
+        ld.ls_mat_ = lightProjection * lightView;
 
-        renderShadowMap(it->second);
+        renderShadowMap(ld);
     }
 }
 
@@ -132,7 +145,7 @@ const MeshData *Renderer::fetchMeshData(GeometryPtr &geom) {
    return data ;
 }
 
-void Renderer::renderShadowMap(const ShadowData &sd) {
+void Renderer::renderShadowMap(const LightData &sd) {
 
     sd.shadow_map_->bind();
 
@@ -261,7 +274,7 @@ void Renderer::renderQuad()
 }
 
 
-void Renderer::renderShadowDebug(const ShadowData &sd) {
+void Renderer::renderShadowDebug(const LightData &sd) {
 
     shadow_map_debug_shader_->use() ;
     shadow_map_debug_shader_->setUniform("depthMap", 0);
@@ -285,7 +298,7 @@ void Renderer::uploadTexture(TextureData *data, const Material *mat, int slot) {
     textures_[mat][slot].reset(data) ;
 }
 
-std::vector<LightData> Renderer::getLights()
+std::vector<Renderer::LightData> Renderer::getLights()
 {
     std::vector<LightData> lights ;
 
@@ -294,8 +307,8 @@ std::vector<LightData> Renderer::getLights()
         if ( l ) {
             LightData ld ;
             ld.light_ = l ;
-            ld.lmat_ = node->globalTransform() ;
-            lights.push_back(ld) ;
+            ld.mat_ = node->globalTransform() ;
+            lights.push_back(std::move(ld)) ;
         }
 
     }
@@ -321,10 +334,10 @@ void Renderer::render(const CameraPtr &cam, const Drawable &dr, const Affine3f &
     int flags = 0 ;
     if ( mesh->hasSkeleton() ) flags |= ENABLE_SKINNING ;
 
-    for( const auto &ld: lights )  {
+    for( auto &ld: lights )  {
         if ( ld.light_->casts_shadows_ ) {
             flags |= ENABLE_SHADOWS ;
-            setupShadows(ld.light_) ;
+            setupShadows(ld) ;
         }
     }
 
@@ -358,11 +371,62 @@ void Renderer::render(const CameraPtr &cam, const Drawable &dr, const Affine3f &
     prog->applyParams(material) ;
     prog->applyTransform(perspective_, proj_, mat.matrix()) ;
 
-    for( uint i=0 ; i<lights.size() ; i++ ) {
+    size_t i, k, t=0 ;
+    for( i=0, k=0 ; i<lights.size() ; i++ ) {
         const auto &ld = lights[i] ;
+        const auto &light = ld.light_ ;
 
-        const auto it = shadow_data_.find(ld.light_) ;
-        prog->applyLight(i, ld.light_, ld.lmat_, ( it != shadow_data_.end() ) ? it->second.ls_mat_: Eigen::Matrix4f::Identity()) ;
+        if ( dynamic_cast<const DirectionalLight *>(light.get()) && !light->casts_shadows_ ) {
+            prog->applyLight(k++, ld.light_, ld.mat_, ld.ls_mat_, 0) ;
+        }
+    }
+
+    for( i=0, k=0 ; i<lights.size() ; i++ ) {
+        const auto &ld = lights[i] ;
+        const auto &light = ld.light_ ;
+
+        if ( dynamic_cast<const DirectionalLight *>(light.get()) && light->casts_shadows_ ) {
+            ld.shadow_map_->bindTexture(GL_TEXTURE0 + 4 + t++) ;
+            prog->applyLight(k++, ld.light_, ld.mat_, ld.ls_mat_, t) ;
+        }
+    }
+
+    for( i=0, k=0 ; i<lights.size() ; i++ ) {
+        const auto &ld = lights[i] ;
+        const auto &light = ld.light_ ;
+
+        if ( dynamic_cast<const SpotLight *>(light.get()) && !light->casts_shadows_ ) {
+            prog->applyLight(k++, ld.light_, ld.mat_, ld.ls_mat_, 0) ;
+        }
+    }
+
+    for( i=0, k=0 ; i<lights.size() ; i++ ) {
+        const auto &ld = lights[i] ;
+        const auto &light = ld.light_ ;
+
+        if ( dynamic_cast<const SpotLight *>(light.get()) && light->casts_shadows_ ) {
+            ld.shadow_map_->bindTexture(GL_TEXTURE0 + 4 + t++) ;
+            prog->applyLight(k++, ld.light_, ld.mat_, ld.ls_mat_, t) ;
+        }
+    }
+
+    for( i=0, k=0 ; i<lights.size() ; i++ ) {
+        const auto &ld = lights[i] ;
+        const auto &light = ld.light_ ;
+
+        if ( dynamic_cast<const PointLight *>(light.get()) && !light->casts_shadows_ ) {
+            prog->applyLight(k++, ld.light_, ld.mat_, ld.ls_mat_, 0) ;
+        }
+    }
+
+    for( i=0, k=0 ; i<lights.size() ; i++ ) {
+        const auto &ld = lights[i] ;
+        const auto &light = ld.light_ ;
+
+        if ( dynamic_cast<const PointLight *>(light.get()) && light->casts_shadows_ ) {
+            ld.shadow_map_->bindTexture(GL_TEXTURE0 + 4 + t++) ;
+            prog->applyLight(k++, ld.light_, ld.mat_, ld.ls_mat_, t) ;
+        }
     }
 
     // bind material textures
@@ -379,15 +443,6 @@ void Renderer::render(const CameraPtr &cam, const Drawable &dr, const Affine3f &
 
         }
     }
-
-
-    for( uint i=0 ; i<lights.size() ; i++ ) {
-        const auto &ld = lights[i] ;
-        auto it = shadow_data_.find(ld.light_) ;
-        if ( it != shadow_data_.end() )
-            it->second.shadow_map_->bindTexture(GL_TEXTURE0 + 4 + i) ;
-    }
-
 
 
     if ( mesh && mesh->hasSkeleton() )

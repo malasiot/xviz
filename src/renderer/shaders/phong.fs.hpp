@@ -1,7 +1,6 @@
 
 static const char *phong_fragment_shader_vars = R"(
 in vec3 normal;
-in vec3 position;
 in vec3 fpos;
 
 struct MaterialParameters
@@ -15,6 +14,7 @@ struct MaterialParameters
 };
 
 uniform MaterialParameters g_material;
+uniform vec3 eyePos ;
 out vec4 FragColor;
 )";
 
@@ -25,7 +25,7 @@ float diffuse(LightSourceParameters ls, vec3 N, vec3 L) {
 }
 
 float specular(LightSourceParameters ls, vec3 N, vec3 L) {
-     vec3 E = normalize(-position); // we are in Eye Coordinates, so EyePos is (0,0,0)
+     vec3 E = normalize(eyePos-fpos);
      vec3 R = normalize(-reflect(L,N));
      return pow(max(dot(R,E),0.0f), g_material.shininess);
 }

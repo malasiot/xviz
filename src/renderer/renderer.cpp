@@ -178,8 +178,6 @@ void Renderer::renderShadowMap(const LightData &sd) {
 }
 
 void Renderer::render(const CameraPtr &cam) {
-
-
     // render background
 
     Vector4f bg_clr = cam->bgColor() ;
@@ -193,33 +191,7 @@ void Renderer::render(const CameraPtr &cam) {
 
     proj_ = cam->getViewMatrix() ;
 
-    // setup gl
-
-
-
-
     renderScene(cam) ;
-/*
-    bool first_pass = true ;
-    // render scene for each light
-    for( ConstNodePtr node: scene_->getNodesRecursive() ) {
-        LightPtr l = node->light() ;
-        if ( l  ) {
-            Affine3f ltr = node->globalTransform() ;
-
-            if ( !first_pass )
-                glBlendFunc (GL_SRC_ALPHA, GL_ONE);
-
-            if ( l->casts_shadows_ ) setupShadows(l) ;
-
-            glViewport(vp.x_, vp.y_, vp.width_, vp.height_);
-
-            renderScene(l, ltr) ;
-
-            first_pass = false ;
-        }
-    }
-*/
 /*
 glBlendFunc(GL_ONE, GL_ZERO);
       glViewport(0, 0, 256, 256);
@@ -298,7 +270,7 @@ void Renderer::uploadTexture(TextureData *data, const Material *mat, int slot) {
     textures_[mat][slot].reset(data) ;
 }
 
-std::vector<Renderer::LightData> Renderer::getLights()
+std::vector<LightData> Renderer::getLights()
 {
     std::vector<LightData> lights ;
 
@@ -370,64 +342,7 @@ void Renderer::render(const CameraPtr &cam, const Drawable &dr, const Affine3f &
     prog->use() ;
     prog->applyParams(material) ;
     prog->applyTransform(perspective_, proj_, mat.matrix()) ;
-
-    size_t i, k, t=0 ;
-    for( i=0, k=0 ; i<lights.size() ; i++ ) {
-        const auto &ld = lights[i] ;
-        const auto &light = ld.light_ ;
-
-        if ( dynamic_cast<const DirectionalLight *>(light.get()) && !light->casts_shadows_ ) {
-            prog->applyLight(k++, ld.light_, ld.mat_, ld.ls_mat_, 0) ;
-        }
-    }
-
-    for( i=0, k=0 ; i<lights.size() ; i++ ) {
-        const auto &ld = lights[i] ;
-        const auto &light = ld.light_ ;
-
-        if ( dynamic_cast<const DirectionalLight *>(light.get()) && light->casts_shadows_ ) {
-            ld.shadow_map_->bindTexture(GL_TEXTURE0 + 4 + t++) ;
-            prog->applyLight(k++, ld.light_, ld.mat_, ld.ls_mat_, t) ;
-        }
-    }
-
-    for( i=0, k=0 ; i<lights.size() ; i++ ) {
-        const auto &ld = lights[i] ;
-        const auto &light = ld.light_ ;
-
-        if ( dynamic_cast<const SpotLight *>(light.get()) && !light->casts_shadows_ ) {
-            prog->applyLight(k++, ld.light_, ld.mat_, ld.ls_mat_, 0) ;
-        }
-    }
-
-    for( i=0, k=0 ; i<lights.size() ; i++ ) {
-        const auto &ld = lights[i] ;
-        const auto &light = ld.light_ ;
-
-        if ( dynamic_cast<const SpotLight *>(light.get()) && light->casts_shadows_ ) {
-            ld.shadow_map_->bindTexture(GL_TEXTURE0 + 4 + t++) ;
-            prog->applyLight(k++, ld.light_, ld.mat_, ld.ls_mat_, t) ;
-        }
-    }
-
-    for( i=0, k=0 ; i<lights.size() ; i++ ) {
-        const auto &ld = lights[i] ;
-        const auto &light = ld.light_ ;
-
-        if ( dynamic_cast<const PointLight *>(light.get()) && !light->casts_shadows_ ) {
-            prog->applyLight(k++, ld.light_, ld.mat_, ld.ls_mat_, 0) ;
-        }
-    }
-
-    for( i=0, k=0 ; i<lights.size() ; i++ ) {
-        const auto &ld = lights[i] ;
-        const auto &light = ld.light_ ;
-
-        if ( dynamic_cast<const PointLight *>(light.get()) && light->casts_shadows_ ) {
-            ld.shadow_map_->bindTexture(GL_TEXTURE0 + 4 + t++) ;
-            prog->applyLight(k++, ld.light_, ld.mat_, ld.ls_mat_, t) ;
-        }
-    }
+    prog->applyLights(lights) ;
 
     // bind material textures
 
@@ -443,7 +358,6 @@ void Renderer::render(const CameraPtr &cam, const Drawable &dr, const Affine3f &
 
         }
     }
-
 
     if ( mesh && mesh->hasSkeleton() )
         setPose(mesh, prog) ;

@@ -149,6 +149,8 @@ int main(int argc, char **argv)
 
     GeometryPtr torus(new Geometry(std::move(Geometry::createSolidTorus(2, 0.2, 21, 61)))) ;
     PhongMaterial *material = new PhongMaterial({0, 0, 1}, 1) ;
+    material->setShininess(20);
+    material->setSpecularColor({1, 1, 1});
 
     MaterialPtr mat(material) ;
     NodePtr torus_node(new Node) ;
@@ -166,8 +168,9 @@ int main(int argc, char **argv)
 
     SpotLight *dl = new SpotLight(Vector3f(0, 1, 0), Vector3f(0, -1, 0)) ;
     dl->inner_cutoff_angle_ = 45 ; dl->outer_cutoff_angle_ =60;
-  //  dl->linear_attenuation_ = 0.09 ;
-  //  dl->quadratic_attenuation_ = 0.032 ;
+
+    dl->linear_attenuation_ = 0.09 ;
+    dl->quadratic_attenuation_ = 0.032 ;
     dl->diffuse_color_ = Vector3f(1.0, 0.5, 0.5) ;
     scene->addLightNode(LightPtr(dl)) ;
 
@@ -180,7 +183,7 @@ int main(int argc, char **argv)
 
     dl2->casts_shadows_ = true;
     xviz::LightPtr light2(dl2) ;
-  //  scene->addLightNode(light2) ;
+   scene->addLightNode(light2) ;
 
     QApplication app(argc, argv);
 

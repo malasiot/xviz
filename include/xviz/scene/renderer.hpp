@@ -18,7 +18,12 @@ class TextureData ;
 using MaterialProgramPtr = std::shared_ptr<MaterialProgram> ;
 }
 
-
+struct LightData {
+    LightPtr light_ ;
+    Eigen::Affine3f mat_ ;
+    std::unique_ptr<impl::ShadowMap> shadow_map_ ;
+    Eigen::Matrix4f ls_mat_ ;
+};
 
 class Renderer {
 public:
@@ -70,12 +75,7 @@ private:
     const uint32_t shadow_map_width_ = 2048 ;
     const uint32_t shadow_map_height_ = 2048 ;
 
-    struct LightData {
-        LightPtr light_ ;
-        Eigen::Affine3f mat_ ;
-        std::unique_ptr<impl::ShadowMap> shadow_map_ ;
-        Eigen::Matrix4f ls_mat_ ;
-    };
+
 
     std::shared_ptr<ResourceLoader> resource_loader_ ;
 

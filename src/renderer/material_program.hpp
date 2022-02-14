@@ -5,6 +5,7 @@
 #include <xviz/scene/scene_fwd.hpp>
 
 #include "shader.hpp"
+#include <xviz/scene/renderer.hpp>
 
 #include <map>
 
@@ -50,12 +51,14 @@ public:
     virtual void applyParams(const MaterialPtr &mat) = 0 ;
     virtual void applyTransform(const Eigen::Matrix4f &cam, const Eigen::Matrix4f &view, const Eigen::Matrix4f &model) {}
     virtual void applyLight(uint idx, const LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat, GLuint tindex) {}
+    virtual void applyLights(const std::vector<LightData> &lights) {}
     virtual void applyBoneTransform(GLuint idx, const Eigen::Matrix4f &tf) ;
 
 protected:
 
     void applyDefaultPerspective(const Eigen::Matrix4f &cam, const Eigen::Matrix4f &view, const Eigen::Matrix4f &model) ;
     void applyDefaultLight(uint idx, const LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat, GLuint tindex) ;
+    void applyDefaultLights(const std::vector<LightData> &lights) ;
 
 };
 
@@ -75,6 +78,10 @@ public:
 
     void applyLight(uint idx, const LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat, GLuint tindex) override {
         applyDefaultLight(idx, light, tf, lsmat, tindex) ;
+    }
+
+    void applyLights(const std::vector<LightData> &lights) {
+        applyDefaultLights(lights) ;
     }
 
     static MaterialProgramPtr instance(const MaterialInstanceParams &params) {

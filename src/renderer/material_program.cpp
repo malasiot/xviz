@@ -2,7 +2,7 @@
 
 #include <xviz/scene/material.hpp>
 #include <xviz/scene/light.hpp>
-
+#include "shadow_map.hpp"
 #include "util.hpp"
 
 using namespace std ;
@@ -77,6 +77,7 @@ void MaterialProgram::applyDefaultPerspective(const Matrix4f &cam, const Matrix4
     setUniform("mv", mv) ;
     setUniform("mvn", wp) ;
     setUniform("model", model) ;
+    setUniform("eyePos", Vector4f(view.inverse() * Vector4f(0, 0, 0, 1)));
 }
 
 
@@ -143,6 +144,68 @@ void MaterialProgram::applyDefaultLight(uint idx, const LightPtr &light, const A
             setUniform("lsmat_p[" + std::to_string(idx) + "]", Matrix4f(lsmat)) ;
             setUniform(vname + ".shadowMap", (GLuint)(4+tindex)) ;
             setUniform(vname + ".shadowBias", light->shadow_bias_) ;
+        }
+    }
+
+}
+
+void MaterialProgram::applyDefaultLights(const std::vector<LightData> &lights) {
+
+    size_t i, k, t=0 ;
+    for( i=0, k=0 ; i<lights.size() ; i++ ) {
+        const auto &ld = lights[i] ;
+        const auto &light = ld.light_ ;
+
+        if ( dynamic_cast<const DirectionalLight *>(light.get()) && !light->casts_shadows_ ) {
+            applyDefaultLight(k++, ld.light_, ld.mat_, ld.ls_mat_, 0) ;
+        }
+    }
+
+    for( i=0, k=0 ; i<lights.size() ; i++ ) {
+        const auto &ld = lights[i] ;
+        const auto &light = ld.light_ ;
+
+        if ( dynamic_cast<const DirectionalLight *>(light.get()) && light->casts_shadows_ ) {
+            ld.shadow_map_->bindTexture(GL_TEXTURE0 + 4 + t++) ;
+            applyDefaultLight(k++, ld.light_, ld.mat_, ld.ls_mat_, t) ;
+        }
+    }
+
+    for( i=0, k=0 ; i<lights.size() ; i++ ) {
+        const auto &ld = lights[i] ;
+        const auto &light = ld.light_ ;
+
+        if ( dynamic_cast<const SpotLight *>(light.get()) && !light->casts_shadows_ ) {
+            applyDefaultLight(k++, ld.light_, ld.mat_, ld.ls_mat_, 0) ;
+        }
+    }
+
+    for( i=0, k=0 ; i<lights.size() ; i++ ) {
+        const auto &ld = lights[i] ;
+        const auto &light = ld.light_ ;
+
+        if ( dynamic_cast<const SpotLight *>(light.get()) && light->casts_shadows_ ) {
+            ld.shadow_map_->bindTexture(GL_TEXTURE0 + 4 + t++) ;
+            applyDefaultLight(k++, ld.light_, ld.mat_, ld.ls_mat_, t) ;
+        }
+    }
+
+    for( i=0, k=0 ; i<lights.size() ; i++ ) {
+        const auto &ld = lights[i] ;
+        const auto &light = ld.light_ ;
+
+        if ( dynamic_cast<const PointLight *>(light.get()) && !light->casts_shadows_ ) {
+            applyDefaultLight(k++, ld.light_, ld.mat_, ld.ls_mat_, 0) ;
+        }
+    }
+
+    for( i=0, k=0 ; i<lights.size() ; i++ ) {
+        const auto &ld = lights[i] ;
+        const auto &light = ld.light_ ;
+
+        if ( dynamic_cast<const PointLight *>(light.get()) && light->casts_shadows_ ) {
+            ld.shadow_map_->bindTexture(GL_TEXTURE0 + 4 + t++) ;
+            applyDefaultLight(k++, ld.light_, ld.mat_, ld.ls_mat_, t) ;
         }
     }
 

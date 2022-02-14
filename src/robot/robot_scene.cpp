@@ -86,11 +86,11 @@ RobotScenePtr RobotScene::parseRobotURDF(const URDFRobot &rb, bool collision_geo
         const std::string &name = mp.first ;
 
         if ( mat.texture_path_.empty() ) {
-            Vector4f clr = mat.diffuse_color_ ;
+            Vector3f clr = mat.diffuse_color_ ;
             PhongMaterial *material = new PhongMaterial ;
             material->setSide(Material::Side::Both) ;
             material->setShininess(0);
-            material->setSpecularColor({0, 0, 0, 1}) ;
+            material->setSpecularColor({0, 0, 0}) ;
             material->setDiffuseColor(clr) ;
 
             materials.emplace(name, MaterialPtr(material)) ;
@@ -101,8 +101,8 @@ RobotScenePtr RobotScene::parseRobotURDF(const URDFRobot &rb, bool collision_geo
             PhongMaterial *material = new PhongMaterial() ;
             material->setDiffuseTexture(s);
             material->setShininess(0);
-            material->setSpecularColor({0, 0, 0, 1}) ;
-            material->setDiffuseColor({0, 0, 0, 1}) ;
+            material->setSpecularColor({0, 0, 0}) ;
+            material->setDiffuseColor({0, 0, 0}) ;
 
             materials.emplace(name, MaterialPtr(material)) ;
         }

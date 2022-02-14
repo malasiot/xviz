@@ -24,7 +24,7 @@ int main(int argc, char **argv)
 
     NodePtr box(new Node) ;
     GeometryPtr geom(new BoxGeometry({15, 15, 15})) ;
-    MaterialPtr mat(new PhongMaterial({1, 0, 0, 1}));
+    MaterialPtr mat(new PhongMaterial(Vector4f{1, 0, 0, 1}));
     box->addDrawable(geom, mat) ;
     model->addChild(box) ;
 

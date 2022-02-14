@@ -51,6 +51,7 @@ void PhongMaterialProgram::applyParams(const MaterialPtr &mat) {
     setUniform("g_material.specular", material->specularColor()) ;
     setUniform("g_material.shininess", material->shininess());
     setUniform("g_material.diffuse", material->diffuseColor());
+    setUniform("g_material.opacity", material->opacity());
 
     if ( params_.flags_ & HAS_DIFFUSE_TEXTURE ) {
         setUniform("diffuseMap", 0) ;
@@ -108,13 +109,14 @@ void MaterialProgram::applyDefaultLight(uint idx, const LightPtr &light, const A
 
         setUniform(vname + ".light_type", 2) ;
         setUniform(vname + ".color", slight->diffuse_color_) ;
-        setUniform(vname + ".direction", tf * slight->direction_) ;
+        setUniform(vname + ".direction", slight->direction_) ;
         setUniform(vname + ".position", tf * slight->position_) ;
         setUniform(vname + ".constant_attenuation", slight->constant_attenuation_) ;
         setUniform(vname + ".linear_attenuation", slight->linear_attenuation_) ;
         setUniform(vname + ".quadratic_attenuation", slight->quadratic_attenuation_) ;
-        setUniform(vname + ".spot_exponent", slight->falloff_exponent_) ;
-        setUniform(vname + ".spot_cos_cutoff", (float)cos(M_PI*slight->falloff_angle_/180.0)) ;
+
+        setUniform(vname + ".spot_inner_cutoff", (float)cos(M_PI*slight->inner_cutoff_angle_/180.0)) ;
+        setUniform(vname + ".spot_outer_cutoff", (float)cos(M_PI*slight->outer_cutoff_angle_/180.0)) ;
 
         if ( light->casts_shadows_ ) {
             setUniform("lsmat_s[" + std::to_string(idx) + "]", Matrix4f(lsmat)) ;

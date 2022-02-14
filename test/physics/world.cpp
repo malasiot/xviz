@@ -20,7 +20,7 @@ void World::setCloth(xviz::Cloth *cloth) {
 
     size_t np = cloth_->particles_.size() ;
 
-    MaterialPtr material(new PhongMaterial({0, 1, 1, 1}));
+    MaterialPtr material(new PhongMaterial({0, 1, 1}, 1));
     material->setSide(Material::Side::Both) ;
 
     NodePtr node(new Node) ;

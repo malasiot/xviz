@@ -69,7 +69,7 @@ Gui::Gui() {
     NodePtr box_node(new Node) ;
     box_node->transform().translation() = Vector3f{0, 0.5f, 0} ;
     GeometryPtr geom(new BoxGeometry({1, 2, 1})) ;
-    PhongMaterial *material = new PhongMaterial({1, 0, 1, 0.1}) ;
+    PhongMaterial *material = new PhongMaterial({1, 0, 1}, 0.1) ;
     MaterialPtr mat(material) ;
     box_node->addDrawable(geom, mat) ;
     scene->addChild(box_node) ;

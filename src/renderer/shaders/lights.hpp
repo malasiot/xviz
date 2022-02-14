@@ -11,10 +11,11 @@ struct LightSourceParameters
 {
     int light_type ;
     vec3 color;
-    vec4 position;
+    vec3 position;
     vec3 direction;
     float spot_exponent;
-    float spot_cos_cutoff;
+    float spot_inner_cutoff;
+    float spot_outer_cutoff;
     float constant_attenuation;
     float linear_attenuation;
     float quadratic_attenuation;

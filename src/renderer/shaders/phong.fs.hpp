@@ -2,14 +2,16 @@
 static const char *phong_fragment_shader_vars = R"(
 in vec3 normal;
 in vec3 position;
+in vec3 fpos;
 
 struct MaterialParameters
 {
-    vec4 ambient;     // Acm
-    vec4 diffuse;     // Dcm
-    vec4 specular;    // Scm
+    vec3 ambient;     // Acm
+    vec3 diffuse;     // Dcm
+    vec3 specular;    // Scm
     float shininess;  // Srm
-    vec4 emission;
+    vec3 emission;
+    float opacity ;
 };
 
 uniform MaterialParameters g_material;
@@ -28,41 +30,39 @@ float specular(LightSourceParameters ls, vec3 N, vec3 L) {
      return pow(max(dot(R,E),0.0f), g_material.shininess);
 }
 
-vec4 phong(LightSourceParameters ls, vec4 dc, vec3 N, vec3 L, float shadow, float att) {
+vec3 phong(LightSourceParameters ls, vec3 dc, vec3 N, vec3 L, float shadow, float att) {
     float diff = diffuse(ls, N, L) ;
     float spec = specular(ls, N, L) ;
 
-    vec4 color = vec4(ls.color, 1.0) ;
-    vec4 Iamb = color * g_material.ambient ;
-    vec4 Idiff = color * dc * diff;
-    vec4 Ispec = color * g_material.specular * spec ;
+    vec3 color = ls.color ;
+    vec3 Iamb = color * g_material.ambient ;
+    vec3 Idiff = color * dc * diff;
+    vec3 Ispec = color * g_material.specular * spec ;
 
     return att * ((1 - shadow)*(Ispec + Idiff) + Iamb) ;
 }
 
-vec4 phongDirectional(LightSourceParameters ls, vec4 dc, vec3 N, float shadow) {
+vec3 phongDirectional(LightSourceParameters ls, vec3 dc, vec3 N, float shadow) {
     vec3 L = normalize(ls.direction) ;
     return phong(ls, dc, N, L, shadow, 1.0) ;
 }
 
-vec4 phongSpot(LightSourceParameters ls, vec4 dc, vec3 N, float shadow) {
-    vec3 L = normalize(ls.position.xyz - position);
-    float att = 0.0 ;
-    float dist = length(ls.position.xyz - position) ;
-    float spotEffect = dot(normalize(ls.direction), normalize(-L));
-    if (spotEffect > ls.spot_cos_cutoff) {
-       spotEffect = pow(spotEffect, ls.spot_exponent);
-       att = spotEffect / (ls.constant_attenuation +
+vec3 phongSpot(LightSourceParameters ls, vec3 dc, vec3 N, float shadow) {
+    vec3 L = normalize(ls.position.xyz - fpos);
+    float dist = length(ls.position.xyz - fpos) ;
+    float theta = dot(normalize(-ls.direction), L);
+    float epsilon = (ls.spot_inner_cutoff - ls.spot_outer_cutoff);
+    float intensity = clamp((theta - ls.spot_outer_cutoff) / epsilon, 0.0, 1.0);
+    float att = intensity / (ls.constant_attenuation +
            ls.linear_attenuation * dist +
            ls.quadratic_attenuation * dist * dist);
-    }
 
-    return phong(ls, dc, N, L, shadow, att) ;
+  return phong(ls, dc, N, L, shadow, att) ;
 }
 
-vec4 phongPoint(LightSourceParameters ls, vec4 dc, vec3 N, float shadow) {
-    vec3 L = normalize(ls.position.xyz - position);
-    float dist = length(ls.position.xyz - position);
+vec3 phongPoint(LightSourceParameters ls, vec3 dc, vec3 N, float shadow) {
+    vec3 L = normalize(ls.position.xyz - fpos);
+    float dist = length(ls.position.xyz - fpos);
 
     float att = 1.0 / (ls.constant_attenuation +
            ls.linear_attenuation * dist +
@@ -71,9 +71,9 @@ vec4 phongPoint(LightSourceParameters ls, vec4 dc, vec3 N, float shadow) {
     return phong(ls, dc, N, L, shadow, att) ;
 }
 
-vec4 phongIllumination(vec4 dc) {
+vec4 phongIllumination(vec3 dc) {
     vec3 N = normalize(normal);
-    vec4 finalColor = vec4(0, 0, 0, 1.0);
+    vec3 finalColor = vec3(0);
 
 #pragma unroll_loop_start
     for( int i=0 ; i<NUM_DIRECTIONAL_LIGHTS ; i++ ) {
@@ -114,7 +114,7 @@ vec4 phongIllumination(vec4 dc) {
     }
 #pragma unroll_loop_end
 
-    return  clamp(finalColor, 0.0, 1.0) ;
+    return  vec4(clamp(finalColor, 0.0, 1.0), g_material.opacity) ;
 }
 )";
 

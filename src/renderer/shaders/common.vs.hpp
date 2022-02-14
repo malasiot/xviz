@@ -4,6 +4,7 @@ static const char *vertex_shader_code = R"(
 
 layout (location = 0) in vec3 vposition;
 out vec3 position;
+out vec3 fpos ;
 
 #ifdef HAS_NORMALS
 layout (location = 1) in vec3 vnormal;
@@ -86,7 +87,7 @@ void main()
     uv = vuv ;
 #endif
     position    = (mv * posl).xyz;
-    vec3 fpos = vec3(model * posl);
+    fpos = vec3(model * posl);
 #ifdef HAS_SHADOWS
 #pragma unroll_loop_start
     for( int i=0 ; i<NUM_DIRECTIONAL_LIGHTS_WITH_SHADOW ; i++ ) {

@@ -25,6 +25,10 @@ static Vector4f color4_to_float4(const aiColor4D &c) {
     return Vector4f(c.r, c.g, c.b, c.a) ;
 }
 
+static Vector3f color4_to_float3(const aiColor4D &c) {
+    return Vector3f(c.r, c.g, c.b) ;
+}
+
 namespace xviz {
 
 namespace internal {
@@ -62,15 +66,15 @@ static void getPhongMaterial(PhongMaterial *material, const struct aiMaterial *m
     unsigned int max;
 
     if ( AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_DIFFUSE, &diffuse)) {
-        material->setDiffuseColor(color4_to_float4(diffuse)) ;
+        material->setDiffuseColor(color4_to_float3(diffuse)) ;
     }
 
     if ( AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_SPECULAR, &specular) ) {
-        material->setSpecularColor(color4_to_float4(specular)) ;
+        material->setSpecularColor(color4_to_float3(specular)) ;
     }
 
     if ( AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_AMBIENT, &ambient) ) {
-        material->setAmbientColor(color4_to_float4(ambient) ) ;
+        material->setAmbientColor(color4_to_float3(ambient) ) ;
     }
 
     max = 1;
@@ -84,7 +88,7 @@ static void getPhongMaterial(PhongMaterial *material, const struct aiMaterial *m
     }
     else {
         material->setShininess(0.0);
-        material->setSpecularColor({0, 0, 0, 1});
+        material->setSpecularColor({0, 0, 0});
     }
 }
 
@@ -324,8 +328,8 @@ bool AssimpImporter::importLights(const aiScene *sc) {
             sl->constant_attenuation_ = light->mAttenuationConstant ;
             sl->linear_attenuation_ = light->mAttenuationLinear ;
             sl->quadratic_attenuation_ = light->mAttenuationQuadratic ;
-            sl->falloff_angle_ = light->mAngleOuterCone ;
-            sl->falloff_exponent_ = 0 ;
+            sl->inner_cutoff_angle_ = light->mAngleInnerCone ;
+            sl->outer_cutoff_angle_ = light->mAngleOuterCone ;
 
             slight.reset(sl) ;
             break ;

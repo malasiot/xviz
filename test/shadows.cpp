@@ -140,7 +140,7 @@ int main(int argc, char **argv)
 
     GeometryPtr plane(new Geometry(std::move(Geometry::makePlane(2, 2, 2, 2)))) ;
 
-    MaterialPtr planeMat(new PhongMaterial({0.3, 0.3, 0.3, 1})) ;
+    MaterialPtr planeMat(new PhongMaterial({0.3, 0.3, 0.3}, 1)) ;
   //  planeMat->setSide(Material::Side::Both) ;
     ground->addDrawable(plane, planeMat) ;
     scene->addChild(ground) ;
@@ -148,7 +148,7 @@ int main(int argc, char **argv)
     scene->addChild(NodeHelpers::makeCircle({0, 0, 0}, {1, 0, 0}, 2, {1, 0, 0})) ;
 
     GeometryPtr torus(new Geometry(std::move(Geometry::createSolidTorus(2, 0.2, 21, 61)))) ;
-    PhongMaterial *material = new PhongMaterial({0, 0, 1, 1}) ;
+    PhongMaterial *material = new PhongMaterial({0, 0, 1}, 1) ;
 
     MaterialPtr mat(material) ;
     NodePtr torus_node(new Node) ;
@@ -164,9 +164,11 @@ int main(int argc, char **argv)
         else randomCylinder(scene, strm.str(), rnd_uniform(0.05, 0.1), rnd_uniform(0.1, 0.15), clr);
     }
 
-    SpotLight *dl = new SpotLight(Vector3f(0, 4, 0.2), Vector3f(0, -1, 0).normalized()) ;
-    dl->falloff_angle_ = 70;
-    dl->diffuse_color_ = Vector3f(0.5, 0.5, 0.5) ;
+    SpotLight *dl = new SpotLight(Vector3f(0, 1, 0), Vector3f(0, -1, 0)) ;
+    dl->inner_cutoff_angle_ = 45 ; dl->outer_cutoff_angle_ =60;
+  //  dl->linear_attenuation_ = 0.09 ;
+  //  dl->quadratic_attenuation_ = 0.032 ;
+    dl->diffuse_color_ = Vector3f(1.0, 0.5, 0.5) ;
     scene->addLightNode(LightPtr(dl)) ;
 
     xviz::DirectionalLight *dl2 = new xviz::DirectionalLight(Vector3f(0, 4, 4)) ;

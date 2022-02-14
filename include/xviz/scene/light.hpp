@@ -64,7 +64,7 @@ struct SpotLight: public Light {
     float constant_attenuation_ = 1.0;
     float linear_attenuation_ = 0.0;
     float quadratic_attenuation_ = 0.0;
-    float falloff_angle_ = M_PI, falloff_exponent_ = 0 ;
+    float inner_cutoff_angle_ = M_PI, outer_cutoff_angle_ = M_PI ;
 };
 
 using LightPtr = std::shared_ptr<Light> ;

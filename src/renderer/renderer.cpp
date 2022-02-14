@@ -25,7 +25,7 @@ using namespace impl ;
 
 Renderer::Renderer(int flags) {
     PhongMaterial *mat = new PhongMaterial() ;
-    mat->setDiffuseColor({0.5, 0.5, 0.5, 1.0}) ;
+    mat->setDiffuseColor({0.5, 0.5, 0.5}) ;
     default_material_.reset(mat) ;
 }
 

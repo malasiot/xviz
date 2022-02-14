@@ -126,7 +126,7 @@ void CollisionObject::makeVisual(const std::vector<Eigen::Vector3f> &vertices, c
     geom->vertices() = vertices ;
     geom->normals() = normals ;
 
-    PhongMaterial *mat = new PhongMaterial({0.0f, 0.0f, 0.5f, 1.0f}) ;
+    PhongMaterial *mat = new PhongMaterial(Eigen::Vector4f{0.0f, 0.0f, 0.5f, 1.0f}) ;
 
     Drawable dr(geom, MaterialPtr(mat)) ;
 

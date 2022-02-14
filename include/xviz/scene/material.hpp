@@ -62,31 +62,35 @@ class PhongMaterial: public Material {
 public:
 
     PhongMaterial() = default ;
-    PhongMaterial(const Eigen::Vector4f &diffuse): diffuse_clr_(diffuse) {}
+    PhongMaterial(const Eigen::Vector3f &diffuse, float opacity = 1.0): diffuse_clr_(diffuse), opacity_(opacity) {}
+    PhongMaterial(const Eigen::Vector4f &diffuse): diffuse_clr_(diffuse.block<3, 1>(0, 0)), opacity_(diffuse[3]) {}
 
-    void setAmbientColor(const Eigen::Vector4f &a) { ambient_ = a ; }
-    void setDiffuseColor(const Eigen::Vector4f &d) { diffuse_clr_ = d ; }
-    void setSpecularColor(const Eigen::Vector4f &s) { specular_clr_ = s; }
+    void setAmbientColor(const Eigen::Vector3f &a) { ambient_ = a ; }
+    void setDiffuseColor(const Eigen::Vector3f &d) { diffuse_clr_ = d ; }
+    void setSpecularColor(const Eigen::Vector3f &s) { specular_clr_ = s; }
 
     void setDiffuseTexture(Texture2D *d) { diffuse_map_.reset(d) ; }
     void setSpecularTexture(Texture2D *d) { specular_map_.reset(d) ; }
     void setShininess(float s) { shininess_ = s ; }
+    void setOpacity(float s) { opacity_ = s ; }
 
-    const Eigen::Vector4f &diffuseColor() const { return diffuse_clr_ ; }
-    const Eigen::Vector4f &specularColor() const { return specular_clr_ ; }
-    const Eigen::Vector4f &ambientColor() const { return ambient_ ; }
+    const Eigen::Vector3f &diffuseColor() const { return diffuse_clr_ ; }
+    const Eigen::Vector3f &specularColor() const { return specular_clr_ ; }
+    const Eigen::Vector3f &ambientColor() const { return ambient_ ; }
     float shininess() const { return shininess_ ; }
+    float opacity() const { return opacity_ ; }
 
     const Texture2D *diffuseTexture() const { return diffuse_map_.get() ; }
     const Texture2D *specularTexture() const { return specular_map_.get() ; }
 
     ~PhongMaterial() = default ;
 private:
-    Eigen::Vector4f ambient_ = { 0, 0, 0, 1} ;
-    Eigen::Vector4f diffuse_clr_{ 0.5, 0.5, 0.5, 1.0 };
-    Eigen::Vector4f specular_clr_{ 0, 0, 0, 1 };
+    Eigen::Vector3f ambient_ = { 0, 0, 0 } ;
+    Eigen::Vector3f diffuse_clr_{ 0.5, 0.5, 0.5 };
+    Eigen::Vector3f specular_clr_{ 0, 0, 0 };
     std::unique_ptr<Texture2D> diffuse_map_, specular_map_ ;
     float shininess_  = 1.0 ;
+    float opacity_ = 1.0 ;
 };
 
 class ConstantMaterial: public Material {

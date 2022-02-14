@@ -49,7 +49,7 @@ struct URDFCylinderGeometry: public URDFGeometry {
 
 struct URDFMaterial {
     std::string texture_path_ ;
-    Eigen::Vector4f diffuse_color_, specular_color_{1, 1, 1, 1} ;
+    Eigen::Vector3f diffuse_color_, specular_color_{1, 1, 1} ;
 };
 
 struct URDFInertial {

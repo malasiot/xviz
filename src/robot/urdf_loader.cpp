@@ -445,7 +445,7 @@ std::string URDFLoader::parseMaterial(const xml_node &node, URDFRobot &rb, const
             Vector4f clr = parse_vec4(rgba) ;
 
             URDFMaterial *mat = new URDFMaterial ;
-            mat->diffuse_color_ = clr ;
+            mat->diffuse_color_ = clr.block<3, 1>(0, 0) ;
             std::shared_ptr<URDFMaterial> mat_ptr(mat) ;
             rb.materials_.emplace(name, mat_ptr) ;
             return name ;

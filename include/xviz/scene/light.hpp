@@ -49,7 +49,7 @@ protected:
     std::string name_ ;
     bool casts_shadows_ = false ;
 
-    Eigen::Vector3f diffuse_color_, specular_color_, ambient_color_ ;
+    Eigen::Vector3f diffuse_color_{0, 0, 0}, specular_color_{0, 0, 0}, ambient_color_{0, 0, 0} ;
 
     float shadow_bias_ = 0.0 ;
 };

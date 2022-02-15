@@ -14,7 +14,17 @@ using namespace Eigen ;
 
 namespace xviz { namespace impl {
 
-static void throw_error(const char *error_str, const char *error_desc) {
+static void throw_error(const std::string &code, const char *error_str, const char *error_desc) {
+#if 1
+    istringstream is(code);
+    string str;
+    int line = 1 ;
+    while(getline(is, str))
+    {
+        cout << line << ":\t" << str << endl ;
+        ++line ;
+    }
+#endif
     ostringstream msg ;
     msg << error_str << error_desc ;
     throw OpenGLShaderError(msg.str()) ;
@@ -45,7 +55,7 @@ void OpenGLShader::create(OpenGLShaderType t) {
     }
 
     if ( ( handle_ = glCreateShader(GLenum(shader_type)) ) == 0 )
-        throw_error("cannot create shader", "") ;
+        throw_error(code_, "cannot create shader", "") ;
 }
 
 
@@ -68,7 +78,7 @@ void OpenGLShader::setSourceCode(const std::string &code) {
 
 void OpenGLShader::preproc(const std::string &file_name, const OpenGLShaderPreproc &defines, bool version_parsed) {
     string fragment = OpenGLShaderResourceManager::fetch(file_name) ;
-    if ( fragment.empty() ) throw_error("Cannot load shader resource string from: ", file_name.c_str()) ;
+    if ( fragment.empty() ) throw_error(code_, "Cannot load shader resource string from: ", file_name.c_str()) ;
 
     std::stringstream is(fragment);
 
@@ -127,9 +137,7 @@ void OpenGLShader::preproc(const std::string &file_name, const OpenGLShaderPrepr
 void OpenGLShader::unrollLoop(const string &loop, const std::map<std::string, std::string> &constants )
 {
 
- //   cout << loop << endl ;
-
-    static const std::regex for_loop_rx(R"(\s*for\s*\(\s*int\s+i\s*=\s*(\d+)\s*;\s*i\s*<\s*(\w+)\s*;\s*i\s*\+\+\s*\)\s*\{([\S\s]*)$)",
+     static const std::regex for_loop_rx(R"(\s*for\s*\(\s*int\s+i\s*=\s*(\d+)\s*;\s*i\s*<\s*(\w+)\s*;\s*i\s*\+\+\s*\)\s*\{([\S\s]*)$)",
                                          std::regex_constants::ECMAScript);
 
     std::smatch match;
@@ -195,16 +203,7 @@ void OpenGLShader::setSourceFile(const std::string &file_name, const OpenGLShade
     resource_name_ = file_name ;
 
     preproc(file_name, defines, false) ;
-#if 1
-    istringstream is(code_);
-    string str;
-    int line = 1 ;
-    while(getline(is, str))
-    {
-        cout << line << ":\t" << str << endl ;
-        ++line ;
-    }
-#endif
+
     compile() ;
 }
 
@@ -229,7 +228,7 @@ void OpenGLShader::compile() {
         GLchar info_log[1024];
         glGetShaderInfoLog(handle_, 1024, NULL, info_log);
 
-        throw_error("Error compilining shader: ", info_log) ;
+        throw_error(code_, "Error compilining shader: ", info_log) ;
     }
 
     compiled_ = true ;
@@ -347,7 +346,7 @@ void OpenGLShaderProgram::link(bool validate) {
 
     if ( success == 0 ) {
         glGetProgramInfoLog(handle_, sizeof(error_log), NULL, error_log);
-        throw_error("Error linking shader program", error_log) ;
+        throw_error({}, "Error linking shader program", error_log) ;
     }
 
     if ( validate ) {
@@ -356,7 +355,7 @@ void OpenGLShaderProgram::link(bool validate) {
 
         if ( !success ) {
             glGetProgramInfoLog(handle_, sizeof(error_log), NULL, error_log);
-            throw_error("Invalid shader program", error_log);
+            throw_error({}, "Invalid shader program", error_log);
         }
     }
 }
@@ -379,4 +378,4 @@ OpenGLShaderType type_from_string(const string &s) {
 OpenGLShaderError::OpenGLShaderError(const string &msg): std::runtime_error(msg) {}
 
 } // internal
-               } // clsim
+} // xviz

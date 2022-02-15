@@ -10,7 +10,7 @@ using namespace Eigen ;
 
 namespace xviz { namespace impl {
 
-PhongMaterialProgram::PhongMaterialProgram(const MaterialInstanceParams &params): params_(params)
+PhongMaterialProgram::PhongMaterialProgram(const Params &params): params_(params)
 {
     OpenGLShaderPreproc vs_preproc ;
 
@@ -213,7 +213,7 @@ void MaterialProgram::applyDefaultLights(const std::vector<LightData *> &lights)
 
 }
 
-ConstantMaterialProgram::ConstantMaterialProgram(const MaterialInstanceParams &params): params_(params) {
+ConstantMaterialProgram::ConstantMaterialProgram(const Params &params): params_(params) {
     OpenGLShaderPreproc preproc ;
 
     preproc.appendDefinition("USE_SKINNING", params.enable_skinning_);
@@ -231,7 +231,7 @@ void ConstantMaterialProgram::applyParams(const MaterialPtr &mat) {
     setUniform("color", material->color()) ;
 }
 
-PerVertexColorMaterialProgram::PerVertexColorMaterialProgram(const MaterialInstanceParams &params) {
+PerVertexColorMaterialProgram::PerVertexColorMaterialProgram(const Params &params) {
 
     OpenGLShaderPreproc preproc ;
     preproc.appendDefinition("HAS_COLORS");
@@ -252,7 +252,7 @@ void PerVertexColorMaterialProgram::applyParams(const MaterialPtr &mat) {
 }
 
 
-WireFrameMaterialProgram::WireFrameMaterialProgram(const MaterialInstanceParams &params) {
+WireFrameMaterialProgram::WireFrameMaterialProgram(const Params &params) {
 
     OpenGLShaderPreproc preproc ;
 
@@ -274,7 +274,7 @@ void WireFrameMaterialProgram::applyParams(const MaterialPtr &mat) {
     setUniform("fill", material->fillColor()) ;
 }
 
-string MaterialInstanceParams::key() const {
+string PhongMaterialProgram::Params::key() const {
     std::stringstream strm ;
     strm << num_dir_lights_ << ',' ;
     strm << num_dir_lights_shadow_ << ',' ;
@@ -282,8 +282,28 @@ string MaterialInstanceParams::key() const {
     strm << num_point_lights_shadow_ << ',' ;
     strm << num_spot_lights_ << ',' ;
     strm << num_spot_lights_shadow_ << ',' ;
+    strm << (int)enable_shadows_ << ',' ;
+    strm << (int)enable_skinning_ << ',' ;
+    strm << (int)has_diffuse_map_ << ',' ;
 
     return strm.str() ;
 }
 
+string ConstantMaterialProgram::Params::key() const {
+    std::stringstream strm ;
+    strm << (int)enable_skinning_ ;
+    return strm.str() ;
+}
+
+string PerVertexColorMaterialProgram::Params::key() const {
+    std::stringstream strm ;
+    strm << (int)enable_skinning_ ;
+    return strm.str() ;
+}
+
+string WireFrameMaterialProgram::Params::key() const {
+    std::stringstream strm ;
+    strm << (int)enable_skinning_ ;
+    return strm.str() ;
+}
 }}

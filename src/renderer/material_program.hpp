@@ -17,27 +17,14 @@ namespace xviz { namespace impl {
 class MaterialProgram ;
 using MaterialProgramPtr = std::shared_ptr<MaterialProgram> ;
 
-struct MaterialInstanceParams {
-    GLuint num_dir_lights_ = 0 ;
-    GLuint num_dir_lights_shadow_ = 0 ;
-    GLuint num_point_lights_ = 0 ;
-    GLuint num_point_lights_shadow_ = 0 ;
-    GLuint num_spot_lights_ = 0 ;
-    GLuint num_spot_lights_shadow_ = 0 ;
 
-    bool enable_shadows_ = false ;
-    bool enable_skinning_ = false ;
-    bool has_diffuse_map_ = false ;
 
-    std::string key() const ;
-};
-
-template<class T, typename ...Args>
-MaterialProgramPtr materialSingleton(std::map<std::string, MaterialProgramPtr> &instances, const MaterialInstanceParams &flags, Args... args) {
-    const auto key = flags.key() ;
+template<class T, class P, typename ...Args>
+MaterialProgramPtr materialSingleton(std::map<std::string, MaterialProgramPtr> &instances, const P &params, Args... args) {
+    const auto key = params.key() ;
     auto it = instances.find(key) ;
     if ( it == instances.end() ) {
-        std::shared_ptr<T> instance(new T(flags, args...)) ;
+        std::shared_ptr<T> instance(new T(params, args...)) ;
         instances.emplace(key, instance) ;
         return instance ;
     } else {
@@ -72,7 +59,22 @@ using MaterialProgramPtr = std::shared_ptr<MaterialProgram> ;
 class PhongMaterialProgram: public MaterialProgram {
 public:
 
-    PhongMaterialProgram(const MaterialInstanceParams &flags) ;
+    struct Params {
+        GLuint num_dir_lights_ = 0 ;
+        GLuint num_dir_lights_shadow_ = 0 ;
+        GLuint num_point_lights_ = 0 ;
+        GLuint num_point_lights_shadow_ = 0 ;
+        GLuint num_spot_lights_ = 0 ;
+        GLuint num_spot_lights_shadow_ = 0 ;
+
+        bool enable_shadows_ = false ;
+        bool enable_skinning_ = false ;
+        bool has_diffuse_map_ = false ;
+
+        std::string key() const ;
+    };
+
+    PhongMaterialProgram(const Params &flags) ;
 
     void applyParams(const MaterialPtr &mat) override ;
 
@@ -84,21 +86,26 @@ public:
         applyDefaultLights(lights) ;
     }
 
-    static MaterialProgramPtr instance(const MaterialInstanceParams &params) {
+    static MaterialProgramPtr instance(const Params &params) {
         static std::map<std::string, MaterialProgramPtr> s_materials ;
         return materialSingleton<PhongMaterialProgram>(s_materials, params) ;
     }
 
 private:
 
-    MaterialInstanceParams params_ ;
+    Params params_ ;
 };
 
 
 class ConstantMaterialProgram: public MaterialProgram {
 public:
+    struct Params {
+        bool enable_skinning_ = false ;
 
-    ConstantMaterialProgram(const MaterialInstanceParams &) ;
+        std::string key() const ;
+    };
+
+    ConstantMaterialProgram(const Params &p) ;
 
     void applyParams(const MaterialPtr &mat) override ;
 
@@ -106,21 +113,27 @@ public:
         applyDefaultPerspective(cam, view, model) ;
     }
 
-    static MaterialProgramPtr instance(const MaterialInstanceParams &params) {
+    static MaterialProgramPtr instance(const Params &params) {
         static std::map<std::string, MaterialProgramPtr> s_materials ;
         return materialSingleton<ConstantMaterialProgram>(s_materials, params) ;
     }
 
 private:
 
-    MaterialInstanceParams params_;
+    Params params_;
 };
 
 
 class PerVertexColorMaterialProgram: public MaterialProgram {
 public:
 
-    PerVertexColorMaterialProgram(const MaterialInstanceParams &params) ;
+    struct Params {
+        bool enable_skinning_ = false ;
+
+        std::string key() const ;
+    };
+
+    PerVertexColorMaterialProgram(const Params &params) ;
 
     void applyParams(const MaterialPtr &mat) override ;
 
@@ -128,7 +141,7 @@ public:
         applyDefaultPerspective(cam, view, model) ;
     }
 
-    static MaterialProgramPtr instance(const MaterialInstanceParams &params) {
+    static MaterialProgramPtr instance(const Params &params) {
         static std::map<std::string, MaterialProgramPtr> s_materials ;
         return materialSingleton<PerVertexColorMaterialProgram>(s_materials, params) ;
     }
@@ -137,7 +150,13 @@ public:
 class WireFrameMaterialProgram: public MaterialProgram {
 public:
 
-    WireFrameMaterialProgram(const MaterialInstanceParams &flags) ;
+    struct Params {
+        bool enable_skinning_ = false ;
+
+        std::string key() const ;
+    };
+
+    WireFrameMaterialProgram(const Params &flags) ;
 
     void applyParams(const MaterialPtr &mat) override ;
 
@@ -145,7 +164,7 @@ public:
         applyDefaultPerspective(cam, view, model) ;
     }
 
-    static MaterialProgramPtr instance(const MaterialInstanceParams &params) {
+    static MaterialProgramPtr instance(const Params &params) {
         static std::map<std::string, MaterialProgramPtr> s_materials ;
         return materialSingleton<WireFrameMaterialProgram>(s_materials, params) ;
     }

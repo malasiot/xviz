@@ -75,7 +75,7 @@ private:
     const uint32_t shadow_map_width_ = 2048 ;
     const uint32_t shadow_map_height_ = 2048 ;
 
-
+    std::map<LightPtr, LightData> light_data_ ;
 
     std::shared_ptr<ResourceLoader> resource_loader_ ;
 
@@ -86,23 +86,21 @@ private:
     void setLights(const impl::MaterialProgramPtr &material);
     void setLights(const NodePtr &node, const Eigen::Affine3f &parent_tf, const impl::MaterialProgramPtr &mat);
     void setupTexture(const Material *mat, const Texture2D *texture, unsigned int slot);
-    void setupCulling(const Material *mat);
-    impl::MaterialProgramPtr instantiateMaterial(const Material *mat, const std::vector<LightData> &lights, int flags);
+    void initState(const Material *mat);
+    impl::MaterialProgramPtr instantiateMaterial(const Material *mat, const std::vector<LightData *> &lights, bool skinning);
     void setPose(const GeometryPtr &mesh, const impl::MaterialProgramPtr &mat);
     void renderShadowMaps();
     void renderScene(const CameraPtr &cam);
     void render(const CameraPtr &cam, const Drawable &dr, const Eigen::Affine3f &mat);
     void initShadowMapRenderer() ;
     void renderShadowMap(const LightData &l);
-    void setupShadows(LightData &light);
+    void updateShadows(LightData &light);
     void renderShadowDebug(const LightData &sd);
     void renderQuad();
     void uploadTexture(impl::TextureData *data, const Material *material, int slot) ;
-    std::vector<LightData> getLights() ;
-
-
-
+    LightData &getLightData(const LightPtr &light) ;
     const impl::MeshData *fetchMeshData(GeometryPtr &geom);
+    std::vector<LightData *> getLights();
 } ;
 
 }

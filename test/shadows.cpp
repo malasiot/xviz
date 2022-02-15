@@ -150,7 +150,7 @@ int main(int argc, char **argv)
     GeometryPtr torus(new Geometry(std::move(Geometry::createSolidTorus(2, 0.2, 21, 61)))) ;
     PhongMaterial *material = new PhongMaterial({0, 0, 1}, 1) ;
     material->setShininess(20);
-    material->setSpecularColor({1, 1, 1});
+    material->setSpecularColor({1, 0, 0});
 
     MaterialPtr mat(material) ;
     NodePtr torus_node(new Node) ;
@@ -166,22 +166,27 @@ int main(int argc, char **argv)
         else randomCylinder(scene, strm.str(), rnd_uniform(0.05, 0.1), rnd_uniform(0.1, 0.15), clr);
     }
 
-    SpotLight *dl = new SpotLight(Vector3f(0, 1, 0), Vector3f(0, -1, 0)) ;
-    dl->inner_cutoff_angle_ = 45 ; dl->outer_cutoff_angle_ =60;
+    SpotLight *dl = new SpotLight(Vector3f(0, 5, 1), Vector3f(0, -1, 0)) ;
 
-    dl->linear_attenuation_ = 0.09 ;
-    dl->quadratic_attenuation_ = 0.032 ;
-    dl->diffuse_color_ = Vector3f(1.0, 0.5, 0.5) ;
+    dl->setInnerCutoffAngle(45) ;
+    dl->setOuterCutoffAngle(60) ;
+
+    dl->setLinearAttenuation(0.09) ;
+    dl->setQuadraticAttenuation(0.032) ;
+    dl->setDiffuseColor(Vector3f(1.0, 0.5, 0.5));
+    dl->setSpecularColor(Vector3f(0.0, 1.0, 0.15)) ;
+    dl->setShadowCamera(PerspectiveCamera(1.0, 40.0 * M_PI/180)) ;
+     dl->setCastsShadows(true);
+       dl->setShadowBias(0.0005);
     scene->addLightNode(LightPtr(dl)) ;
 
     xviz::DirectionalLight *dl2 = new xviz::DirectionalLight(Vector3f(0, 4, 4)) ;
-    dl2->diffuse_color_ = Vector3f(0.15, 0.15, 0.15) ;
-    dl2->shadow_cam_left_ = dl2->shadow_cam_top_ = -0.5 ;
-    dl2->shadow_cam_right_ = dl2->shadow_cam_bottom_ = 0.5 ;
-    dl2->shadow_cam_near_ = 0.01 ; dl2->shadow_cam_far_ = 3 ;
-    dl2->shadow_bias_ = 0.0005;
+    dl2->setDiffuseColor(Vector3f(0.15, 0.15, 0.15)) ;
+    dl2->setSpecularColor(Vector3f(0.75, 0.0, 0.15)) ;
+    dl2->setShadowCamera(OrthographicCamera(-0.5, 0.5, 0.5, -0.5, 0.01, 3)) ;
+    dl2->setShadowBias(0.0005);
 
-    dl2->casts_shadows_ = true;
+    dl2->setCastsShadows(true);
     xviz::LightPtr light2(dl2) ;
    scene->addLightNode(light2) ;
 

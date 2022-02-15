@@ -29,7 +29,7 @@ int main(int argc, char **argv)
     model->addChild(box) ;
 
     DirectionalLight *dl = new DirectionalLight(Vector3f(0.5, 0.5, 1)) ;
-    dl->diffuse_color_ = Vector3f(1, 1, 1) ;
+    dl->setDiffuseColor(Vector3f(1, 1, 1)) ;
     model->addLightNode(LightPtr(dl)) ;
 
     NodeAnimation *anim = new NodeAnimation(box) ;

@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
     RobotScenePtr scene = RobotScene::fromURDF(robot) ;
 
     DirectionalLight *dl = new DirectionalLight(Vector3f(1.5, 2.5, 1)) ;
-    dl->diffuse_color_ = Vector3f(1, 1, 1) ;
+    dl->setDiffuseColor(Vector3f(1, 1, 1)) ;
     scene->addLightNode(LightPtr(dl)) ;
 
     QApplication app(argc, argv);

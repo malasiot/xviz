@@ -2,15 +2,11 @@
 
 static const char *light_vars = R"(
 
-const int AMBIENT_LIGHT = 0 ;
-const int DIRECTIONAL_LIGHT = 1 ;
-const int SPOT_LIGHT = 2 ;
-const int POINT_LIGHT = 3 ;
-
 struct LightSourceParameters
 {
-    int light_type ;
-    vec3 color;
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
     vec3 position;
     vec3 direction;
     float spot_exponent;
@@ -19,9 +15,9 @@ struct LightSourceParameters
     float constant_attenuation;
     float linear_attenuation;
     float quadratic_attenuation;
-    bool light_casts_shadows ;
-    sampler2DShadow shadowMap ;
-    float shadowBias ;
+
+    sampler2DShadow shadow_map ;
+    float shadow_bias ;
 };
 
 #if NUM_DIRECTIONAL_LIGHTS > 0

@@ -293,9 +293,9 @@ bool AssimpImporter::importLights(const aiScene *sc) {
         case aiLightSource_DIRECTIONAL:
         {
             DirectionalLight *dl = new DirectionalLight({light->mDirection.x, light->mDirection.y, light->mDirection.z}) ;
-            dl->diffuse_color_ << light->mColorDiffuse.r, light->mColorDiffuse.g, light->mColorDiffuse.b ;
-            dl->specular_color_ << light->mColorSpecular.r, light->mColorSpecular.g, light->mColorSpecular.b ;
-            dl->ambient_color_ << light->mColorAmbient.r, light->mColorAmbient.g, light->mColorAmbient.b ;
+            dl->setDiffuseColor({ light->mColorDiffuse.r, light->mColorDiffuse.g, light->mColorDiffuse.b });
+            dl->setSpecularColor({ light->mColorSpecular.r, light->mColorSpecular.g, light->mColorSpecular.b });
+            dl->setAmbientColor( {light->mColorAmbient.r, light->mColorAmbient.g, light->mColorAmbient.b}) ;
 
             slight.reset(dl) ;
             break ;
@@ -304,13 +304,13 @@ bool AssimpImporter::importLights(const aiScene *sc) {
         {
             PointLight *pl = new PointLight({light->mPosition.x, light->mPosition.y, light->mPosition.z}) ;
 
-            pl->diffuse_color_ << light->mColorDiffuse.r, light->mColorDiffuse.g, light->mColorDiffuse.b ;
-            pl->specular_color_ << light->mColorSpecular.r, light->mColorSpecular.g, light->mColorSpecular.b ;
-            pl->ambient_color_ << light->mColorAmbient.r, light->mColorAmbient.g, light->mColorAmbient.b ;
+            pl->setDiffuseColor({ light->mColorDiffuse.r, light->mColorDiffuse.g, light->mColorDiffuse.b });
+            pl->setSpecularColor({ light->mColorSpecular.r, light->mColorSpecular.g, light->mColorSpecular.b });
+            pl->setAmbientColor( {light->mColorAmbient.r, light->mColorAmbient.g, light->mColorAmbient.b}) ;
 
-            pl->constant_attenuation_ = light->mAttenuationConstant ;
-            pl->linear_attenuation_ = light->mAttenuationLinear ;
-            pl->quadratic_attenuation_ = light->mAttenuationQuadratic ;
+            pl->setConstantAttenuation(light->mAttenuationConstant) ;
+            pl->setLinearAttenuation(light->mAttenuationLinear) ;
+            pl->setQuadraticAttenuation(light->mAttenuationQuadratic) ;
 
             slight.reset(pl) ;
             break ;
@@ -321,15 +321,15 @@ bool AssimpImporter::importLights(const aiScene *sc) {
             SpotLight *sl = new SpotLight({light->mPosition.x, light->mPosition.y, light->mPosition.z},
                                     {light->mDirection.x, light->mDirection.y, light->mDirection.z}) ;
 
-            sl->diffuse_color_ << light->mColorDiffuse.r, light->mColorDiffuse.g, light->mColorDiffuse.b ;
-            sl->specular_color_ << light->mColorSpecular.r, light->mColorSpecular.g, light->mColorSpecular.b ;
-            sl->ambient_color_ << light->mColorAmbient.r, light->mColorAmbient.g, light->mColorAmbient.b ;
+            sl->setDiffuseColor({ light->mColorDiffuse.r, light->mColorDiffuse.g, light->mColorDiffuse.b });
+            sl->setSpecularColor({ light->mColorSpecular.r, light->mColorSpecular.g, light->mColorSpecular.b });
+            sl->setAmbientColor( {light->mColorAmbient.r, light->mColorAmbient.g, light->mColorAmbient.b}) ;
 
-            sl->constant_attenuation_ = light->mAttenuationConstant ;
-            sl->linear_attenuation_ = light->mAttenuationLinear ;
-            sl->quadratic_attenuation_ = light->mAttenuationQuadratic ;
-            sl->inner_cutoff_angle_ = light->mAngleInnerCone ;
-            sl->outer_cutoff_angle_ = light->mAngleOuterCone ;
+            sl->setConstantAttenuation(light->mAttenuationConstant) ;
+            sl->setLinearAttenuation(light->mAttenuationLinear) ;
+            sl->setQuadraticAttenuation(light->mAttenuationQuadratic) ;
+            sl->setInnerCutoffAngle(light->mAngleInnerCone) ;
+            sl->setOuterCutoffAngle(light->mAngleOuterCone) ;
 
             slight.reset(sl) ;
             break ;
@@ -339,8 +339,8 @@ bool AssimpImporter::importLights(const aiScene *sc) {
         }
 
         if ( slight ) {
-            slight->name_ = light->mName.C_Str() ;
-            lights_[slight->name_] = slight ;
+            slight->setName(light->mName.C_Str()) ;
+            lights_[slight->name()] = slight ;
         }
     }
 

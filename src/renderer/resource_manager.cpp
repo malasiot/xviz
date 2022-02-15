@@ -2,6 +2,8 @@
 
 #include "shaders/common.vs.hpp"
 #include "shaders/phong.fs.hpp"
+#include "shaders/phong_common.fs.hpp"
+#include "shaders/phong_vars.fs.hpp"
 #include "shaders/shadows.fs.hpp"
 #include "shaders/constant.fs.hpp"
 #include "shaders/per_vertex.fs.hpp"

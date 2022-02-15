@@ -120,16 +120,23 @@ protected:
 
 class OrthographicCamera: public Camera {
 public:
-    OrthographicCamera(float xmag, float ymag, float znear = 0.01, float zfar = 10.0):
-        xmag_(xmag), ymag_(ymag), znear_(znear), zfar_(zfar) {}
+    OrthographicCamera(float left, float right, float top, float bottom, float near = 0.01, float far = 10.0):
+        left_(left), right_(right), top_(top), bottom_(bottom), near_(near), far_(far) {}
 
     Ray getRay(float x, float y) const override ;
 
     Eigen::Matrix4f getProjectionMatrix() const override ;
 
+    float left() const { return left_ ; }
+    float right() const { return right_ ; }
+    float top() const { return top_ ; }
+    float bottom() const { return bottom_ ; }
+    float near() const { return near_ ; }
+    float far() const { return far_ ; }
+
 protected:
-    float xmag_, ymag_, znear_, zfar_ ;
-    float aspect_ ;
+    float left_, right_, top_, bottom_, near_, far_ ;
+
 };
 
 

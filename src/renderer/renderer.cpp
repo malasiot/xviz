@@ -45,28 +45,33 @@ void Renderer::setupTexture(const Material *mat, const Texture2D *texture, unsig
     }
 }
 
-MaterialProgramPtr Renderer::instantiateMaterial(const Material *mat, const std::vector<LightData> &lights, int flags) {
+MaterialProgramPtr Renderer::instantiateMaterial(const Material *mat, const std::vector<LightData *> &lights, bool has_skeleton) {
     MaterialInstanceParams params ;
-    params.flags_ = flags ;
 
-    for( const auto &l: lights ) {
-        LightPtr light = l.light_ ;
-        if ( dynamic_cast<const DirectionalLight *>(l.light_.get()) ) {
-            if ( light->casts_shadows_ ) params.num_dir_lights_shadow_ ++ ;
+    bool has_shadows = false ;
+
+    for( const auto &ld: lights ) {
+        const LightPtr &light = ld->light_ ;
+        if ( light->castsShadows() ) has_shadows = true ;
+        if ( dynamic_cast<const DirectionalLight *>(light.get()) ) {
+            if ( light->castsShadows() ) params.num_dir_lights_shadow_ ++ ;
             else params.num_dir_lights_ ++ ;
-        } else if ( dynamic_cast<const SpotLight *>(l.light_.get()) ) {
-            if ( light->casts_shadows_ ) params.num_spot_lights_shadow_ ++ ;
+        } else if ( dynamic_cast<const SpotLight *>(light.get()) ) {
+            if ( light->castsShadows() ) params.num_spot_lights_shadow_ ++ ;
             else params.num_spot_lights_ ++ ;
-        } else if ( dynamic_cast<const PointLight *>(l.light_.get()) ) {
-            if ( light->casts_shadows_ ) params.num_point_lights_shadow_ ++ ;
+        } else if ( dynamic_cast<const PointLight *>(light.get()) ) {
+            if ( light->castsShadows() ) params.num_point_lights_shadow_ ++ ;
             else params.num_point_lights_ ++ ;
         }
     }
 
+     params.enable_shadows_ = has_shadows ;
+     params.enable_skinning_ = has_skeleton ;
+
 
     if ( const PhongMaterial *material = dynamic_cast<const PhongMaterial *>(mat)) {
         if ( material->diffuseTexture()  ) {
-            params.flags_ |= HAS_DIFFUSE_TEXTURE ;
+            params.has_diffuse_map_ = true ;
             setupTexture(mat, material->diffuseTexture(), 0);
         }
 
@@ -92,7 +97,16 @@ Renderer::~Renderer() {
 
 }
 
-void Renderer::setupCulling(const Material *mat) {
+void Renderer::initState(const Material *mat) {
+
+    glDepthFunc(GL_LEQUAL);
+
+    glFrontFace(GL_CCW) ;
+    glEnable (GL_BLEND);
+
+    glEnable(GL_LINE_SMOOTH) ;
+    glLineWidth(1.0) ;
+
     switch ( mat->side() ) {
     case Material::Side::Front:
         glEnable(GL_CULL_FACE) ;
@@ -106,23 +120,29 @@ void Renderer::setupCulling(const Material *mat) {
         glDisable(GL_CULL_FACE) ;
         break ;
     }
+
+    if ( mat->hasDepthTest() )
+        glEnable(GL_DEPTH_TEST) ;
+    else
+        glDisable(GL_DEPTH_TEST) ;
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-void Renderer::setupShadows(LightData &ld) {
-    initShadowMapRenderer();
+void Renderer::updateShadows(LightData &ld) {
 
-    if ( !ld.shadow_map_ ) {
-        ld.shadow_map_.reset(new ShadowMap()) ;
-        ld.shadow_map_->init(shadow_map_width_, shadow_map_height_) ;
-    }
-    LightPtr light = ld.light_ ;
+    const auto light = ld.light_ ;
 
     if ( const DirectionalLight *dl = dynamic_cast<const DirectionalLight *>(light.get()) ) {
-        Matrix4f lightProjection =
-                ortho(light->shadow_cam_left_, light->shadow_cam_right_,
-                      light->shadow_cam_top_, light->shadow_cam_bottom_,
-                      light->shadow_cam_near_, light->shadow_cam_far_);
-        Matrix4f lightView = lookAt(dl->position_, dl->target_, Vector3f(0.0, 1.0, 0.0));
+        Matrix4f lightProjection = dl->shadowCamera().getProjectionMatrix() ;
+        Matrix4f lightView = lookAt(dl->position(), dl->target(), Vector3f(0.0, 1.0, 0.0));
+
+        ld.ls_mat_ = lightProjection * lightView;
+
+        renderShadowMap(ld);
+    } else if ( const SpotLight *sl = dynamic_cast<const SpotLight *>(light.get()) ) {
+        Matrix4f lightProjection = sl->shadowCamera().getProjectionMatrix() ;
+        Matrix4f lightView = lookAt(sl->position(), {0, 0, 0}, Vector3f(0.0, 1.0, 0.0));
 
         ld.ls_mat_ = lightProjection * lightView;
 
@@ -192,12 +212,7 @@ void Renderer::render(const CameraPtr &cam) {
     proj_ = cam->getViewMatrix() ;
 
     renderScene(cam) ;
-/*
-glBlendFunc(GL_ONE, GL_ZERO);
-      glViewport(0, 0, 256, 256);
-     renderShadowDebug() ;
-  glBindTexture(GL_TEXTURE_2D, 0);
-*/
+
 
 }
 
@@ -270,19 +285,35 @@ void Renderer::uploadTexture(TextureData *data, const Material *mat, int slot) {
     textures_[mat][slot].reset(data) ;
 }
 
-std::vector<LightData> Renderer::getLights()
-{
-    std::vector<LightData> lights ;
+LightData &Renderer::getLightData(const LightPtr &l) {
 
-    for ( NodePtr node: scene_->getNodesRecursive() ) {
+    LightData &data = light_data_[l] ;
+
+    initShadowMapRenderer();
+
+    if ( !data.shadow_map_ ) {
+        data.shadow_map_.reset(new ShadowMap()) ;
+        data.shadow_map_->init(shadow_map_width_, shadow_map_height_) ;
+    }
+
+    return data ;
+}
+
+std::vector<LightData *> Renderer::getLights() {
+    std::vector<LightData *> lights ;
+    for ( NodePtr &node: scene_->getNodesRecursive() ) {
         LightPtr l = node->light() ;
         if ( l ) {
-            LightData ld ;
+            LightData &ld = getLightData(l) ;
             ld.light_ = l ;
             ld.mat_ = node->globalTransform() ;
-            lights.push_back(std::move(ld)) ;
-        }
 
+            if ( l->castsShadows() ) {
+                updateShadows(ld) ;
+            }
+
+            lights.push_back(&ld) ;
+        }
     }
 
     return lights ;
@@ -295,50 +326,29 @@ void Renderer::render(const CameraPtr &cam, const Drawable &dr, const Affine3f &
     GeometryPtr mesh = dr.geometry() ;
     if ( !mesh ) return ;
 
+    // fetch vbo
     const MeshData *data = fetchMeshData(mesh) ;
 
+    // get material
     MaterialPtr material = dr.material() ;
+
+    if ( !material )
+        material = default_material_ ;
 
     MaterialProgramPtr prog ;
 
-    auto lights = getLights() ;
+    // collect lights and associated data
 
-    int flags = 0 ;
-    if ( mesh->hasSkeleton() ) flags |= ENABLE_SKINNING ;
+    std::vector<LightData *> lights = getLights() ;
 
-    for( auto &ld: lights )  {
-        if ( ld.light_->casts_shadows_ ) {
-            flags |= ENABLE_SHADOWS ;
-            setupShadows(ld) ;
-        }
-    }
+    // create or load program for material
+    prog = instantiateMaterial(material.get(), lights, mesh->hasSkeleton()) ;
 
+    // init GL state
 
-    if ( !material ) {
-        material = default_material_ ;
-    }
+    initState(material.get()) ;
 
-
-    prog = instantiateMaterial(material.get(), lights, flags) ;
-
-    glDepthFunc(GL_LEQUAL);
-
-    glFrontFace(GL_CCW) ;
-    glEnable (GL_BLEND);
-
-    glEnable(GL_LINE_SMOOTH) ;
-    glLineWidth(1.0) ;
-
-    setupCulling(material.get()) ;
-
-    if ( material->hasDepthTest() )
-        glEnable(GL_DEPTH_TEST) ;
-    else
-        glDisable(GL_DEPTH_TEST) ;
-
-
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+    // apply uniforms to material
     prog->use() ;
     prog->applyParams(material) ;
     prog->applyTransform(perspective_, proj_, mat.matrix()) ;
@@ -362,9 +372,10 @@ void Renderer::render(const CameraPtr &cam, const Drawable &dr, const Affine3f &
     if ( mesh && mesh->hasSkeleton() )
         setPose(mesh, prog) ;
 
+    // do rendering
+
     const Viewport &vp = cam->getViewport() ;
     glViewport(vp.x_, vp.y_, vp.width_, vp.height_);
-
 
 #if 0
 
@@ -389,11 +400,18 @@ void Renderer::render(const CameraPtr &cam, const Drawable &dr, const Affine3f &
     drawMeshData(*data, mesh) ;
 
 #endif
+
+/*
+    glBlendFunc(GL_ONE, GL_ZERO);
+          glViewport(0, 0, 256, 256);
+       //    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+         renderShadowDebug(*lights[1]) ;
+      glBindTexture(GL_TEXTURE_2D, 0);
+*/
     glUseProgram(0) ;
 }
 
-void Renderer::initShadowMapRenderer()
-{
+void Renderer::initShadowMapRenderer() {
     if ( shadow_map_shader_ ) return ;
 
     shadow_map_shader_.reset(new OpenGLShaderProgram) ;

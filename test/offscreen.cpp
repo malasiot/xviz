@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
     // add a ligh source
 
     DirectionalLight *dl = new DirectionalLight(Vector3f(0.5, 0.5, 1)) ;
-    dl->diffuse_color_ = Vector3f(1, 1, 1) ;
+    dl->setDiffuseColor(Vector3f(1, 1, 1)) ;
     scene->addLightNode(LightPtr(dl)) ;
 
     // create a camera

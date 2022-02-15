@@ -20,7 +20,7 @@ int main(int argc, char **argv)
     scene->load("/home/malasiot/Downloads/capsule.obj") ;
 
     DirectionalLight *dl = new DirectionalLight(Vector3f(0.5, 0.5, 1)) ;
-    dl->diffuse_color_ = Vector3f(0.5, 0.5, 0.5) ;
+    dl->setDiffuseColor(Vector3f(0.5, 0.5, 0.5)) ;
     scene->setLight(LightPtr(dl)) ;
 
     NodePtr box(new Node) ;

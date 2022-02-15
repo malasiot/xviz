@@ -25,7 +25,9 @@ struct MaterialInstanceParams {
     GLuint num_spot_lights_ = 0 ;
     GLuint num_spot_lights_shadow_ = 0 ;
 
-    int flags_ = 0 ;
+    bool enable_shadows_ = false ;
+    bool enable_skinning_ = false ;
+    bool has_diffuse_map_ = false ;
 
     std::string key() const ;
 };
@@ -51,15 +53,17 @@ public:
     virtual void applyParams(const MaterialPtr &mat) = 0 ;
     virtual void applyTransform(const Eigen::Matrix4f &cam, const Eigen::Matrix4f &view, const Eigen::Matrix4f &model) {}
     virtual void applyLight(uint idx, const LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat, GLuint tindex) {}
-    virtual void applyLights(const std::vector<LightData> &lights) {}
+    virtual void applyLights(const std::vector<LightData *> &lights) {}
     virtual void applyBoneTransform(GLuint idx, const Eigen::Matrix4f &tf) ;
 
 protected:
 
     void applyDefaultPerspective(const Eigen::Matrix4f &cam, const Eigen::Matrix4f &view, const Eigen::Matrix4f &model) ;
-    void applyDefaultLight(uint idx, const LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat, GLuint tindex) ;
-    void applyDefaultLights(const std::vector<LightData> &lights) ;
+    void applyDefaultLights(const std::vector<LightData *> &lights) ;
 
+    void applyDirectionalLight(uint idx, const LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat, GLuint tindex) ;
+    void applySpotLight(uint idx, const LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat, GLuint tindex) ;
+    void applyPointLight(uint idx, const LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat, GLuint tindex) ;
 };
 
 using MaterialProgramPtr = std::shared_ptr<MaterialProgram> ;
@@ -76,11 +80,7 @@ public:
         applyDefaultPerspective(cam, view, model) ;
     }
 
-    void applyLight(uint idx, const LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat, GLuint tindex) override {
-        applyDefaultLight(idx, light, tf, lsmat, tindex) ;
-    }
-
-    void applyLights(const std::vector<LightData> &lights) {
+    void applyLights(const std::vector<LightData *> &lights) override {
         applyDefaultLights(lights) ;
     }
 
@@ -104,10 +104,6 @@ public:
 
     void applyTransform(const Eigen::Matrix4f &cam, const Eigen::Matrix4f &view, const Eigen::Matrix4f &model) override {
         applyDefaultPerspective(cam, view, model) ;
-    }
-
-    void applyLight(uint idx, const LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat, GLuint tindex) override {
-         applyDefaultLight(idx, light, tf, lsmat, tindex) ;
     }
 
     static MaterialProgramPtr instance(const MaterialInstanceParams &params) {

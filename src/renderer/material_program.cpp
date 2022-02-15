@@ -14,29 +14,29 @@ PhongMaterialProgram::PhongMaterialProgram(const MaterialInstanceParams &params)
 {
     OpenGLShaderPreproc vs_preproc ;
 
-    vs_preproc.appendDefinition("HAS_SHADOWS", params.flags_ & ENABLE_SHADOWS) ;
+    vs_preproc.appendDefinition("HAS_SHADOWS", params.enable_shadows_) ;
     vs_preproc.appendDefinition("HAS_NORMALS") ;
     vs_preproc.appendConstant("NUM_DIRECTIONAL_LIGHTS", std::to_string(params.num_dir_lights_)) ;
-    vs_preproc.appendConstant("NUM_DIRECTIONAL_LIGHTS_WITH_SHADOW", std::to_string(params.num_dir_lights_shadow_), params.flags_ & ENABLE_SHADOWS) ;
+    vs_preproc.appendConstant("NUM_DIRECTIONAL_LIGHTS_WITH_SHADOW", std::to_string(params.num_dir_lights_shadow_), params.enable_shadows_) ;
     vs_preproc.appendConstant("NUM_SPOT_LIGHTS", std::to_string(params.num_spot_lights_)) ;
-    vs_preproc.appendConstant("NUM_SPOT_LIGHTS_WITH_SHADOW", std::to_string(params.num_spot_lights_shadow_), params.flags_ & ENABLE_SHADOWS) ;
+    vs_preproc.appendConstant("NUM_SPOT_LIGHTS_WITH_SHADOW", std::to_string(params.num_spot_lights_shadow_), params.enable_shadows_) ;
     vs_preproc.appendConstant("NUM_POINT_LIGHTS", std::to_string(params.num_point_lights_)) ;
-    vs_preproc.appendConstant("NUM_POINT_LIGHTS_WITH_SHADOW", std::to_string(params.num_point_lights_shadow_), params.flags_ & ENABLE_SHADOWS) ;
-    vs_preproc.appendDefinition("HAS_UVs", params.flags_ & HAS_DIFFUSE_TEXTURE) ;
-    vs_preproc.appendDefinition("USE_SKINNING", params.flags_ & ENABLE_SKINNING);
+    vs_preproc.appendConstant("NUM_POINT_LIGHTS_WITH_SHADOW", std::to_string(params.num_point_lights_shadow_), params.enable_shadows_) ;
+    vs_preproc.appendDefinition("HAS_UVs", params.has_diffuse_map_) ;
+    vs_preproc.appendDefinition("USE_SKINNING", params.enable_skinning_);
 
     addShaderFromFile(VERTEX_SHADER, "@vertex_shader", vs_preproc) ;
 
     OpenGLShaderPreproc fs_preproc ;
 
-    fs_preproc.appendDefinition("HAS_DIFFUSE_MAP", params.flags_ & HAS_DIFFUSE_TEXTURE) ;
-    fs_preproc.appendDefinition("HAS_SHADOWS", params.flags_ & ENABLE_SHADOWS) ;
+    fs_preproc.appendDefinition("HAS_DIFFUSE_MAP", params.has_diffuse_map_) ;
+    fs_preproc.appendDefinition("HAS_SHADOWS", params.enable_shadows_) ;
     fs_preproc.appendConstant("NUM_DIRECTIONAL_LIGHTS", std::to_string(params.num_dir_lights_)) ;
-    fs_preproc.appendConstant("NUM_DIRECTIONAL_LIGHTS_WITH_SHADOW", std::to_string(params.num_dir_lights_shadow_), params.flags_ & ENABLE_SHADOWS) ;
+    fs_preproc.appendConstant("NUM_DIRECTIONAL_LIGHTS_WITH_SHADOW", std::to_string(params.num_dir_lights_shadow_), params.enable_shadows_) ;
     fs_preproc.appendConstant("NUM_SPOT_LIGHTS", std::to_string(params.num_spot_lights_)) ;
-    fs_preproc.appendConstant("NUM_SPOT_LIGHTS_WITH_SHADOW", std::to_string(params.num_spot_lights_shadow_), params.flags_ & ENABLE_SHADOWS) ;
+    fs_preproc.appendConstant("NUM_SPOT_LIGHTS_WITH_SHADOW", std::to_string(params.num_spot_lights_shadow_), params.enable_shadows_) ;
     fs_preproc.appendConstant("NUM_POINT_LIGHTS", std::to_string(params.num_point_lights_)) ;
-    fs_preproc.appendConstant("NUM_POINT_LIGHTS_WITH_SHADOW", std::to_string(params.num_point_lights_shadow_), params.flags_ & ENABLE_SHADOWS) ;
+    fs_preproc.appendConstant("NUM_POINT_LIGHTS_WITH_SHADOW", std::to_string(params.num_point_lights_shadow_), params.enable_shadows_) ;
 
     addShaderFromFile(FRAGMENT_SHADER, "@phong_fragment_shader", fs_preproc) ;
 
@@ -53,7 +53,7 @@ void PhongMaterialProgram::applyParams(const MaterialPtr &mat) {
     setUniform("g_material.diffuse", material->diffuseColor());
     setUniform("g_material.opacity", material->opacity());
 
-    if ( params_.flags_ & HAS_DIFFUSE_TEXTURE ) {
+    if ( params_.has_diffuse_map_ & HAS_DIFFUSE_TEXTURE ) {
         setUniform("diffuseMap", 0) ;
     }
 }
@@ -81,131 +81,133 @@ void MaterialProgram::applyDefaultPerspective(const Matrix4f &cam, const Matrix4
 }
 
 
-void MaterialProgram::applyDefaultLight(uint idx, const LightPtr &light, const Affine3f &tf, const Matrix4f &lsmat, GLuint tindex)
-{
+void MaterialProgram::applyDirectionalLight(uint idx, const LightPtr &light, const Affine3f &tf, const Matrix4f &lsmat, GLuint tindex) {
+    const auto &dlight = std::dynamic_pointer_cast<DirectionalLight>(light) ;
 
-    if ( const auto &dlight = std::dynamic_pointer_cast<DirectionalLight>(light) ) {
-        stringstream strm ;
-        strm << "g_light_source_dir" ;
-        if ( light->casts_shadows_ ) strm << "_shadow" ;
-        strm << "[" << idx << "]" ;
-        string vname = strm.str() ;
+    string vname("g_light_source_dir") ;
+    vname += ( light->castsShadows() ? "_shadow[" : "[" ) + std::to_string(idx) + "]" ;
 
-        setUniform(vname + ".light_type", 1) ;
-        setUniform(vname + ".color", dlight->diffuse_color_) ;
-        setUniform(vname + ".direction", tf * (dlight->position_ - dlight->target_).normalized()) ;
+    setUniform(vname + ".ambient", dlight->ambientColor()) ;
+    setUniform(vname + ".diffuse", dlight->diffuseColor()) ;
+    setUniform(vname + ".specular", dlight->specularColor()) ;
 
-        if ( light->casts_shadows_ ) {
-            setUniform("lsmat_d[" + std::to_string(idx) + "]", Matrix4f(lsmat)) ;
-            setUniform(vname + ".shadowMap", (GLuint)(4+tindex)) ;
-            setUniform(vname + ".shadowBias", light->shadow_bias_) ;
-        }
+    setUniform(vname + ".direction", tf * (dlight->position() - dlight->target()).normalized()) ;
+
+    if ( light->castsShadows() ) {
+        setUniform("lsmat_d[" + std::to_string(idx) + "]", Matrix4f(lsmat)) ;
+        setUniform(vname + ".shadowMap", (GLuint)(4+tindex)) ;
+        setUniform(vname + ".shadowBias", light->shadowBias()) ;
     }
-    else if ( const auto &slight = std::dynamic_pointer_cast<SpotLight>(light) ) {
-        stringstream strm ;
-        strm << "g_light_source_spot" ;
-        if ( light->casts_shadows_ ) strm << "_shadow" ;
-        strm << "[" << idx << "]" ;
-        string vname = strm.str() ;
+}
 
-        setUniform(vname + ".light_type", 2) ;
-        setUniform(vname + ".color", slight->diffuse_color_) ;
-        setUniform(vname + ".direction", slight->direction_) ;
-        setUniform(vname + ".position", tf * slight->position_) ;
-        setUniform(vname + ".constant_attenuation", slight->constant_attenuation_) ;
-        setUniform(vname + ".linear_attenuation", slight->linear_attenuation_) ;
-        setUniform(vname + ".quadratic_attenuation", slight->quadratic_attenuation_) ;
+void MaterialProgram::applySpotLight(uint idx, const LightPtr &light, const Affine3f &tf, const Matrix4f &lsmat, GLuint tindex) {
+    const auto &slight = std::dynamic_pointer_cast<SpotLight>(light);
 
-        setUniform(vname + ".spot_inner_cutoff", (float)cos(M_PI*slight->inner_cutoff_angle_/180.0)) ;
-        setUniform(vname + ".spot_outer_cutoff", (float)cos(M_PI*slight->outer_cutoff_angle_/180.0)) ;
+    string vname("g_light_source_spot") ;
+    vname += ( light->castsShadows() ? "_shadow[" : "[" ) + std::to_string(idx) + "]" ;
 
-        if ( light->casts_shadows_ ) {
-            setUniform("lsmat_s[" + std::to_string(idx) + "]", Matrix4f(lsmat)) ;
-            setUniform(vname + ".shadowMap", 4+(GLuint)(4+tindex)) ;
-            setUniform(vname + ".shadowBias", light->shadow_bias_) ;
-        }
+    setUniform(vname + ".ambient", slight->ambientColor()) ;
+    setUniform(vname + ".diffuse", slight->diffuseColor()) ;
+    setUniform(vname + ".specular", slight->specularColor()) ;
+    setUniform(vname + ".direction", slight->direction()) ;
+    setUniform(vname + ".position", tf * slight->position()) ;
+    setUniform(vname + ".constant_attenuation", slight->constantAttenuation()) ;
+    setUniform(vname + ".linear_attenuation", slight->linearAttenuation()) ;
+    setUniform(vname + ".quadratic_attenuation", slight->quadraticAttenuation()) ;
 
-    }
-    else if ( const auto &plight = std::dynamic_pointer_cast<PointLight>(light)) {
-        stringstream strm ;
-        strm << "g_light_source_point" ;
-        if ( light->casts_shadows_ ) strm << "_shadow" ;
-        strm << "[" << idx << "]" ;
-        string vname = strm.str() ;
+    setUniform(vname + ".spot_inner_cutoff", (float)cos(M_PI*slight->innerCutoffAngle()/180.0)) ;
+    setUniform(vname + ".spot_outer_cutoff", (float)cos(M_PI*slight->outerCutoffAngle()/180.0)) ;
 
-        setUniform(vname + ".light_type", 3) ;
-        setUniform(vname + ".color", plight->diffuse_color_) ;
-        setUniform(vname + ".position", tf * plight->position_) ;
-        setUniform(vname + ".constant_attenuation", plight->constant_attenuation_) ;
-        setUniform(vname + ".linear_attenuation", plight->linear_attenuation_) ;
-        setUniform(vname + ".quadratic_attenuation", plight->quadratic_attenuation_) ;
-
-        if ( light->casts_shadows_ ) {
-            setUniform("lsmat_p[" + std::to_string(idx) + "]", Matrix4f(lsmat)) ;
-            setUniform(vname + ".shadowMap", (GLuint)(4+tindex)) ;
-            setUniform(vname + ".shadowBias", light->shadow_bias_) ;
-        }
+    if ( light->castsShadows() ) {
+        setUniform("lsmat_s[" + std::to_string(idx) + "]", Matrix4f(lsmat)) ;
+        setUniform(vname + ".shadowMap", 4+(GLuint)(4+tindex)) ;
+        setUniform(vname + ".shadowBias", light->shadowBias()) ;
     }
 
 }
 
-void MaterialProgram::applyDefaultLights(const std::vector<LightData> &lights) {
+void MaterialProgram::applyPointLight(uint idx, const LightPtr &light, const Affine3f &tf, const Matrix4f &lsmat, GLuint tindex) {
+    const auto &plight = std::dynamic_pointer_cast<PointLight>(light);
+
+    string vname("g_light_source_point") ;
+    vname += ( light->castsShadows() ? "_shadow[" : "[" ) + std::to_string(idx) + "]" ;
+
+    setUniform(vname + ".ambient", plight->ambientColor()) ;
+    setUniform(vname + ".diffuse", plight->diffuseColor()) ;
+    setUniform(vname + ".specular", plight->specularColor()) ;
+
+    setUniform(vname + ".position", tf * plight->position()) ;
+    setUniform(vname + ".constant_attenuation", plight->constantAttenuation()) ;
+    setUniform(vname + ".linear_attenuation", plight->linearAttenuation()) ;
+    setUniform(vname + ".quadratic_attenuation", plight->quadraticAttenuation()) ;
+
+    if ( light->castsShadows() ) {
+        setUniform("lsmat_p[" + std::to_string(idx) + "]", Matrix4f(lsmat)) ;
+        setUniform(vname + ".shadowMap", (GLuint)(4+tindex)) ;
+        setUniform(vname + ".shadowBias", light->shadowBias()) ;
+    }
+}
+
+void MaterialProgram::applyDefaultLights(const std::vector<LightData *> &lights) {
 
     size_t i, k, t=0 ;
     for( i=0, k=0 ; i<lights.size() ; i++ ) {
         const auto &ld = lights[i] ;
-        const auto &light = ld.light_ ;
+        const auto &light = ld->light_ ;
 
-        if ( dynamic_cast<const DirectionalLight *>(light.get()) && !light->casts_shadows_ ) {
-            applyDefaultLight(k++, ld.light_, ld.mat_, ld.ls_mat_, 0) ;
+        if ( dynamic_cast<const DirectionalLight *>(light.get()) && !light->castsShadows() ) {
+            applyDirectionalLight(k++, ld->light_, ld->mat_, ld->ls_mat_, 0) ;
         }
     }
 
     for( i=0, k=0 ; i<lights.size() ; i++ ) {
         const auto &ld = lights[i] ;
-        const auto &light = ld.light_ ;
+        const auto &light = ld->light_ ;
 
-        if ( dynamic_cast<const DirectionalLight *>(light.get()) && light->casts_shadows_ ) {
-            ld.shadow_map_->bindTexture(GL_TEXTURE0 + 4 + t++) ;
-            applyDefaultLight(k++, ld.light_, ld.mat_, ld.ls_mat_, t) ;
+        if ( dynamic_cast<const DirectionalLight *>(light.get()) && light->castsShadows() ) {
+            ld->shadow_map_->bindTexture(GL_TEXTURE0 + 4 + t) ;
+            applyDirectionalLight(k++, ld->light_, ld->mat_, ld->ls_mat_, t) ;
+            ++t ;
         }
     }
 
     for( i=0, k=0 ; i<lights.size() ; i++ ) {
         const auto &ld = lights[i] ;
-        const auto &light = ld.light_ ;
+        const auto &light = ld->light_ ;
 
-        if ( dynamic_cast<const SpotLight *>(light.get()) && !light->casts_shadows_ ) {
-            applyDefaultLight(k++, ld.light_, ld.mat_, ld.ls_mat_, 0) ;
+        if ( dynamic_cast<const SpotLight *>(light.get()) && !light->castsShadows() ) {
+            applySpotLight(k++, ld->light_, ld->mat_, ld->ls_mat_, 0) ;
         }
     }
 
     for( i=0, k=0 ; i<lights.size() ; i++ ) {
         const auto &ld = lights[i] ;
-        const auto &light = ld.light_ ;
+        const auto &light = ld->light_ ;
 
-        if ( dynamic_cast<const SpotLight *>(light.get()) && light->casts_shadows_ ) {
-            ld.shadow_map_->bindTexture(GL_TEXTURE0 + 4 + t++) ;
-            applyDefaultLight(k++, ld.light_, ld.mat_, ld.ls_mat_, t) ;
+        if ( dynamic_cast<const SpotLight *>(light.get()) && light->castsShadows() ) {
+            ld->shadow_map_->bindTexture(GL_TEXTURE0 + 4 + t) ;
+            applySpotLight(k++, ld->light_, ld->mat_, ld->ls_mat_, t) ;
+            ++t ;
         }
     }
 
     for( i=0, k=0 ; i<lights.size() ; i++ ) {
         const auto &ld = lights[i] ;
-        const auto &light = ld.light_ ;
+        const auto &light = ld->light_ ;
 
-        if ( dynamic_cast<const PointLight *>(light.get()) && !light->casts_shadows_ ) {
-            applyDefaultLight(k++, ld.light_, ld.mat_, ld.ls_mat_, 0) ;
+        if ( dynamic_cast<const PointLight *>(light.get()) && !light->castsShadows() ) {
+            applyPointLight(k++, ld->light_, ld->mat_, ld->ls_mat_, 0) ;
         }
     }
 
     for( i=0, k=0 ; i<lights.size() ; i++ ) {
         const auto &ld = lights[i] ;
-        const auto &light = ld.light_ ;
+        const auto &light = ld->light_ ;
 
-        if ( dynamic_cast<const PointLight *>(light.get()) && light->casts_shadows_ ) {
-            ld.shadow_map_->bindTexture(GL_TEXTURE0 + 4 + t++) ;
-            applyDefaultLight(k++, ld.light_, ld.mat_, ld.ls_mat_, t) ;
+        if ( dynamic_cast<const PointLight *>(light.get()) && light->castsShadows() ) {
+            ld->shadow_map_->bindTexture(GL_TEXTURE0 + 4 + t) ;
+            applyPointLight(k++, ld->light_, ld->mat_, ld->ls_mat_, t) ;
+            ++t ;
         }
     }
 
@@ -214,10 +216,7 @@ void MaterialProgram::applyDefaultLights(const std::vector<LightData> &lights) {
 ConstantMaterialProgram::ConstantMaterialProgram(const MaterialInstanceParams &params): params_(params) {
     OpenGLShaderPreproc preproc ;
 
-     //preproc.appendConstant("NUM_LIGHTS", std::to_string(params.num_lights_)) ;
-
-    if ( params.flags_ & ENABLE_SKINNING ) preproc.appendDefinition("USE_SKINNING");
-    if ( params.flags_ & ENABLE_SHADOWS ) preproc.appendDefinition("HAS_SHADOWS") ;
+    preproc.appendDefinition("USE_SKINNING", params.enable_skinning_);
 
     addShaderFromFile(VERTEX_SHADER, "@vertex_shader", preproc) ;
     addShaderFromFile(FRAGMENT_SHADER, "@constant_fragment_shader", preproc) ;
@@ -236,9 +235,8 @@ PerVertexColorMaterialProgram::PerVertexColorMaterialProgram(const MaterialInsta
 
     OpenGLShaderPreproc preproc ;
     preproc.appendDefinition("HAS_COLORS");
-//    preproc.appendConstant("NUM_LIGHTS", std::to_string(params.num_lights_)) ;
 
-    if ( params.flags_ & ENABLE_SKINNING ) preproc.appendDefinition("USE_SKINNING");
+    preproc.appendDefinition("USE_SKINNING", params.enable_skinning_);
 
     addShaderFromFile(VERTEX_SHADER, "@vertex_shader", preproc) ;
     addShaderFromFile(FRAGMENT_SHADER, "@per_vertex_color_fragment_shader", preproc) ;
@@ -250,16 +248,15 @@ void PerVertexColorMaterialProgram::applyParams(const MaterialPtr &mat) {
     const PerVertexColorMaterial *material = dynamic_cast<const PerVertexColorMaterial *>(mat.get());
     assert( material ) ;
 
-     setUniform("opacity", material->opacity()) ;
+    setUniform("opacity", material->opacity()) ;
 }
 
 
 WireFrameMaterialProgram::WireFrameMaterialProgram(const MaterialInstanceParams &params) {
 
     OpenGLShaderPreproc preproc ;
-//    preproc.appendConstant("NUM_LIGHTS", std::to_string(params.num_lights_)) ;
 
-    if ( params.flags_ & ENABLE_SKINNING ) preproc.appendDefinition("USE_SKINNING");
+    preproc.appendDefinition("USE_SKINNING", params.enable_skinning_);
 
     addShaderFromFile(VERTEX_SHADER, "@vertex_shader", preproc) ;
     addShaderFromFile(GEOMETRY_SHADER, "@wireframe_geometry_shader", preproc) ;

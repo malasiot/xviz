@@ -76,7 +76,7 @@ Gui::Gui() {
 
 
     DirectionalLight *dl = new DirectionalLight(Vector3f(0.5, 0.5, 1)) ;
-    dl->diffuse_color_ = Vector3f(1, 1, 1) ;
+    dl->setDiffuseColor(Vector3f(1, 1, 1)) ;
     scene->addLightNode(LightPtr(dl)) ;
 
     TransformGizmo *gizmo = new TransformGizmo(getCamera(), 2.0) ;

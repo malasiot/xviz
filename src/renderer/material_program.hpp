@@ -39,7 +39,7 @@ public:
 
     virtual void applyParams(const MaterialPtr &mat) = 0 ;
     virtual void applyTransform(const Eigen::Matrix4f &cam, const Eigen::Matrix4f &view, const Eigen::Matrix4f &model) {}
-    virtual void applyLight(uint idx, const LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat, GLuint tindex) {}
+    virtual void applyLight(GLuint, const LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat, GLuint tindex) {}
     virtual void applyLights(const std::vector<LightData *> &lights) {}
     virtual void applyBoneTransform(GLuint idx, const Eigen::Matrix4f &tf) ;
 
@@ -48,9 +48,9 @@ protected:
     void applyDefaultPerspective(const Eigen::Matrix4f &cam, const Eigen::Matrix4f &view, const Eigen::Matrix4f &model) ;
     void applyDefaultLights(const std::vector<LightData *> &lights) ;
 
-    void applyDirectionalLight(uint idx, const LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat, GLuint tindex) ;
-    void applySpotLight(uint idx, const LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat, GLuint tindex) ;
-    void applyPointLight(uint idx, const LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat, GLuint tindex) ;
+    void applyDirectionalLight(GLuint idx, const LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat, GLuint tindex) ;
+    void applySpotLight(GLuint idx, const LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat, GLuint tindex) ;
+    void applyPointLight(GLuint idx, const LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat, GLuint tindex) ;
 };
 
 using MaterialProgramPtr = std::shared_ptr<MaterialProgram> ;

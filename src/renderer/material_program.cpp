@@ -81,7 +81,7 @@ void MaterialProgram::applyDefaultPerspective(const Matrix4f &cam, const Matrix4
 }
 
 
-void MaterialProgram::applyDirectionalLight(uint idx, const LightPtr &light, const Affine3f &tf, const Matrix4f &lsmat, GLuint tindex) {
+void MaterialProgram::applyDirectionalLight(GLuint idx, const LightPtr &light, const Affine3f &tf, const Matrix4f &lsmat, GLuint tindex) {
     const auto &dlight = std::dynamic_pointer_cast<DirectionalLight>(light) ;
 
     string vname("g_light_source_dir") ;
@@ -100,7 +100,7 @@ void MaterialProgram::applyDirectionalLight(uint idx, const LightPtr &light, con
     }
 }
 
-void MaterialProgram::applySpotLight(uint idx, const LightPtr &light, const Affine3f &tf, const Matrix4f &lsmat, GLuint tindex) {
+void MaterialProgram::applySpotLight(GLuint idx, const LightPtr &light, const Affine3f &tf, const Matrix4f &lsmat, GLuint tindex) {
     const auto &slight = std::dynamic_pointer_cast<SpotLight>(light);
 
     string vname("g_light_source_spot") ;
@@ -126,7 +126,7 @@ void MaterialProgram::applySpotLight(uint idx, const LightPtr &light, const Affi
 
 }
 
-void MaterialProgram::applyPointLight(uint idx, const LightPtr &light, const Affine3f &tf, const Matrix4f &lsmat, GLuint tindex) {
+void MaterialProgram::applyPointLight(GLuint idx, const LightPtr &light, const Affine3f &tf, const Matrix4f &lsmat, GLuint tindex) {
     const auto &plight = std::dynamic_pointer_cast<PointLight>(light);
 
     string vname("g_light_source_point") ;

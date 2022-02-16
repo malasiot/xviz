@@ -386,7 +386,7 @@ int TransformGizmo::hitTest(QMouseEvent *event, RayCastResult &res)
 
     float tmin = std::numeric_limits<float>::max() ;
     int c = -1 ;
-    for( uint i=0 ; i<N_COMPONENTS ; i++ ) {
+    for( size_t i=0 ; i<N_COMPONENTS ; i++ ) {
         if ( !components_[i].node_ ) continue ;
         RayCastResult r ;
         if ( ray_caster_.intersect(ray, components_[i].node_, r) && r.t_ < tmin ) {

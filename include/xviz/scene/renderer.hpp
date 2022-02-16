@@ -63,11 +63,8 @@ private:
 
     int flags_ ;
 
-    using TextureBundle = std::array<std::unique_ptr<impl::TextureData>, 4> ;
-
     std::map<GeometryPtr, std::unique_ptr<impl::MeshData>> meshes_ ;
-    std::map<const Material *, impl::MaterialProgramPtr> materials_ ;
-    std::map<const Material *, TextureBundle> textures_ ;
+    std::map<const Texture2D *, std::unique_ptr<impl::TextureData>> textures_ ;
     unsigned int default_fbo_ ;
 
     std::unique_ptr<impl::OpenGLShaderProgram> shadow_map_shader_, shadow_map_debug_shader_ ;
@@ -97,6 +94,7 @@ private:
     void updateShadows(LightData &light);
     void renderShadowDebug(const LightData &sd);
     void renderQuad();
+    impl::TextureData *fetchTextureData(const Texture2D *tex) ;
     void uploadTexture(impl::TextureData *data, const Material *material, int slot) ;
     LightData &getLightData(const LightPtr &light) ;
     const impl::MeshData *fetchMeshData(GeometryPtr &geom);

@@ -29,19 +29,21 @@ Renderer::Renderer(int flags) {
     default_material_.reset(mat) ;
 }
 
-void Renderer::setupTexture(const Material *mat, const Texture2D *texture, unsigned int slot) {
-    if ( textures_.count(mat) == 0 ) {
-        textures_[mat] = {  } ;
-    }
-    if ( textures_[mat][slot]  ) return ; // already loaded
+impl::TextureData *Renderer::fetchTextureData(const Texture2D *texture) {
+    if ( !texture ) return nullptr ;
 
-    if ( texture ) {
-
-        Image image = texture->image() ;
-
-         TextureData *data = new TextureData() ;
-         data->create(image) ;
-         uploadTexture(data, mat, slot) ;
+    auto it = textures_.find(texture) ;
+    if ( it != textures_.end() )
+        return it->second.get() ;
+    else {
+        impl::TextureData *data = new impl::TextureData ;
+        if ( data->create(texture->image()) )
+            return textures_.emplace(texture, std::unique_ptr<impl::TextureData>(data)).first->second.get() ;
+        else {
+            // loading failed so store a null pointer
+            textures_.emplace(texture, nullptr) ;
+            return nullptr ;
+        }
     }
 }
 
@@ -73,7 +75,7 @@ MaterialProgramPtr Renderer::instantiateMaterial(const Material *mat, const std:
 
         if ( material->diffuseTexture()  ) {
             params.has_diffuse_map_ = true ;
-            setupTexture(mat, material->diffuseTexture(), 0);
+//            setupTexture(mat, material->diffuseTexture(), 0);
         }
 
         return PhongMaterialProgram::instance(params) ;
@@ -287,10 +289,6 @@ void Renderer::renderScene(const CameraPtr &cam) {
     }
 }
 
-void Renderer::uploadTexture(TextureData *data, const Material *mat, int slot) {
-    if ( !data ) return ;
-    textures_[mat][slot].reset(data) ;
-}
 
 LightData &Renderer::getLightData(const LightPtr &l) {
 
@@ -360,9 +358,13 @@ void Renderer::render(const CameraPtr &cam, const Drawable &dr, const Affine3f &
     prog->applyParams(material) ;
     prog->applyTransform(perspective_, proj_, mat.matrix()) ;
     prog->applyLights(lights) ;
+    prog->bindTextures(material, [this](const Texture2D *t) {
+        TextureData *td = fetchTextureData(t) ;
+        return td;
+    }) ;
 
     // bind material textures
-
+/*
     auto tit = textures_.find(material.get()) ;
     if ( tit != textures_.end() ) {
         const TextureBundle &bundle = tit->second ;
@@ -375,7 +377,7 @@ void Renderer::render(const CameraPtr &cam, const Drawable &dr, const Affine3f &
 
         }
     }
-
+*/
     if ( mesh && mesh->hasSkeleton() )
         setPose(mesh, prog) ;
 

@@ -4,6 +4,7 @@
 #include <xviz/scene/light.hpp>
 #include "shadow_map.hpp"
 #include "util.hpp"
+#include "texture_data.hpp"
 
 using namespace std ;
 using namespace Eigen ;
@@ -56,6 +57,28 @@ void PhongMaterialProgram::applyParams(const MaterialPtr &mat) {
     if ( params_.has_diffuse_map_ & HAS_DIFFUSE_TEXTURE ) {
         setUniform("diffuseMap", 0) ;
     }
+}
+
+void MaterialProgram::bindTexture(const Texture2D *texture, TextureLoader loader, int slot) {
+    if ( !texture ) return ;
+
+    impl::TextureData *data = loader(texture) ;
+
+    if ( data && data->loaded() ) {
+        glActiveTexture(GL_TEXTURE0 + slot);
+        glBindTexture(GL_TEXTURE_2D, data->id());
+    }
+}
+
+void PhongMaterialProgram::bindTextures(const MaterialPtr &mat, TextureLoader loader)
+{
+    const PhongMaterial *m = dynamic_cast<const PhongMaterial *>(mat.get()) ;
+    assert(m) ;
+
+    bindTexture(m->diffuseTexture(), loader, 0) ;
+
+
+
 }
 
 

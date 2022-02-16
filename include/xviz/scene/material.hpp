@@ -33,9 +33,14 @@ public:
     const Image &image() const { return image_ ; }
     const Sampler2D &sampler() const { return sampler_ ; }
 
+    void setTransform(const Eigen::Affine2f &tr) { transform_ = tr ; }
+
+    Eigen::Affine2f transform() const { return transform_ ; }
+
 private:
     Image image_ ;
     Sampler2D sampler_ ;
+    Eigen::Affine2f transform_ = Eigen::Affine2f::Identity() ;
 };
 
 

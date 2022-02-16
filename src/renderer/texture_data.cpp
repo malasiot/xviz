@@ -34,7 +34,8 @@ bool TextureData::create(const Image &image)
 
         stbi_image_free(data);
 
-        return true ;
+        loaded_ = true ;
+
     } else if ( image.type() == ImageType::Raw ) {
         if ( image.format() == ImageFormat::encoded ) {
 
@@ -50,8 +51,12 @@ bool TextureData::create(const Image &image)
             glGenerateMipmap(GL_TEXTURE_2D);
 
             stbi_image_free(data);
+
+            loaded_ = true ;
         }
     }
+
+    return loaded_ ;
 }
 
 }}

@@ -19,8 +19,10 @@ public:
     bool create(const Image &image) ;
 
     GLuint id() const { return id_ ; }
+    bool loaded() const { return loaded_ ; }
 
 private:
+    bool loaded_ = false ;
     GLuint id_ ;
 };
 

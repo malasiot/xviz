@@ -271,9 +271,12 @@ bool TransformGizmo::onMouseReleased(QMouseEvent *) {
             components_[i].node_->setVisible(true) ;
         }
     }
-    dragging_ = -1 ;
-    if ( cb_) cb_(TRANSFORM_GIZMO_MOTION_ENDED, transform_node_->transform()) ;
 
+    if ( cb_ && dragging_ != -1 ) {
+        cb_(TRANSFORM_GIZMO_MOTION_ENDED, transform_node_->transform()) ;
+    }
+
+    dragging_ = -1 ;
     return false ;
 }
 

@@ -49,10 +49,11 @@ protected:
     void applyDefaultPerspective(const Eigen::Matrix4f &cam, const Eigen::Matrix4f &view, const Eigen::Matrix4f &model) ;
     void applyDefaultLights(const std::vector<LightData *> &lights) ;
 
-    void applyDirectionalLight(uint idx, const LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat, GLuint tindex) ;
-    void applySpotLight(uint idx, const LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat, GLuint tindex) ;
-    void applyPointLight(uint idx, const LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat, GLuint tindex) ;
+    void applyDirectionalLight(GLuint idx, const LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat, GLuint tindex) ;
+    void applySpotLight(GLuint idx, const LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat, GLuint tindex) ;
+    void applyPointLight(GLuint idx, const LightPtr &light, const Eigen::Affine3f &tf, const Eigen::Matrix4f &lsmat, GLuint tindex) ;
     void bindTexture(const Texture2D *texture, TextureLoader loader, int slot);
+
 };
 
 using MaterialProgramPtr = std::shared_ptr<MaterialProgram> ;

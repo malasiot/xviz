@@ -131,8 +131,8 @@ public:
     float right() const { return right_ ; }
     float top() const { return top_ ; }
     float bottom() const { return bottom_ ; }
-    float near() const { return near_ ; }
-    float far() const { return far_ ; }
+    float znear() const { return near_ ; }
+    float zfar() const { return far_ ; }
 
 protected:
     float left_, right_, top_, bottom_, near_, far_ ;

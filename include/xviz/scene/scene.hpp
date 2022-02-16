@@ -7,8 +7,6 @@
 #include <xviz/scene/camera.hpp>
 #include <xviz/scene/raycaster.hpp>
 
-#include <assimp/cimport.h>
-
 namespace xviz {
 
 class Scene: public Node {

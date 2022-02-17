@@ -25,16 +25,13 @@ public:
 
     using NodePtr = std::shared_ptr<Node> ;
 
-
     enum { IMPORT_ANIMATIONS = 0x1, IMPORT_SKELETONS = 0x2, IMPORT_LIGHTS = 0x4 } ;
 
     void load(const std::string &fname, int flags = 0 ) ;
     void load(const aiScene *sc, const std::string &fname, int flags = 0) ;
 
-
     Node() { mat_.setIdentity() ; }
     virtual ~Node() = default;
-
 
     const Eigen::Affine3f &transform() const { return mat_ ; }
     Eigen::Affine3f &transform() { return mat_ ; }

@@ -333,7 +333,7 @@ Geometry Geometry::createSolidCylinder(float radius, float height, size_t slices
     size_t offset = (stacks)*slices + co;
 
     if ( add_caps ) {
-        vertices.push_back({0, 0, height/2.0}) ;
+        vertices.push_back({0.f, 0.f, height/2.0f}) ;
         normals.push_back({0, 0, 1}) ;
 
         for( unsigned int i=0 ; i<slices ; i++ ) {

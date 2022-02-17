@@ -112,7 +112,7 @@ Ray::Ray(const Ray &other, const Eigen::Affine3f &tr):
 
 Ray OrthographicCamera::getRay(float x, float y) const
 {
-
+    return Ray({}, {});
 }
 
 Matrix4f OrthographicCamera::getProjectionMatrix() const {

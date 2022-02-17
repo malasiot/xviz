@@ -41,7 +41,7 @@ class Octree
 public:
 
     Octree() = default ;
-    Octree( unsigned max_depth = 5, unsigned max_count = 100);
+    Octree( unsigned max_depth, unsigned max_count);
 
     ~Octree() { delete root_; }
 

@@ -1,6 +1,10 @@
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+if ( MSVC )
+add_definitions(-D_USE_MATH_DEFINES -DNOMINMAX)
+endif ()
+
 # Version variables
 set(MAJOR_VERSION 0)
 set(MINOR_VERSION 1)

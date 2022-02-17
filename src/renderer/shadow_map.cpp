@@ -19,7 +19,7 @@ ShadowMap::~ShadowMap()
         glDeleteTextures(1, &texture_id_);
 }
 
-bool ShadowMap::init(uint32_t width, uint32_t height)
+bool ShadowMap::init(GLuint width, GLuint height)
 {
     // Create the FBO
     glGenFramebuffers(1, &fbo_);

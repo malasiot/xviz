@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 #include <map>
+#include <cmath>
 
 #include <Eigen/Core>
 #include <xviz/scene/camera.hpp>

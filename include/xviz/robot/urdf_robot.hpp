@@ -5,6 +5,7 @@
 #include <vector>
 #include <Eigen/Geometry>
 #include <memory>
+#include <optional>
 
 namespace xviz {
 

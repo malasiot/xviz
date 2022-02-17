@@ -10,7 +10,7 @@ public:
     ShadowMap() ;
     ~ShadowMap();
 
-    bool init(uint32_t width, uint32_t height);
+    bool init(GLuint width, GLuint height);
 
     void bind();
     void unbind(GLuint default_fbo);

@@ -13,7 +13,7 @@ uniform sampler2D diffuseMap;
 
 void main (void) {
 #ifdef HAS_DIFFUSE_MAP
-    FragColor = phongIllumination(texture(diffuseMap, uv).rgb);
+    FragColor = phongIllumination(texture(diffuseMap, vec2(map_transform * vec3(uv, 1))).rgb);
 #else
     FragColor = phongIllumination(g_material.diffuse);
 #endif

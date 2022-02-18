@@ -14,5 +14,6 @@ struct MaterialParameters
 
 uniform MaterialParameters g_material;
 uniform vec3 eyePos ;
+uniform mat3x3 map_transform ;
 out vec4 FragColor;
 )";

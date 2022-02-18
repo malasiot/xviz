@@ -11,6 +11,8 @@
 #include <QApplication>
 #include <QPainter>
 
+#include "util.hpp"
+
 using namespace xviz ;
 using namespace Eigen ;
 using namespace std ;
@@ -93,7 +95,7 @@ Gui::Gui() {
 
 int main(int argc, char **argv)
 {
-    QApplication app(argc, argv);
+    TestApplication app("manipulators", argc, argv);
     SceneViewer::initDefaultGLContext();
 
     Gui *viewer = new Gui() ;

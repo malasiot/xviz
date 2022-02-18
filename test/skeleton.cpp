@@ -12,18 +12,21 @@
 #include <QMainWindow>
 #include <QApplication>
 
+#include "util.hpp"
+
 using namespace xviz ;
 using namespace Eigen ;
 using namespace std ;
 
 int main(int argc, char **argv)
 {
+    TestApplication app("skeleton", argc, argv) ;
+
     ScenePtr model(new Scene) ;
 
-    model->load("/home/malasiot/Downloads/RiggedFigure.dae", Node::IMPORT_ANIMATIONS | Node::IMPORT_SKELETONS) ;
+    model->load(TestApplication::data() + "/models/RiggedFigure.dae", Node::IMPORT_ANIMATIONS | Node::IMPORT_SKELETONS) ;
 
     model->startAnimations(0);
-    QApplication app(argc, argv);
 
     SceneViewer::initDefaultGLContext();
     SceneViewer *viewer = new SceneViewer(model);

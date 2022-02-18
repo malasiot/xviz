@@ -12,15 +12,19 @@
 #include <QMainWindow>
 #include <QApplication>
 
+#include "util.hpp"
+
 using namespace xviz ;
 using namespace Eigen ;
 using namespace std ;
 
 int main(int argc, char **argv)
 {
+    TestApplication app("animation", argc, argv) ;
+
     ScenePtr model(new Scene) ;
 
-    model->load("/home/malasiot/Downloads/rp_nathan_animated_003_walking.fbx", Node::IMPORT_ANIMATIONS | Node::IMPORT_SKELETONS ) ;
+    model->load(TestApplication::data() + "models/rp_nathan_animated_003_walking.fbx", Node::IMPORT_ANIMATIONS | Node::IMPORT_SKELETONS ) ;
 
     NodePtr box(new Node) ;
     GeometryPtr geom(new BoxGeometry({15, 15, 15})) ;
@@ -41,7 +45,6 @@ int main(int argc, char **argv)
 
     model->startAnimations(0);
 
-    QApplication app(argc, argv);
 
     SceneViewer::initDefaultGLContext();
     SceneViewer *viewer = new SceneViewer(model);

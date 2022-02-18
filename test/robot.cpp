@@ -6,6 +6,8 @@
 #include <QMainWindow>
 #include <QApplication>
 
+#include "util.hpp"
+
 using namespace std ;
 using namespace xviz ;
 using namespace Eigen ;
@@ -39,8 +41,7 @@ public:
 
 
 int main(int argc, char *argv[]) {
-
-
+    TestApplication app("robot", argc, argv) ;
 //    string package_path = "/home/malasiot/source/radioroso_ws/src/clopema_testbed/clopema_description/" ;
 //    RobotScenePtr scene = RobotScene::loadURDF(package_path + "robots/clopema.urdf", { { "clopema_description", package_path } }, false) ;
 
@@ -50,7 +51,7 @@ int main(int argc, char *argv[]) {
 //    for( const auto &s: hidden_nodes )
  //       scene->findNodeByName(s)->setVisible(false) ;
 
-   string path = "/home/malasiot/local/bullet3/examples/pybullet/gym/pybullet_data/pr2_gripper.urdf" ;
+   string path = TestApplication::data() + "robots/pr2_gripper.urdf" ;
   //  string path ="/home/malasiot/local/bullet3/examples/pybullet/gym/pybullet_data/cartpole.urdf";
     auto robot = URDFRobot::load(path) ;
     RobotScenePtr scene = RobotScene::fromURDF(robot) ;
@@ -59,7 +60,6 @@ int main(int argc, char *argv[]) {
     dl->setDiffuseColor(Vector3f(1, 1, 1)) ;
     scene->addLightNode(LightPtr(dl)) ;
 
-    QApplication app(argc, argv);
     SceneViewer::initDefaultGLContext();
 
     QMainWindow window ;

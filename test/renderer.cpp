@@ -9,15 +9,19 @@
 #include <QMainWindow>
 #include <QApplication>
 
+#include "util.hpp"
+
 using namespace xviz ;
 using namespace Eigen ;
 
 
 int main(int argc, char **argv)
 {
+    TestApplication app("renderer", argc, argv) ;
+
     ScenePtr scene(new Scene) ;
 
-    scene->load("/home/malasiot/Downloads/capsule.obj") ;
+    scene->load(TestApplication::data() + "models/capsule.obj") ;
 
     DirectionalLight *dl = new DirectionalLight(Vector3f(0.5, 0.5, 1)) ;
     dl->setDiffuseColor(Vector3f(0.5, 0.5, 0.5)) ;
@@ -33,7 +37,7 @@ int main(int argc, char **argv)
     box->setTransform(tr) ;
     scene->addChild(box) ;
 
-    QApplication app(argc, argv);
+
     SceneViewer::initDefaultGLContext();
 
     SceneViewer *viewer = new SceneViewer(scene) ;

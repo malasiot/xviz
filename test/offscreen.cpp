@@ -6,15 +6,17 @@
 #include <QImage>
 #include <QApplication>
 
+#include "util.hpp"
+
 using namespace xviz ;
 using namespace Eigen ;
 
 int main(int argc, char *argv[]) {
-    QApplication app(argc, argv);
+    TestApplication app("offscreen", argc, argv);
 
     ScenePtr scene(new Scene) ;
    // scene->load("/home/malasiot/Downloads/greek_column.obj") ;
-    scene->load("/home/malasiot/Downloads/cube.obj") ;
+    scene->load(TestApplication::data() + "/models/cube.obj") ;
 
     // optional compute center and radius to properly position camera
     auto c = scene->geomCenter() ;
@@ -35,7 +37,7 @@ int main(int argc, char *argv[]) {
                                                     ) ;
 */
 
-    OrthographicCamera *pcam = new OrthographicCamera(0.6*r, 0.6*r, 0.0001, 10*r) ;
+    OrthographicCamera *pcam = new OrthographicCamera(-0.6*r, 0.6*r, 0.6*r, -0.6*r,0.0001, 10*r) ;
 
     CameraPtr cam(pcam) ;
 

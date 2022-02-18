@@ -11,6 +11,8 @@
 #include <QApplication>
 #include <QPainter>
 
+#include "util.hpp"
+
 using namespace xviz ;
 using namespace Eigen ;
 using namespace std ;
@@ -191,8 +193,10 @@ private:
 
 int main(int argc, char **argv)
 {
+    TestApplication app("picking", argc, argv) ;
+
     NodePtr model(new Node) ;
-    model->load("/home/malasiot/Downloads/2CylinderEngine.glb", 0);
+    model->load(TestApplication::data() + "/models/2CylinderEngine.glb", 0);
     Affine3f tr(Affine3f::Identity());
     tr.scale(0.001f) ;
     tr.translate(-model->geomCenter()) ;
@@ -251,7 +255,6 @@ int main(int argc, char **argv)
     dl->setDiffuseColor(Vector3f(1, 1, 1)) ;
     scene->addLightNode(LightPtr(dl)) ;
 
-    QApplication app(argc, argv);
 
     SceneViewer::initDefaultGLContext();
     QMainWindow window ;

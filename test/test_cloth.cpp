@@ -22,6 +22,7 @@
 
 #include <xviz/gui/viewer.hpp>
 #include "sim_gui.hpp"
+#include "util.hpp"
 
 using namespace Eigen ;
 
@@ -63,7 +64,7 @@ int main(int argc, char **argv)
 
     createWorld() ;
 
-    QApplication app(argc, argv);
+    TestApplication app("cloth", argc, argv);
 
     SceneViewer::initDefaultGLContext();
 

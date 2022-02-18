@@ -9,6 +9,8 @@
 #include <QMainWindow>
 #include <QApplication>
 
+#include "util.hpp"
+
 using namespace xviz ;
 using namespace Eigen ;
 using namespace std ;
@@ -130,6 +132,8 @@ public:
 
 int main(int argc, char **argv)
 {
+    TestApplication app("shadows", argc, argv) ;
+
     ScenePtr scene(new Scene) ;
 
     scene->addChild(NodeHelpers::makeAxes(0.5)) ;
@@ -189,8 +193,6 @@ int main(int argc, char **argv)
     dl2->setCastsShadows(true);
     xviz::LightPtr light2(dl2) ;
    scene->addLightNode(light2) ;
-
-    QApplication app(argc, argv);
 
     SceneViewer::initDefaultGLContext();
 

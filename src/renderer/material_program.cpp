@@ -67,6 +67,8 @@ void MaterialProgram::bindTexture(const Texture2D *texture, TextureLoader loader
     if ( data && data->loaded() ) {
         glActiveTexture(GL_TEXTURE0 + slot);
         glBindTexture(GL_TEXTURE_2D, data->id());
+
+        setUniform("map_transform", texture->transform().matrix()) ;
     }
 }
 

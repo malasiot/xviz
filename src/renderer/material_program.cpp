@@ -76,9 +76,6 @@ void PhongMaterialProgram::bindTextures(const MaterialPtr &mat, TextureLoader lo
     assert(m) ;
 
     bindTexture(m->diffuseTexture(), loader, 0) ;
-
-
-
 }
 
 

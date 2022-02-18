@@ -64,7 +64,7 @@ private:
     int flags_ ;
 
     std::map<GeometryPtr, std::unique_ptr<impl::MeshData>> meshes_ ;
-    std::map<const Texture2D *, std::unique_ptr<impl::TextureData>> textures_ ;
+    std::map<std::string, std::unique_ptr<impl::TextureData>> textures_ ;
     unsigned int default_fbo_ ;
 
     std::unique_ptr<impl::OpenGLShaderProgram> shadow_map_shader_, shadow_map_debug_shader_ ;

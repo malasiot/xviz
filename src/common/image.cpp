@@ -4,6 +4,8 @@
 #include <iostream>
 #include <cassert>
 
+#include <3rdparty/sole/sole.hpp>
+
 using namespace std ;
 
 namespace xviz {
@@ -22,6 +24,7 @@ public:
         uint32_t data_sz = sz()  ;
         bytes_.reset(new unsigned char [data_sz]) ;
         std::memcpy(bytes_.get(), bytes, data_sz) ;
+        uuid_ = sole::uuid0().str() ;
     }
 
     uint32_t sz() const {
@@ -40,6 +43,7 @@ public:
     uint32_t width_, height_ ;
     ImageFormat format_ ;
     std::unique_ptr<unsigned char []> bytes_ ;
+    std::string uuid_ ;
 
     ~RawImageData() {}
 };
@@ -100,6 +104,13 @@ uint32_t Image::dataSize() const {
         return width();
     else
         return static_cast<RawImageData *>(data_.get())->sz() ;
+}
+
+std::string Image::id() const {
+    if ( type() == ImageType::Raw ) return static_cast<RawImageData *>(data_.get())->uuid_ ;
+    else if ( type() == ImageType::Uri ) return static_cast<UriImageData *>(data_.get())->uri_ ;
+    else return {};
+
 }
 
 

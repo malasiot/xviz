@@ -39,6 +39,9 @@ public:
     const unsigned char *data() const ;
     uint32_t dataSize() const ;
 
+    // unique id used for resource management
+    std::string id() const ;
+
 private:
 
     std::shared_ptr<ImageData> data_ ;

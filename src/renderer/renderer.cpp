@@ -29,19 +29,22 @@ Renderer::Renderer(int flags) {
     default_material_.reset(mat) ;
 }
 
+// lazy loading of textures on GPU and caching
 impl::TextureData *Renderer::fetchTextureData(const Texture2D *texture) {
     if ( !texture ) return nullptr ;
 
-    auto it = textures_.find(texture) ;
+    string id = texture->image().id() ;
+
+    auto it = textures_.find(id) ;
     if ( it != textures_.end() )
         return it->second.get() ;
     else {
         impl::TextureData *data = new impl::TextureData ;
         if ( data->create(texture->image()) )
-            return textures_.emplace(texture, std::unique_ptr<impl::TextureData>(data)).first->second.get() ;
+            return textures_.emplace(id, std::unique_ptr<impl::TextureData>(data)).first->second.get() ;
         else {
             // loading failed so store a null pointer
-            textures_.emplace(texture, nullptr) ;
+            textures_.emplace(id, nullptr) ;
             return nullptr ;
         }
     }
@@ -75,7 +78,6 @@ MaterialProgramPtr Renderer::instantiateMaterial(const Material *mat, const std:
 
         if ( material->diffuseTexture()  ) {
             params.has_diffuse_map_ = true ;
-//            setupTexture(mat, material->diffuseTexture(), 0);
         }
 
         return PhongMaterialProgram::instance(params) ;
@@ -359,25 +361,9 @@ void Renderer::render(const CameraPtr &cam, const Drawable &dr, const Affine3f &
     prog->applyTransform(perspective_, proj_, mat.matrix()) ;
     prog->applyLights(lights) ;
     prog->bindTextures(material, [this](const Texture2D *t) {
-        TextureData *td = fetchTextureData(t) ;
-        return td;
+        return fetchTextureData(t) ;
     }) ;
 
-    // bind material textures
-/*
-    auto tit = textures_.find(material.get()) ;
-    if ( tit != textures_.end() ) {
-        const TextureBundle &bundle = tit->second ;
-        for( int i=0 ; i<4 ; i++ ) {
-            TextureData * texture = bundle[i].get() ;
-            if ( texture ) {
-                glActiveTexture(GL_TEXTURE0 + i);
-                glBindTexture(GL_TEXTURE_2D, texture->id());
-            }
-
-        }
-    }
-*/
     if ( mesh && mesh->hasSkeleton() )
         setPose(mesh, prog) ;
 

@@ -195,7 +195,7 @@ void SceneViewer::keyPressEvent(QKeyEvent *event)
 
 
 void SceneViewer::initializeGL() {
-   rdr_.init(scene_) ;
+   rdr_.init() ;
 }
 
 void SceneViewer::resizeGL(int w, int h) {
@@ -226,7 +226,7 @@ void SceneViewer::paintGL()
 {
     if ( !scene_ ) return ;
     rdr_.setDefaultFBO(defaultFramebufferObject());
-    rdr_.render(camera_) ;
+    rdr_.render(scene_, camera_) ;
 
     if ( draw_axes_ ) {
         drawText(Vector3f{radius_, 0, 0}, "X", Qt::red) ;

@@ -46,8 +46,8 @@ OffscreenRenderer::~OffscreenRenderer() {
 QImage OffscreenRenderer::render(const xviz::NodePtr &scene, const xviz::CameraPtr &cam)
 {
     Renderer rdr ;
-    rdr.init(scene) ;
-    rdr.render(cam) ;
+    rdr.init() ;
+    rdr.render(scene, cam) ;
     return fbo_->toImage() ;
 }
 

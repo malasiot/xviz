@@ -5,6 +5,7 @@
 #include "shadow_map.hpp"
 #include "util.hpp"
 #include "texture_data.hpp"
+#include "renderer_impl.hpp"
 
 using namespace std ;
 using namespace Eigen ;

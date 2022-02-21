@@ -6,6 +6,7 @@
 
 #include "shader.hpp"
 #include <xviz/scene/renderer.hpp>
+#include <xviz/scene/material.hpp>
 
 #include <map>
 
@@ -14,6 +15,8 @@ enum MaterialProgramFlags { ENABLE_SKINNING = 1, ENABLE_SHADOWS = 2, HAS_DIFFUSE
 
 namespace xviz { namespace impl {
 
+class TextureData ;
+struct LightData ;
 class MaterialProgram ;
 using MaterialProgramPtr = std::shared_ptr<MaterialProgram> ;
 

@@ -1,4 +1,5 @@
 #include <xviz/scene/renderer.hpp>
+#include "renderer_impl.hpp"
 
 #include "shadow_map.hpp"
 #include "util.hpp"
@@ -23,14 +24,13 @@ using namespace std ;
 
 namespace xviz {
 
-using namespace impl ;
 
-Renderer::Renderer(int flags) {
+namespace impl {
+
+Renderer::Renderer() {
     PhongMaterial *mat = new PhongMaterial() ;
     mat->setDiffuseColor({0.5, 0.5, 0.5}) ;
     default_material_.reset(mat) ;
-
-    meshes_.reset(new MeshDataManager()) ;
 }
 
 // lazy loading of textures on GPU and caching
@@ -102,10 +102,8 @@ MaterialProgramPtr Renderer::instantiateMaterial(const Material *mat, const std:
     return nullptr ;
 }
 
-void Renderer::init(const NodePtr &scene) {
+void Renderer::init() {
     gl3wInit();
-
-    scene_ = scene ;
 }
 
 Renderer::~Renderer() {
@@ -185,7 +183,7 @@ void Renderer::renderShadowMap(const LightData &sd) {
 
             if ( !geom || !geom->castsShadows()) continue ;
 
-            const MeshData *data = meshes_->fetch(geom.get()) ;
+            const MeshData *data = meshes_.fetch(geom.get()) ;
 
             if ( !data ) continue ;
 
@@ -197,10 +195,11 @@ void Renderer::renderShadowMap(const LightData &sd) {
     sd.shadow_map_->unbind(default_fbo_) ;
 }
 
-void Renderer::render(const CameraPtr &cam) {
+void Renderer::render(const NodePtr &scene, const CameraPtr &cam) {
+    scene_ = scene ;
     // render background
 
-    meshes_->flush() ;
+    meshes_.flush() ;
 
     Vector4f bg_clr = cam->bgColor() ;
 
@@ -214,8 +213,6 @@ void Renderer::render(const CameraPtr &cam) {
     proj_ = cam->getViewMatrix() ;
 
     renderScene(cam) ;
-
-
 }
 
 Vector2f Renderer::project(const Vector3f &pos) {
@@ -317,15 +314,13 @@ std::vector<LightData *> Renderer::getLights() {
     return lights ;
 }
 
-#define MAX_LIGHTS 10
-
 void Renderer::render(const CameraPtr &cam, const Drawable &dr, const Affine3f &mat)
 {
     GeometryPtr mesh = dr.geometry() ;
     if ( !mesh ) return ;
 
     // fetch vbo
-    const MeshData *data = meshes_->fetch(mesh.get()) ;
+    const MeshData *data = meshes_.fetch(mesh.get()) ;
 
     // get material
     MaterialPtr material = dr.material() ;
@@ -455,5 +450,30 @@ void Renderer::drawMeshData(const MeshData &data, GeometryPtr mesh, bool solid) 
 
     glBindVertexArray(0) ;
 }
+
+}
+
+Renderer::Renderer(): impl_(new impl::Renderer()) {
+
+}
+
+Renderer::~Renderer() {}
+
+void Renderer::init() {
+    impl_->init() ;
+}
+
+void Renderer::render(const NodePtr &scene, const CameraPtr &cam) {
+    impl_->render(scene, cam) ;
+}
+
+void Renderer::setDefaultFBO(unsigned int fbo) {
+    impl_->setDefaultFBO(fbo) ;
+}
+
+Vector2f Renderer::project(const Vector3f &pos) {
+    return impl_->project(pos) ;
+}
+
 
 }

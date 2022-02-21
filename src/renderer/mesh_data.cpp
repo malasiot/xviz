@@ -1,5 +1,7 @@
 #include "mesh_data.hpp"
 
+#include <iostream>
+
 #define POSITION_LOCATION    0
 #define NORMALS_LOCATION    1
 #define COLORS_LOCATION    2
@@ -85,6 +87,10 @@ MeshData::MeshData(const Geometry &mesh) {
 
 }
 
+void MeshData::release() {
+    manager_->release(geom_) ;
+}
+
 
 void MeshData::update(Geometry &geom) {
 
@@ -122,23 +128,62 @@ void MeshData::update(Geometry &geom) {
 
 MeshData::~MeshData()
 {
-     glDeleteVertexArrays(1, &vao_) ;
-     glDeleteBuffers(1, &pos_) ;
-     glDeleteBuffers(1, &normals_) ;
-     glDeleteBuffers(1, &colors_) ;
 
-     for( unsigned i=0 ; i<max_textures_ ; i++ ) {
-         if ( tex_coords_[i] )
-             glDeleteBuffers(1, &tex_coords_[i]);
-     }
+    if ( pos_ ) glDeleteBuffers(1, &pos_) ;
+    if ( normals_ ) glDeleteBuffers(1, &normals_) ;
+    if ( colors_ ) glDeleteBuffers(1, &colors_) ;
 
-     if ( weights_ )
-         glDeleteBuffers(1, &weights_);
+    for( unsigned i=0 ; i<max_textures_ ; i++ ) {
+        if ( tex_coords_[i] )
+            glDeleteBuffers(1, &tex_coords_[i]);
+    }
 
-     if ( index_ )
-         glDeleteBuffers(1, &index_);
+    if ( weights_ )
+        glDeleteBuffers(1, &weights_);
+
+    if ( index_ )
+        glDeleteBuffers(1, &index_);
+
+    glDeleteVertexArrays(1, &vao_) ;
 
 }
 
+MeshDataManager::~MeshDataManager() {
+    flush() ;
+    dirty_ = true ;
 }
+
+MeshData *MeshDataManager::fetch(Geometry*geom) {
+    MeshData *data = nullptr ;
+
+    auto it = meshes_.find(geom) ;
+    if ( it == meshes_.end() ) {
+        data = new MeshData(*geom) ;
+        data->manager_ = this ;
+        data->geom_ = geom ;
+        geom->data_ = data ;
+        meshes_.emplace(geom, std::unique_ptr<MeshData>(data)) ;
+    } else
+        data = (*it).second.get() ;
+
+    data->update(*geom) ;
+
+    return data ;
 }
+
+void MeshDataManager::release(Geometry *geom) {
+    if ( dirty_ ) return ;
+
+    to_delete_.push_back(geom) ;
+}
+
+void MeshDataManager::flush() {
+    for( Geometry *geom: to_delete_ ){
+        auto it = meshes_.find(geom) ;
+        if ( it != meshes_.end() )
+            meshes_.erase(it) ;
+    }
+}
+
+}
+               }

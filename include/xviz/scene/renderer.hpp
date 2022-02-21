@@ -15,6 +15,7 @@ class ShadowMap ;
 class OpenGLShaderProgram ;
 class MaterialProgram ;
 class TextureData ;
+class MeshDataManager ;
 using MaterialProgramPtr = std::shared_ptr<MaterialProgram> ;
 }
 
@@ -63,7 +64,7 @@ private:
 
     int flags_ ;
 
-    std::map<GeometryPtr, std::unique_ptr<impl::MeshData>> meshes_ ;
+    std::unique_ptr<impl::MeshDataManager> meshes_ ;
     std::map<std::string, std::unique_ptr<impl::TextureData>> textures_ ;
     unsigned int default_fbo_ ;
 
@@ -97,7 +98,6 @@ private:
     impl::TextureData *fetchTextureData(const Texture2D *tex) ;
     void uploadTexture(impl::TextureData *data, const Material *material, int slot) ;
     LightData &getLightData(const LightPtr &light) ;
-    const impl::MeshData *fetchMeshData(GeometryPtr &geom);
     std::vector<LightData *> getLights();
 } ;
 

@@ -16,6 +16,8 @@
 
 #include <iostream>
 
+#include "mesh_data.hpp"
+
 using namespace Eigen ;
 using namespace std ;
 
@@ -27,6 +29,8 @@ Renderer::Renderer(int flags) {
     PhongMaterial *mat = new PhongMaterial() ;
     mat->setDiffuseColor({0.5, 0.5, 0.5}) ;
     default_material_.reset(mat) ;
+
+    meshes_.reset(new MeshDataManager()) ;
 }
 
 // lazy loading of textures on GPU and caching
@@ -161,21 +165,6 @@ void Renderer::updateShadows(LightData &ld) {
     }
 }
 
-const MeshData *Renderer::fetchMeshData(GeometryPtr &geom) {
-    MeshData *data = nullptr ;
-
-   auto it = meshes_.find(geom) ;
-   if ( it == meshes_.end() ) {
-       data = new MeshData(*geom) ;
-       meshes_.emplace(geom, std::unique_ptr<MeshData>(data)) ;
-   } else
-       data = (*it).second.get() ;
-
-   data->update(*geom) ;
-
-   return data ;
-}
-
 void Renderer::renderShadowMap(const LightData &sd) {
 
     sd.shadow_map_->bind();
@@ -196,7 +185,7 @@ void Renderer::renderShadowMap(const LightData &sd) {
 
             if ( !geom || !geom->castsShadows()) continue ;
 
-            const MeshData *data = fetchMeshData(geom) ;
+            const MeshData *data = meshes_->fetch(geom.get()) ;
 
             if ( !data ) continue ;
 
@@ -210,6 +199,8 @@ void Renderer::renderShadowMap(const LightData &sd) {
 
 void Renderer::render(const CameraPtr &cam) {
     // render background
+
+    meshes_->flush() ;
 
     Vector4f bg_clr = cam->bgColor() ;
 
@@ -334,7 +325,7 @@ void Renderer::render(const CameraPtr &cam, const Drawable &dr, const Affine3f &
     if ( !mesh ) return ;
 
     // fetch vbo
-    const MeshData *data = fetchMeshData(mesh) ;
+    const MeshData *data = meshes_->fetch(mesh.get()) ;
 
     // get material
     MaterialPtr material = dr.material() ;
@@ -463,8 +454,6 @@ void Renderer::drawMeshData(const MeshData &data, GeometryPtr mesh, bool solid) 
     }
 
     glBindVertexArray(0) ;
-
-    glFlush();
 }
 
 }

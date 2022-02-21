@@ -1,6 +1,9 @@
 #include <xviz/robot/urdf_robot.hpp>
 #include <xviz/robot/urdf_loader.hpp>
 
+#include <iostream>
+
+using namespace std ;
 using namespace Eigen ;
 
 namespace xviz {
@@ -27,6 +30,7 @@ URDFJoint *URDFRobot::findJoint(const std::string &name) {
 float URDFRobot::setJointPosition(const std::string &name, float pos)
 {
     URDFJoint *j = findJoint(name) ;
+
     if ( j != nullptr && j->mimic_joint_.empty() ) {
         pos = std::max(pos, j->lower_) ;
         pos = std::min(pos, j->upper_) ;

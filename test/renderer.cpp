@@ -25,6 +25,9 @@ int main(int argc, char **argv)
 
     DirectionalLight *dl = new DirectionalLight(Vector3f(0.5, 0.5, 1)) ;
     dl->setDiffuseColor(Vector3f(0.5, 0.5, 0.5)) ;
+    dl->setSpecularColor(Vector3f(0.5, 0.5, 0.5)) ;
+    dl->setAmbientColor(Vector3f(0.5, 0.5, 0.5)) ;
+
     scene->setLight(LightPtr(dl)) ;
 
     NodePtr box(new Node) ;

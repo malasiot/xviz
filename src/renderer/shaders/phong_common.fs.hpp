@@ -8,8 +8,8 @@ float diffuse(LightSourceParameters ls, vec3 N, vec3 L) {
 
 float specular(LightSourceParameters ls, vec3 N, vec3 L) {
      vec3 E = normalize(eyePos-fpos);
-     vec3 R = normalize(-reflect(L,N));
-     return pow(max(dot(R,E),0.0f), g_material.shininess);
+     vec3 R = normalize(reflect(-L,N));
+     return pow(max(dot(R,E),0.0f), max(g_material.shininess, 0.1));
 }
 
 vec3 phong(LightSourceParameters ls, vec3 dc, vec3 N, vec3 L, float shadow, float att) {

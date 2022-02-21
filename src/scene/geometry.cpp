@@ -57,6 +57,7 @@ static Geometry flatten(const std::vector<Vector3f> &vertices, const std::vector
 }
 
 Geometry::~Geometry() {
+    if ( data_ ) data_->release() ;
 }
 
 Geometry Geometry::createWireCube(const Vector3f &hs) {

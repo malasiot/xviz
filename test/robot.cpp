@@ -5,6 +5,7 @@
 
 #include <QMainWindow>
 #include <QApplication>
+#include <QDebug>
 
 #include "util.hpp"
 
@@ -22,8 +23,10 @@ public:
 
     void	keyPressEvent(QKeyEvent *event) override {
         int key = event->key() ;
+
         if ( key == Qt::Key_Q ) {
             v = urdf_.setJointPosition("left_gripper_joint", v - 0.1) ;
+              qDebug() << v ;
         } else if ( key == Qt::Key_W ) {
             v = urdf_.setJointPosition("left_gripper_joint", v + 0.1) ;
         }
@@ -55,6 +58,11 @@ int main(int argc, char *argv[]) {
   //  string path ="/home/malasiot/local/bullet3/examples/pybullet/gym/pybullet_data/cartpole.urdf";
     auto robot = URDFRobot::load(path) ;
     RobotScenePtr scene = RobotScene::fromURDF(robot) ;
+
+    map<string, Isometry3f> transforms ;
+    robot.computeLinkTransforms(transforms);
+
+    scene->updateTransforms(transforms) ;
 
     DirectionalLight *dl = new DirectionalLight(Vector3f(1.5, 2.5, 1)) ;
     dl->setDiffuseColor(Vector3f(1, 1, 1)) ;

@@ -33,7 +33,12 @@ public:
     GeometryPtr geometry() const { return geometry_ ; }
     MaterialPtr material() const { return material_ ; }
 
-    void setMaterial(MaterialPtr mat) { material_ = mat ; }
+    void setMaterial(MaterialPtr mat) {
+        auto old_mat = material_ ;
+        material_ = mat ;
+        mc_dispatcher_.notify(old_mat, mat) ;
+    }
+
     void setGeometry(GeometryPtr geom) {
         auto old_geom = geometry_ ;
         geometry_ = geom ;
@@ -45,10 +50,10 @@ public:
                              const Eigen::Vector4f &clr2 = {0.8, 0.8, 0.8, 1});
 
     using GeometryChangedEvent = std::function<void(const GeometryPtr &, const GeometryPtr &)> ;
-    void addEventListener(GeometryChangedEvent e) ;
+    void addEventListener(GeometryChangedEvent &&e) {gc_dispatcher_.addListener(e); }
 
     using MaterialChangedEvent = std::function<void(const MaterialPtr &, const MaterialPtr &)> ;
-    void addEventListener(MaterialChangedEvent e) ;
+    void addEventListener(MaterialChangedEvent &&e) { mc_dispatcher_.addListener(e); }
 
 private:
 

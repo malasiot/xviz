@@ -7,12 +7,27 @@
 
 namespace xviz { namespace impl {
 
+class MeshDataManager {
+public:
+    ~MeshDataManager() ;
+    MeshData *fetch(Geometry *geom) ;
+    void release(Geometry *geom) ;
+    void flush() ;
+
+private:
+    std::map<Geometry *, std::unique_ptr<impl::MeshData>> meshes_ ;
+    std::vector<Geometry *> to_delete_ ;
+    bool dirty_ = false ;
+};
+
 class MeshData {
 public:
 
     MeshData() ;
     MeshData(const Geometry &mesh) ;
 
+    void destroy() ;
+    void release() ;
     void update(Geometry &mesh) ;
 
     static const int max_textures_ = 4 ;
@@ -23,6 +38,8 @@ public:
 
     ~MeshData() ;
 
+    MeshDataManager *manager_ = nullptr ;
+    Geometry *geom_ ;
 } ;
 
 

@@ -15,6 +15,11 @@ enum class ImageFormat { rgb24, rgba32, gray8, encoded };
 
 class ImageData ;
 
+namespace impl {
+class TextureData ;
+class TextureCache ;
+}
+
 class Image {
 public:
 
@@ -26,6 +31,8 @@ public:
 
     // Image from raw bytes
     Image(const unsigned char *bytes, ImageFormat fmt, uint32_t w, uint32_t h) ;
+
+    ~Image() ;
 
     ImageType type() const ;
 
@@ -44,9 +51,13 @@ public:
 
 private:
 
+    friend class impl::TextureCache ;
+
     std::shared_ptr<ImageData> data_ ;
+    impl::TextureData *texture_ = nullptr ;
 };
 
+using ImagePtr = std::shared_ptr<Image> ;
 
 }
 

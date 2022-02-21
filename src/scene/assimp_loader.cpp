@@ -103,10 +103,10 @@ static Sampler2D::TextureMapMode convertMapMode(aiTextureMapMode m) {
     }
 }
 
-static Image readTexture(aiTexture *t) {
+static Image *readTexture(aiTexture *t) {
 
     if ( t->mHeight == 0 ) {
-        return Image(reinterpret_cast<unsigned char *>(t->pcData), ImageFormat::encoded, t->mWidth, 0);
+        return new Image(reinterpret_cast<unsigned char *>(t->pcData), ImageFormat::encoded, t->mWidth, 0);
     } else {
         unsigned int sz = t->mWidth * t->mHeight;
 
@@ -120,7 +120,7 @@ static Image readTexture(aiTexture *t) {
             *p++ = t->pcData[j].a;
         }
 
-        return Image(bytes.get(), ImageFormat::rgba32, t->mWidth, t->mHeight) ;
+        return new Image(bytes.get(), ImageFormat::rgba32, t->mWidth, t->mHeight) ;
     }
 }
 
@@ -134,17 +134,17 @@ void AssimpImporter::getMaterialTexture(const aiScene *sc, PhongMaterial *materi
 
         if ( tex_path.data == nullptr || tex_path.length == 0 ) return ;
 
-        Image image ;
+        ImagePtr image ;
 
         if ( *tex_path.data == '*' ) {
             int texture_id = atoi(tex_path.data + 1) ;
             aiTexture *texture = sc->mTextures[texture_id] ;
 
-            image = readTexture(texture) ;
+            image = ImagePtr(readTexture(texture)) ;
         } else {
             string path(tex_path.data, tex_path.length) ;
 
-            image = Image(base_dir + path);
+            image = make_shared<Image>(base_dir + path);
         }
 
         material->setDiffuseTexture(new Texture2D(image,

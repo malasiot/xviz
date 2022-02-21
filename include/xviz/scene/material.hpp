@@ -28,9 +28,9 @@ private:
 class Texture2D {
 public:
     Texture2D() = delete ;
-    Texture2D(const Image &image, const Sampler2D &sampler): image_(image), sampler_(sampler) {}
+    Texture2D(const std::shared_ptr<Image> &image, const Sampler2D &sampler): image_(image), sampler_(sampler) {}
 
-    const Image &image() const { return image_ ; }
+    const ImagePtr &image() const { return image_ ; }
     const Sampler2D &sampler() const { return sampler_ ; }
 
     void setTransform(const Eigen::Affine2f &tr) { transform_ = tr ; }
@@ -38,7 +38,7 @@ public:
     Eigen::Affine2f transform() const { return transform_ ; }
 
 private:
-    Image image_ ;
+    std::shared_ptr<Image> image_ ;
     Sampler2D sampler_ ;
     Eigen::Affine2f transform_ = Eigen::Affine2f::Identity() ;
 };

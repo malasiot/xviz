@@ -14,12 +14,12 @@ TextureData::~TextureData() {
         glDeleteTextures(1, &id_) ;
 }
 
-bool TextureData::create(const Image &image)
+bool TextureData::create(Image *image)
 {
     stbi_set_flip_vertically_on_load(true);
 
-    if ( image.type() == ImageType::Uri ) {
-        std::string path = image.uri() ;
+    if ( image->type() == ImageType::Uri ) {
+        std::string path = image->uri() ;
 
         int width, height, channels;
         unsigned char *data = stbi_load(path.c_str(), &width, &height, &channels, 0);
@@ -36,11 +36,11 @@ bool TextureData::create(const Image &image)
 
         loaded_ = true ;
 
-    } else if ( image.type() == ImageType::Raw ) {
-        if ( image.format() == ImageFormat::encoded ) {
+    } else if ( image->type() == ImageType::Raw ) {
+        if ( image->format() == ImageFormat::encoded ) {
 
             int width, height, channels;
-            unsigned char *data = stbi_load_from_memory(image.data(), image.width(), &width, &height, &channels, 0);
+            unsigned char *data = stbi_load_from_memory(image->data(), image->width(), &width, &height, &channels, 0);
 
             if ( !data ) return false ;
 
@@ -56,7 +56,47 @@ bool TextureData::create(const Image &image)
         }
     }
 
+    if ( loaded_ ) image_ = image ;
+
     return loaded_ ;
+}
+
+void TextureData::release() {
+    cache_->release(image_) ;
+}
+
+TextureData *TextureCache::fetch(Image *im) {
+    auto it = data_.find(im) ;
+    if ( it != data_.end() )
+        return it->second.get() ;
+    else {
+        std::unique_ptr<TextureData> data(new TextureData) ;
+
+        data->cache_ = this ;
+        data->image_ = im ;
+
+        if ( data->create(im) ) {
+            auto res = data_.emplace(im, std::move(data)) ;
+            im->texture_ = res.first->second.get() ;
+
+            return im->texture_ ;
+        }
+        else {
+            return nullptr ;
+        }
+    }
+}
+
+void TextureCache::release(Image *im) {
+    data_.erase(im) ;
+    im->texture_ = nullptr ;
+}
+
+TextureCache::~TextureCache() {
+    for( auto &p: data_ ) {
+        Image *im = p.first ;
+        im->texture_ = nullptr ;
+    }
 }
 
 }}

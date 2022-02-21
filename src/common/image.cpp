@@ -4,7 +4,7 @@
 #include <iostream>
 #include <cassert>
 
-#include <3rdparty/sole/sole.hpp>
+#include "../renderer/texture_data.hpp"
 
 using namespace std ;
 
@@ -24,7 +24,7 @@ public:
         uint32_t data_sz = sz()  ;
         bytes_.reset(new unsigned char [data_sz]) ;
         std::memcpy(bytes_.get(), bytes, data_sz) ;
-        uuid_ = sole::uuid0().str() ;
+      //  uuid_ = sole::uuid0().str() ;
     }
 
     uint32_t sz() const {
@@ -66,6 +66,10 @@ Image::Image(const string &uri) {
 
 Image::Image(const unsigned char *bytes, ImageFormat fmt, uint32_t w, uint32_t h) {
     data_.reset(new RawImageData(bytes, fmt, w, h)) ;
+}
+
+Image::~Image() {
+    if ( texture_ ) texture_->release() ;
 }
 
 ImageType Image::type() const {

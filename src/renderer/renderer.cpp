@@ -37,21 +37,8 @@ Renderer::Renderer() {
 impl::TextureData *Renderer::fetchTextureData(const Texture2D *texture) {
     if ( !texture ) return nullptr ;
 
-    string id = texture->image().id() ;
+    return textures_.fetch(texture->image().get()) ;
 
-    auto it = textures_.find(id) ;
-    if ( it != textures_.end() )
-        return it->second.get() ;
-    else {
-        impl::TextureData *data = new impl::TextureData ;
-        if ( data->create(texture->image()) )
-            return textures_.emplace(id, std::unique_ptr<impl::TextureData>(data)).first->second.get() ;
-        else {
-            // loading failed so store a null pointer
-            textures_.emplace(id, nullptr) ;
-            return nullptr ;
-        }
-    }
 }
 
 MaterialProgramPtr Renderer::instantiateMaterial(const Material *mat, const std::vector<LightData *> &lights, bool has_skeleton) {

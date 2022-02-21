@@ -8,6 +8,8 @@
 #include <xviz/common/resource_loader.hpp>
 
 #include "mesh_data.hpp"
+#include "texture_data.hpp"
+
 namespace xviz {
 namespace impl {
 
@@ -15,7 +17,7 @@ namespace impl {
 class ShadowMap ;
 class OpenGLShaderProgram ;
 class MaterialProgram ;
-class TextureData ;
+class TextureCache ;
 
 using MaterialProgramPtr = std::shared_ptr<MaterialProgram> ;
 
@@ -56,7 +58,8 @@ private:
     MaterialPtr default_material_ ;
 
     MeshDataManager meshes_ ;
-    std::map<std::string, std::unique_ptr<impl::TextureData>> textures_ ;
+    TextureCache textures_ ;
+    //std::map<std::string, std::unique_ptr<impl::TextureData>> textures_ ;
     unsigned int default_fbo_ ;
 
     std::unique_ptr<impl::OpenGLShaderProgram> shadow_map_shader_, shadow_map_debug_shader_ ;
@@ -65,8 +68,6 @@ private:
     const uint32_t shadow_map_height_ = 2048 ;
 
     std::map<LightPtr, LightData> light_data_ ;
-
-    std::shared_ptr<ResourceLoader> resource_loader_ ;
 
 private:
 

@@ -149,8 +149,11 @@ MeshData::~MeshData()
 }
 
 MeshDataManager::~MeshDataManager() {
-    flush() ;
+//    flush() ;
     dirty_ = true ;
+    for( auto &p: meshes_ ) {
+        p.first->data_ = nullptr ;
+    }
 }
 
 MeshData *MeshDataManager::fetch(Geometry*geom) {
@@ -180,8 +183,10 @@ void MeshDataManager::release(Geometry *geom) {
 void MeshDataManager::flush() {
     for( Geometry *geom: to_delete_ ){
         auto it = meshes_.find(geom) ;
-        if ( it != meshes_.end() )
+        if ( it != meshes_.end() ) {
             meshes_.erase(it) ;
+            geom->data_ = nullptr ;
+        }
     }
 }
 

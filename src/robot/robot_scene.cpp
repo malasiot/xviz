@@ -95,7 +95,7 @@ RobotScenePtr RobotScene::parseRobotURDF(const URDFRobot &rb, bool collision_geo
 
             materials.emplace(name, MaterialPtr(material)) ;
         } else {
-            Image im(mat.texture_path_) ;
+            ImagePtr im = std::make_shared<Image>(mat.texture_path_) ;
             Texture2D *s = new Texture2D(im, Sampler2D()) ;
 
             PhongMaterial *material = new PhongMaterial() ;

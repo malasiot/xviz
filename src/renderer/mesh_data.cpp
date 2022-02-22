@@ -11,7 +11,6 @@
 
 namespace xviz { namespace impl {
 
-
 MeshData::MeshData(const Geometry &mesh) {
 
     glGenVertexArrays(1, &vao_);
@@ -94,7 +93,6 @@ void MeshData::release() {
 
 void MeshData::update(Geometry &geom) {
 
-
     const Geometry::vb3_t &vertices = geom.vertices() ;
     const Geometry::vb3_t &normals = geom.normals() ;
     const Geometry::vb3_t &colors = geom.colors() ;
@@ -126,8 +124,7 @@ void MeshData::update(Geometry &geom) {
 
 }
 
-MeshData::~MeshData()
-{
+MeshData::~MeshData() {
 
     if ( pos_ ) glDeleteBuffers(1, &pos_) ;
     if ( normals_ ) glDeleteBuffers(1, &normals_) ;
@@ -152,7 +149,8 @@ MeshDataManager::~MeshDataManager() {
 //    flush() ;
     dirty_ = true ;
     for( auto &p: meshes_ ) {
-        p.first->data_ = nullptr ;
+        Geometry *geom = p.first ;
+        geom->data_ = nullptr ;
     }
 }
 

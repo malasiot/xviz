@@ -39,3 +39,6 @@ target_link_libraries(test_cloth xviz)
 
 add_executable(test_manipulators util.cpp manipulators.cpp )
 target_link_libraries(test_manipulators xviz)
+
+add_subdirectory(mh)
+

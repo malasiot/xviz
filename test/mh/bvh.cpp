@@ -1,6 +1,7 @@
 #include "bvh.hpp"
 
 #include <Eigen/Geometry>
+#include <iostream>
 
 using namespace Eigen ;
 using namespace std ;
@@ -102,6 +103,19 @@ void BVHFile::drawJoints(const string &vfile, int frame)
 
     for( int i = 0 ; i<indices.size() ; i+=2 )
         strm << "l " << indices[i] << ' ' << indices[i+1] << endl ;
+}
+
+void BVHFile::printHierarchy() {
+    printHierarchy(findJoint(root_joint_), 0) ;
+}
+
+void BVHFile::printHierarchy(BVHJoint *parent, size_t level)
+{
+    for( size_t l=0 ; l<level ; l++ )
+        cout << "  " ;
+    cout << parent->name_ << endl ;
+    for( const auto &child: parent->children_ )
+        printHierarchy(child, level+1) ;
 }
 
 void BVHFile::parseJoint(ifstream &strm, BVHJoint *parent) {

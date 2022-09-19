@@ -237,11 +237,11 @@ bool Mhx2Importer::parseMesh(MHX2Mesh &mesh, JSONReader &reader)
                 mesh.vertices_.emplace_back(v) ;
             }
             reader.endArray() ;
-        } else if ( name == "uv_coords" ) {
+        } else if ( name == "uv_coordinates" ) {
             reader.beginArray() ;
             while ( reader.hasNext() ) {
                 Vector2f v = toVector2(reader) ;
-                mesh.tex_coords_.emplace_back(v) ;
+                mesh.uv_coords_.emplace_back(v) ;
             }
             reader.endArray() ;
         } else if ( name == "faces" ) {
@@ -256,6 +256,21 @@ bool Mhx2Importer::parseMesh(MHX2Mesh &mesh, JSONReader &reader)
                 reader.endArray() ;
                 MHX2Face f(indices) ;
                 mesh.faces_.emplace_back(f) ;
+            }
+            reader.endArray() ;
+        } else if ( name == "uv_faces" ) {
+            reader.beginArray() ;
+            while ( reader.hasNext() ) {
+                UVFace f;
+
+                reader.beginArray() ;
+                while ( reader.hasNext() ) {
+                    int idx = reader.nextInt() ;
+                    f.indices_.push_back(idx) ;
+                }
+                reader.endArray() ;
+
+                mesh.uv_faces_.emplace_back(std::move(f)) ;
             }
             reader.endArray() ;
         } else if ( name == "weights" ) {

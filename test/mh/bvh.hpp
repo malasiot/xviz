@@ -44,8 +44,11 @@ public:
     }
 
     void drawJoints(const std::string &vfile, int frame) ;
+    void printHierarchy() ;
 
 private:
+
+    void printHierarchy(BVHJoint *parent, size_t level);
 
     void parseJoint(std::ifstream &strm, BVHJoint *parent) ;
     void parseMotionData(std::ifstream &strm) ;

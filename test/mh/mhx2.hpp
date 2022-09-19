@@ -36,10 +36,15 @@ struct MHX2Face {
     Eigen::Vector2f tex_coords_[MAX_VERTICES_PER_FACE] ;
 };
 
+struct UVFace {
+    std::vector<uint> indices_ ;
+};
+
 struct MHX2Mesh {
     std::vector<Eigen::Vector3f> vertices_ ;
     std::vector< MHX2Face > faces_ ;
-    std::vector<Eigen::Vector2f> tex_coords_ ;
+    std::vector<Eigen::Vector2f> uv_coords_ ;
+    std::vector< UVFace > uv_faces_ ;
     std::map<std::string, MHX2VertexGroup> groups_ ;
 };
 

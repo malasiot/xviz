@@ -83,6 +83,12 @@ struct MHX2Model {
     std::map<std::string, MHX2Bone> bones_ ;
     std::map<std::string, MHX2Geometry> geometries_ ;
     std::map<std::string, MHX2Material> materials_ ;
+
+    const MHX2Bone *getBone(const std::string &name) const {
+        auto it = bones_.find(name) ;
+        if ( it != bones_.end() ) return &(it->second) ;
+        else return nullptr ;
+    }
 };
 
 #endif

@@ -9,7 +9,7 @@ using namespace std ;
 using namespace Eigen ;
 using namespace cvx ;
 
-bool Mhx2Importer::load(const string &fname, const string &mesh)
+bool Mhx2Importer::load(const string &fname, const string &mesh, bool zup)
 {
     ifstream strm(fname) ;
 
@@ -23,7 +23,7 @@ bool Mhx2Importer::load(const string &fname, const string &mesh)
             if ( name == "geometries" ) {
                 parseGeometries(reader) ;
             } else if ( name == "skeleton" ) {
-                parseSkeleton(reader) ;
+                parseSkeleton(reader, zup) ;
             } else if ( name == "materials" ) {
                 parseMaterials(reader) ;
             } else {
@@ -116,7 +116,11 @@ bool Mhx2Importer::parseMaterials(JSONReader &reader) {
 
 extern float angle_normalized_v3v3(const Vector3f &v1, const Vector3f &v2) ;
 
-bool Mhx2Importer::parseSkeleton(JSONReader &reader) {
+static Vector3f zUp(const Vector3f &src, bool conv) {
+    return (conv) ? Vector3f{src[0], -src[2], src[1]} : src ;
+}
+
+bool Mhx2Importer::parseSkeleton(JSONReader &reader, bool zup) {
 
     string skeletonName ;
     Vector3f offset ;
@@ -129,7 +133,7 @@ bool Mhx2Importer::parseSkeleton(JSONReader &reader) {
         if ( name == "name" )
             skeletonName = reader.nextString() ;
         else if ( name == "offset" )
-            offset = toVector3(reader) ;
+            offset = zUp(toVector3(reader), zup) ;
         else if ( name == "scale" )
             scale = (float)reader.nextDouble() ;
         else if ( name == "bones" ) {
@@ -147,9 +151,9 @@ bool Mhx2Importer::parseSkeleton(JSONReader &reader) {
                     if ( name == "name" ) {
                         boneName = reader.nextString()  ;
                     } else if ( name == "head" ) {
-                        head = toVector3(reader) ;
+                        head = zUp(toVector3(reader), zup) ;
                     } else if ( name == "tail" ) {
-                        tail = toVector3(reader) ;
+                        tail = zUp(toVector3(reader), zup) ;
                     } else if ( name == "matrix" ) {
                         mat = toMatrix4(reader) ;
                     } else if ( name == "roll" ) {
@@ -165,10 +169,21 @@ bool Mhx2Importer::parseSkeleton(JSONReader &reader) {
                 mhbone.tail_ = tail + offset ;
                 mhbone.roll_ = (float)roll ;
 
-                mat.block<3, 1>(0, 3) = mhbone.head_ ;
 
 
-                mhbone.bmat_ = mat ;
+                Matrix4f bmat = mat ;
+
+                if ( zup ) {
+                    bmat.row(0) = mat.row(0) ;
+                    bmat.row(1) = -mat.row(2) ;
+                    bmat.row(2) = mat.row(1) ;
+                }
+
+                 bmat.block<3, 1>(0, 3) = mhbone.head_ ;
+
+
+
+                mhbone.bmat_ = bmat ;
 
                 mhbone.parent_ = parent ;
 

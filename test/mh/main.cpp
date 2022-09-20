@@ -14,7 +14,8 @@
 
 #include "../util.hpp"
 
-#include <opencv2/opencv.hpp>
+
+#include <iostream>
 
 using namespace std ;
 using namespace Eigen ;
@@ -60,7 +61,7 @@ void update_node_transforms(NodePtr &scene, const MHX2Model &model, const Pose &
         auto it = model.bones_.find(name) ;
         const MHX2Bone &b = it->second ;
         if ( node ) {
-            node->setTransform(mp.second * Isometry3f(b.bmat_) ) ;
+            node->setTransform(node->transform() * mp.second ) ;
         }
     }
 }
@@ -73,12 +74,53 @@ int main(int argc, char *argv[]) {
     TestApplication app("test_mh", argc, argv) ;
 
     Mhx2Importer importer ;
-    importer.load("/home/malasiot/Downloads/human-cmu.mhx2", "Human_cmu:Body") ;
+    importer.load("/home/malasiot/Downloads/human-cmu.mhx2", "Human_cmu:Body", true) ;
 
     const auto &mh = importer.getModel() ;
     NodePtr model(new MHNode(mh)) ;
 
+    Matrix4f rot ;
+    rot <<  1, 0, 0, 0,
+            0, 0, -1, 0,
+            0, 1, 0, 0,
+            0, 0, 0, 1 ;
 
+
+
+
+    //auto m = model->findNodeByName("LeftShoulder")->transform() ;
+
+    auto m = importer.getModel().getBone("LeftShoulder")->bmat_ ;
+    auto head = importer.getModel().getBone("LeftShoulder")->head_ ;
+
+
+    cout << m << endl ;
+
+
+/*
+LeftShoulder
+nmat
+<Matrix 4x4 (-0.1831,  0.9826,  0.0320,  0.0203)
+            (-0.1750, -0.0006, -0.9846, -0.0191)
+            (-0.9674, -0.1858,  0.1721,  1.2164)
+            ( 0.0000,  0.0000,  0.0000,  1.0000)>
+mat
+<Matrix 4x4 (-0.1831,  0.9826, 0.0320, 0.0203)
+            (-0.9674, -0.1858, 0.1721, 0.3981)
+            ( 0.1750,  0.0006, 0.9846, 0.0191)
+            ( 0.0000,  0.0000, 0.0000, 1.0000)>
+eb.mat
+<Matrix 4x4 (-0.1831,  0.9826,  0.0320,  0.0203)
+            (-0.1750, -0.0006, -0.9846, -0.0191)
+            (-0.9674, -0.1858,  0.1721,  1.2164)
+            ( 0.0000,  0.0000,  0.0000,  1.0000)>
+
+
+
+
+
+
+ */
 
     Pose pose ;
     load_pose_from_mhp("/home/malasiot/tmp/01_01_001.pose", pose) ;

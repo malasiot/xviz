@@ -14,7 +14,7 @@ class Mhx2Importer {
 public:
     Mhx2Importer() = default ;
 
-    bool load(const std::string &fname, const std::string &meshName) ;
+    bool load(const std::string &fname, const std::string &meshName, bool zup=false) ;
 
     const MHX2Model &getModel() const { return model_ ; }
 
@@ -22,7 +22,7 @@ private:
 
     using JSONReader = cvx::JSONReader ;
 
-    bool parseSkeleton(JSONReader &r) ;
+    bool parseSkeleton(JSONReader &r, bool zup) ;
     bool parseGeometries(JSONReader &v) ;
     bool parseMesh(MHX2Mesh &geom, JSONReader &v) ;
     bool parseVertexGroups(MHX2Mesh &mesh, JSONReader &v) ;

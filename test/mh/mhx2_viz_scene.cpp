@@ -159,8 +159,8 @@ void MHNode::createGeometry(const MHX2Model &model)
             // normalize
 
             float w = 0.0 ;
-         //   for ( float weight: weights ) w += weight ;
-         //   for ( float &weight: weights ) weight /= w ;
+            for ( float weight: weights ) w += weight ;
+            for ( float &weight: weights ) weight /= w ;
 
         }
 

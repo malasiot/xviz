@@ -5,6 +5,9 @@
 
 #include <Eigen/Geometry>
 
+#include <cvx/misc/path.hpp>
+#include <algorithm>
+
 using namespace std ;
 using namespace Eigen ;
 using namespace cvx ;
@@ -21,11 +24,11 @@ bool Mhx2Importer::load(const string &fname, const string &mesh, bool zup)
         while ( reader.hasNext() ) {
             string name = reader.nextName() ;
             if ( name == "geometries" ) {
-                parseGeometries(reader) ;
+                parseGeometries(reader, zup) ;
             } else if ( name == "skeleton" ) {
                 parseSkeleton(reader, zup) ;
             } else if ( name == "materials" ) {
-                parseMaterials(reader) ;
+                parseMaterials(reader, fname) ;
             } else {
                 reader.skipValue() ;
             }
@@ -46,16 +49,19 @@ bool Mhx2Importer::load(const string &fname, const string &mesh, bool zup)
 
 static Vector3f toVector3(JSONReader &r) {
     r.beginArray() ;
-    Vector3f q (r.nextDouble(), r.nextDouble(), r.nextDouble()) ;
+    float x = r.nextDouble() ;
+    float y = r.nextDouble() ;
+    float z = r.nextDouble() ;
     r.endArray() ;
-    return q ;
+    return Vector3f(x, y, z) ;
 }
 
 static Vector2f toVector2(JSONReader &r) {
     r.beginArray() ;
-    Vector2f q (r.nextDouble(), r.nextDouble()) ;
+    float x = r.nextDouble() ;
+    float y = r.nextDouble() ;
     r.endArray() ;
-    return q ;
+    return Vector2f(x, y) ;
 }
 
 
@@ -76,7 +82,9 @@ static Matrix4f toMatrix4(JSONReader &r) {
     return m ;
 }
 
-bool Mhx2Importer::parseMaterials(JSONReader &reader) {
+bool Mhx2Importer::parseMaterials(JSONReader &reader, const std::string &fpath) {
+
+    Path dir = Path(fpath).parentPath() ;
 
     reader.beginArray() ;
 
@@ -100,6 +108,8 @@ bool Mhx2Importer::parseMaterials(JSONReader &reader) {
                 current.shininess_ = (float)reader.nextDouble() ;
             else if ( name == "opacity" )
                 current.opacity_ = (float)reader.nextDouble() ;
+            else if ( name == "diffuse_texture" )
+                current.diffuse_texture_ = Path(dir, reader.nextString()).native() ;
             else reader.skipValue() ;
         }
 
@@ -181,8 +191,6 @@ bool Mhx2Importer::parseSkeleton(JSONReader &reader, bool zup) {
 
                  bmat.block<3, 1>(0, 3) = mhbone.head_ ;
 
-
-
                 mhbone.bmat_ = bmat ;
 
                 mhbone.parent_ = parent ;
@@ -200,7 +208,7 @@ bool Mhx2Importer::parseSkeleton(JSONReader &reader, bool zup) {
     return true ;
 }
 
-bool Mhx2Importer::parseGeometries(JSONReader &reader)
+bool Mhx2Importer::parseGeometries(JSONReader &reader, bool zup)
 {
     reader.beginArray() ;
 
@@ -216,11 +224,11 @@ bool Mhx2Importer::parseGeometries(JSONReader &reader)
             if ( name == "name" )
                 geomName = reader.nextString() ;
             else if ( name == "offset" )
-                current.offset_ = toVector3(reader) ;
+                current.offset_ = zUp(toVector3(reader), zup) ;
             else if ( name == "scale" )
                 current.scale_ = (float)reader.nextDouble() ;
             else if ( name == "mesh" )
-                parseMesh(current.mesh_, reader) ;
+                parseMesh(current.mesh_, reader, zup) ;
             else if ( name == "material" )
                 current.material_ = reader.nextString() ;
             else
@@ -239,7 +247,7 @@ bool Mhx2Importer::parseGeometries(JSONReader &reader)
     return true ;
 }
 
-bool Mhx2Importer::parseMesh(MHX2Mesh &mesh, JSONReader &reader)
+bool Mhx2Importer::parseMesh(MHX2Mesh &mesh, JSONReader &reader, bool zup)
 {
     reader.beginObject() ;
 
@@ -248,7 +256,7 @@ bool Mhx2Importer::parseMesh(MHX2Mesh &mesh, JSONReader &reader)
         if ( name == "vertices" ) {
             reader.beginArray() ;
             while ( reader.hasNext() ) {
-                Vector3f v = toVector3(reader) ;
+                Vector3f v = zUp(toVector3(reader), zup) ;
                 mesh.vertices_.emplace_back(v) ;
             }
             reader.endArray() ;
@@ -262,12 +270,13 @@ bool Mhx2Importer::parseMesh(MHX2Mesh &mesh, JSONReader &reader)
         } else if ( name == "faces" ) {
             reader.beginArray() ;
             while ( reader.hasNext() ) {
-                std::vector<uint> indices ;
+                std::deque<uint> indices ;
                 reader.beginArray() ;
                 while ( reader.hasNext() ) {
                     int idx = reader.nextInt() ;
                     indices.push_back(idx) ;
                 }
+
                 reader.endArray() ;
                 MHX2Face f(indices) ;
                 mesh.faces_.emplace_back(f) ;

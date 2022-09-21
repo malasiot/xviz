@@ -23,7 +23,7 @@ struct MHX2VertexGroup {
 #define UNKNOWN_MATERIAL_INDEX 0xffff
 
 struct MHX2Face {
-    MHX2Face(const std::vector<uint> &idx): material_index_(UNKNOWN_MATERIAL_INDEX) {
+    MHX2Face(const std::deque<uint> &idx): material_index_(UNKNOWN_MATERIAL_INDEX) {
         assert(idx.size() <= MAX_VERTICES_PER_FACE) ;
         num_vertices_ = idx.size() ;
         for(int i=0 ; i<num_vertices_ ; i++)
@@ -37,7 +37,7 @@ struct MHX2Face {
 };
 
 struct UVFace {
-    std::vector<uint> indices_ ;
+    std::deque<uint> indices_ ;
 };
 
 struct MHX2Mesh {
@@ -77,6 +77,7 @@ struct MHX2Material {
     bool recieve_shadows_ ;
     bool sss_enabled_ ;
     float sss_R_scale_, sss_G_scale_, sss_B_scale_ ;
+    std::string diffuse_texture_ ;
 };
 
 struct MHX2Model {

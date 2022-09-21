@@ -84,34 +84,36 @@ void MHNode::createGeometry(const MHX2Model &model)
 
         std::shared_ptr<Geometry> m(new Geometry(Geometry::Triangles)) ;
 
-        vector<int> indices ;
+        vector<int> vtx_indices ;
+        vector<int> uv_indices ;
         vector<Vector2f> tcoords ;
         vector<int> face_vertices ;
         vector<Vector2f> face_tcoords ;
-
+/*
         for( const Vector3f &v: mesh.vertices_ ) {
             m->vertices().push_back(v + geom.offset_) ;
         }
-
+*/
         // add faces
-
+/*
         for(size_t i=0 ; i<mesh.faces_.size() ; i++)
         {
             const MHX2Face &f = mesh.faces_[i] ;
-
+            const UVFace &uvf = mesh.uv_faces_[i] ;
 
             for(size_t k=0 ; k<f.num_vertices_ ; k++)
             {
                 uint idx = f.indices_[k] ;
+                uint tidx = uvf.indices_[k] ;
 
-                indices.push_back(idx) ;
-                tcoords.push_back(f.tex_coords_[k]);
+                vtx_indices.push_back(idx) ;
+                uv_indices.push_back(tidx);
             }
 
-            indices.push_back(-1) ;
+            vtx_indices.push_back(-1) ;
         }
 
-        // bone weights
+    */    // bone weights
 
         size_t n = m->vertices().size() ;
 
@@ -192,8 +194,42 @@ void MHNode::createGeometry(const MHX2Model &model)
 
         }
 
+        for(size_t i=0 ; i<mesh.faces_.size() ; i++)
+        {
+            const MHX2Face &f = mesh.faces_[i] ;
+            const UVFace &uvf = mesh.uv_faces_[i] ;
+
+            vector<Vector3f> vertices ;
+            vector<Vector2f> uvs ;
+
+            for(size_t k=0 ; k<f.num_vertices_ ; k++)
+            {
+                uint idx = f.indices_[k] ;
+                uint tidx = uvf.indices_[k] ;
+
+                vertices.push_back(mesh.vertices_[idx] + geom.offset_) ;
+                uvs.push_back(mesh.uv_coords_[tidx]) ;
+            }
+
+            // split face int triangles and add to mesh
+
+            for(size_t j=1 ; j<f.num_vertices_ - 1 ; j++)
+            {
+                m->vertices().push_back(vertices[0]) ;
+                m->vertices().push_back(vertices[j]) ;
+                m->vertices().push_back(vertices[j+1]) ;
+
+                m->texCoords(0).push_back(uvs[0]) ;
+                m->texCoords(0).push_back(uvs[j]) ;
+                m->texCoords(0).push_back(uvs[j+1]) ;
+            }
+
+        }
+
 
         // split faces into triangles
+
+#if 0
         int c = 0 ;
 
         for( size_t i=0 ; i<indices.size() ; i++ )
@@ -205,12 +241,14 @@ void MHNode::createGeometry(const MHX2Model &model)
                 for(size_t j=1 ; j<face_vertices.size() - 1 ; j++)
                 {
                     m->indices().push_back(face_vertices[0]) ;
-                    m->indices().push_back(face_vertices[j+1]) ;
+
                     m->indices().push_back(face_vertices[j]) ;
+                      m->indices().push_back(face_vertices[j+1]) ;
 
                     m->texCoords(0).push_back(face_tcoords[0]) ;
-                    m->texCoords(0).push_back(face_tcoords[j+1]) ;
+
                     m->texCoords(0).push_back(face_tcoords[j]) ;
+                    m->texCoords(0).push_back(face_tcoords[j+1]) ;
                 }
 
                 face_vertices.clear() ;
@@ -222,8 +260,8 @@ void MHNode::createGeometry(const MHX2Model &model)
                 face_tcoords.push_back(tcoords[c++]) ;
             }
         }
-
-        m->computeNormals();
+#endif
+      //  m->computeNormals();
 
         auto *material = new PhongMaterial() ;
 
@@ -237,6 +275,12 @@ void MHNode::createGeometry(const MHX2Model &model)
             material->setSpecularColor(Vector3f(mat.specular_color_.x(), mat.specular_color_.y(), mat.specular_color_.z()));
             material->setOpacity(mat.opacity_) ;
             material->setShininess(mat.shininess_) ;
+
+            if ( !mat.diffuse_texture_.empty() ) {
+                ImagePtr im(new Image(mat.diffuse_texture_)) ;
+                Texture2D *texture = new Texture2D(im, Sampler2D());
+                material->setDiffuseTexture(texture) ;
+            }
 
         }
 

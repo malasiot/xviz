@@ -121,14 +121,14 @@ eb.mat
 
 
  */
-
+/*
     Pose pose ;
     load_pose_from_mhp("/home/malasiot/tmp/01_01_001.pose", pose) ;
 
     //model->updateTransforms(pose) ;
 
     update_node_transforms(model, mh, pose) ;
-
+*/
     SceneViewer::initDefaultGLContext();
     SceneViewer *viewer = new SceneViewer(model);
     viewer->setDefaultCamera() ;

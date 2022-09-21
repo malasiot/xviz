@@ -89,35 +89,12 @@ void MHNode::createGeometry(const MHX2Model &model)
         vector<Vector2f> tcoords ;
         vector<int> face_vertices ;
         vector<Vector2f> face_tcoords ;
-/*
-        for( const Vector3f &v: mesh.vertices_ ) {
-            m->vertices().push_back(v + geom.offset_) ;
-        }
-*/
-        // add faces
-/*
-        for(size_t i=0 ; i<mesh.faces_.size() ; i++)
-        {
-            const MHX2Face &f = mesh.faces_[i] ;
-            const UVFace &uvf = mesh.uv_faces_[i] ;
 
-            for(size_t k=0 ; k<f.num_vertices_ ; k++)
-            {
-                uint idx = f.indices_[k] ;
-                uint tidx = uvf.indices_[k] ;
 
-                vtx_indices.push_back(idx) ;
-                uv_indices.push_back(tidx);
-            }
+        // bone weights
 
-            vtx_indices.push_back(-1) ;
-        }
+        size_t n = mesh.vertices_.size() ;
 
-    */    // bone weights
-
-        size_t n = m->vertices().size() ;
-
-        m->weights().resize(n) ;
 
         m->skeleton().insert(m->skeleton().end(), bones.begin(), bones.end()) ;
 
@@ -137,7 +114,7 @@ void MHNode::createGeometry(const MHX2Model &model)
 
             if ( bidx != -1 )  {
 
-                for( int i=0 ; i<group.idxs_.size() ; i++ )  {
+                for( size_t i=0 ; i<group.idxs_.size() ; i++ )  {
                     int idx = group.idxs_.at(i) ;
 
                     if ( idx < 0 ) continue ;
@@ -149,11 +126,11 @@ void MHNode::createGeometry(const MHX2Model &model)
             }
         }
 
-        for( int i=0 ; i<n ; i++ ) {
+        // trim and normalise
+
+        for( size_t i=0 ; i<n ; i++ ) {
             auto &idxs = vg_idxs[i] ;
             auto &weights = vg_weights[i] ;
-
-            auto &dest = m->weights()[i] ;
 
             // trim if neccessery
             if ( weights.size() > Geometry::MAX_BONES_PER_VERTEX ) {
@@ -182,15 +159,8 @@ void MHNode::createGeometry(const MHX2Model &model)
             // normalize
 
             float w = 0.0 ;
-            for ( float weight: weights ) w += weight ;
-            for ( float &weight: weights ) weight /= w ;
-
-            // copy to destination
-
-            for( size_t k=0 ; k<idxs.size() ; k++ ) {
-                dest.bone_[k] = idxs[k] ;
-                dest.weight_[k] = weights[k] ;
-            }
+         //   for ( float weight: weights ) w += weight ;
+         //   for ( float &weight: weights ) weight /= w ;
 
         }
 
@@ -199,8 +169,9 @@ void MHNode::createGeometry(const MHX2Model &model)
             const MHX2Face &f = mesh.faces_[i] ;
             const UVFace &uvf = mesh.uv_faces_[i] ;
 
-            vector<Vector3f> vertices ;
+            vector<Vector3f> vertices, normals ;
             vector<Vector2f> uvs ;
+            vector<Geometry::BoneWeight> weights ;
 
             for(size_t k=0 ; k<f.num_vertices_ ; k++)
             {
@@ -208,16 +179,36 @@ void MHNode::createGeometry(const MHX2Model &model)
                 uint tidx = uvf.indices_[k] ;
 
                 vertices.push_back(mesh.vertices_[idx] + geom.offset_) ;
+                normals.push_back(mesh.normals_[idx]) ;
                 uvs.push_back(mesh.uv_coords_[tidx]) ;
+
+                auto &idxs = vg_idxs[idx] ;
+                auto &vweights = vg_weights[idx] ;
+
+                Geometry::BoneWeight bw ;
+                for( size_t j=0 ; j<idxs.size() ; j++ ) {
+                    bw.bone_[j] = idxs[j] ;
+                    bw.weight_[j] = vweights[j] ;
+                    weights.emplace_back(std::move(bw)) ;
+                }
             }
 
             // split face int triangles and add to mesh
+
 
             for(size_t j=1 ; j<f.num_vertices_ - 1 ; j++)
             {
                 m->vertices().push_back(vertices[0]) ;
                 m->vertices().push_back(vertices[j]) ;
                 m->vertices().push_back(vertices[j+1]) ;
+
+                m->normals().push_back(normals[0]) ;
+                m->normals().push_back(normals[j]) ;
+                m->normals().push_back(normals[j+1]) ;
+
+                m->weights().push_back(weights[0]) ;
+                m->weights().push_back(weights[j]) ;
+                m->weights().push_back(weights[j+1]) ;
 
                 m->texCoords(0).push_back(uvs[0]) ;
                 m->texCoords(0).push_back(uvs[j]) ;
@@ -227,41 +218,6 @@ void MHNode::createGeometry(const MHX2Model &model)
         }
 
 
-        // split faces into triangles
-
-#if 0
-        int c = 0 ;
-
-        for( size_t i=0 ; i<indices.size() ; i++ )
-        {
-            int idx = indices[i] ;
-
-            if ( idx == -1 )
-            {
-                for(size_t j=1 ; j<face_vertices.size() - 1 ; j++)
-                {
-                    m->indices().push_back(face_vertices[0]) ;
-
-                    m->indices().push_back(face_vertices[j]) ;
-                      m->indices().push_back(face_vertices[j+1]) ;
-
-                    m->texCoords(0).push_back(face_tcoords[0]) ;
-
-                    m->texCoords(0).push_back(face_tcoords[j]) ;
-                    m->texCoords(0).push_back(face_tcoords[j+1]) ;
-                }
-
-                face_vertices.clear() ;
-                face_tcoords.clear() ;
-
-            }
-            else {
-                face_vertices.push_back(idx) ;
-                face_tcoords.push_back(tcoords[c++]) ;
-            }
-        }
-#endif
-      //  m->computeNormals();
 
         auto *material = new PhongMaterial() ;
 

@@ -47,6 +47,43 @@ bool Mhx2Importer::load(const string &fname, const string &mesh, bool zup)
 
 }
 
+static Vector3f normal_triangle(const Vector3f &v1, const Vector3f &v2, const Vector3f &v3)
+{
+    Vector3f n1, n2 ;
+
+    n1 = v1 - v2 ;
+    n2 = v1 - v3 ;
+    return  n1.cross(n2).normalized() ;
+
+}
+
+void MHX2Mesh::computeNormals() {
+    size_t n = vertices_.size() ;
+    normals_.resize(n) ;
+
+    for( unsigned int i=0 ; i<n ; i++ ) normals_.data()[i] = Vector3f::Zero() ;
+
+    for( unsigned int i=0 ; i<faces_.size() ; i++ )
+    {
+        const MHX2Face &face = faces_[i] ;
+
+        unsigned int idx0 = face.indices_[0] ;
+        unsigned int idx1 = face.indices_[1] ;
+        unsigned int idx2 = face.indices_[2] ;
+        Vector3f n = normal_triangle(vertices_[idx0], vertices_[idx1], vertices_[idx2]) ;
+
+        // face normal
+
+        for( size_t k=0 ; k<face.num_vertices_ ; k++ ) {
+            auto idx = face.indices_[k] ;
+            normals_[idx] += n ;
+        }
+
+    }
+
+    for( unsigned int i=0 ; i<n ; i++ ) normals_[i].normalize() ;
+}
+
 static Vector3f toVector3(JSONReader &r) {
     r.beginArray() ;
     float x = r.nextDouble() ;
@@ -305,6 +342,25 @@ bool Mhx2Importer::parseMesh(MHX2Mesh &mesh, JSONReader &reader, bool zup)
 
     }
 
+    mesh.computeNormals();
+#if 0
+    ofstream strm("/tmp/oo.obj") ;
+
+    for( size_t i=0 ; i<mesh.vertices_.size() ; i++ ) {
+        strm << "v " << mesh.vertices_[i].adjoint() << endl ;
+    }
+
+    for( size_t i=0 ; i<mesh.normals_.size() ; i++ ) {
+        strm << "n " << mesh.normals_[i].adjoint() << endl ;
+    }
+
+    for( size_t i=0 ; i<mesh.faces_.size() ; i++ ) {
+        const auto &f = mesh.faces_[i] ;
+        strm << "f " << f.indices_[0] + 1 << ' ' << f.indices_[1] + 1<< ' ' << f.indices_[2] + 1<< ' ' << f.indices_[3] + 1<< endl ;
+    }
+
+    strm.close() ;
+#endif
     reader.endObject() ;
 
     return true ;

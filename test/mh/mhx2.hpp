@@ -46,7 +46,11 @@ struct MHX2Mesh {
     std::vector<Eigen::Vector2f> uv_coords_ ;
     std::vector< UVFace > uv_faces_ ;
     std::map<std::string, MHX2VertexGroup> groups_ ;
+    std::vector<Eigen::Vector3f> normals_ ;
+
+    void computeNormals() ;
 };
+
 
 
 struct MHX2Geometry {

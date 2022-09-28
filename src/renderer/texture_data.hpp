@@ -6,8 +6,9 @@
 
 #include "gl/gl3w.h"
 #include <map>
-#include <xviz/common/image.hpp>
 
+#include <xviz/common/image.hpp>
+#include <xviz/scene/material.hpp>
 
 namespace xviz { namespace impl {
 
@@ -16,7 +17,9 @@ public:
     TextureData() ;
     ~TextureData() ;
 
-    bool create(Image *image) ;
+    bool create(Image *image, const Sampler2D &sampler) ;
+
+    void setupTextureParams(const Sampler2D &sampler) ;
 
     GLuint id() const { return id_ ; }
     bool loaded() const { return loaded_ ; }
@@ -34,7 +37,7 @@ private:
 
 class TextureCache {
 public:
-    TextureData *fetch(Image *im) ;
+    TextureData *fetch(Image *im, const Sampler2D &sampler) ;
     void release(Image *im) ;
 
     ~TextureCache() ;

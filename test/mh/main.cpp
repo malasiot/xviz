@@ -54,7 +54,7 @@ bool load_pose_from_mhp(const string &fname, Pose &pose) {
     return true ;
 }
 
-void update_node_transforms(NodePtr &scene, const MHX2Model &model, const Pose &pose) {
+void update_node_transforms(NodePtr &scene,  const Pose &pose) {
     for( const auto &mp: pose ) {
         const string &name = mp.first ;
         NodePtr node = scene->findNodeByName(name) ;
@@ -69,20 +69,27 @@ using namespace xviz ;
 int main(int argc, char *argv[]) {
 
     TestApplication app("test_mh", argc, argv) ;
-
+/*
     Mhx2Importer importer ;
     importer.load("/home/malasiot/Downloads/human-cmu.mhx2", "Human_cmu:Body", true) ;
 
     const auto &mh = importer.getModel() ;
     NodePtr model(new MHNode(mh)) ;
 
+*/
+
+    NodePtr model(new Node) ;
+
+  //  model->load(TestApplication::data() + "/models/RiggedFigure.dae", Node::IMPORT_ANIMATIONS | Node::IMPORT_SKELETONS) ;
+
+    model->load( "/home/malasiot/Downloads/human-cmu.dae", Node::IMPORT_SKELETONS) ;
 
     Pose pose ;
     load_pose_from_mhp("/home/malasiot/tmp/01_01_046.pose", pose) ;
 
     //model->updateTransforms(pose) ;
 
-    update_node_transforms(model, mh, pose) ;
+    update_node_transforms(model, pose) ;
 
     SceneViewer::initDefaultGLContext();
     SceneViewer *viewer = new SceneViewer(model);

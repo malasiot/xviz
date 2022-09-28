@@ -92,14 +92,15 @@ static void getPhongMaterial(PhongMaterial *material, const struct aiMaterial *m
     }
 }
 
-static Sampler2D::TextureMapMode convertMapMode(aiTextureMapMode m) {
+static Sampler2D::TextureWrapMode convertMapMode(aiTextureMapMode m) {
     switch ( m ) {
     case aiTextureMapMode_Clamp:
-        return Sampler2D::CLAMP ;
     case aiTextureMapMode_Decal:
-        return Sampler2D::DECAL ;
+        return Sampler2D::WRAP_CLAMP ;
+    case aiTextureMapMode_Mirror:
+        return Sampler2D::WRAP_MIRROR_REPEAT ;
     case aiTextureMapMode_Wrap:
-        return Sampler2D::WRAP ;
+        return Sampler2D::WRAP_REPEAT ;
     }
 }
 

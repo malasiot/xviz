@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 
   //  model->load(TestApplication::data() + "/models/RiggedFigure.dae", Node::IMPORT_ANIMATIONS | Node::IMPORT_SKELETONS) ;
 
-    model->load( "/home/malasiot/Downloads/120_10.dae", Node::IMPORT_ANIMATIONS | Node::IMPORT_SKELETONS) ;
+    model->load( "/home/malasiot/Downloads/human.dae", Node::IMPORT_ANIMATIONS | Node::IMPORT_SKELETONS) ;
     model->startAnimations(0);
 
     SceneViewer::initDefaultGLContext();

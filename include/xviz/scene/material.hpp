@@ -12,17 +12,37 @@ namespace xviz {
 
 class Sampler2D {
 public:
-    enum TextureMapMode { WRAP, CLAMP, DECAL } ;
+    enum TextureWrapMode { WRAP_REPEAT, WRAP_CLAMP, WRAP_MIRROR_REPEAT } ;
+    enum MagnificationMode { MAG_NEAREST, MAG_LINEAR } ;
+    enum MinificationMode { MIN_NEAREST,  MIN_LINEAR,
+                            MIN_NEAREST_MIPMAP_NEAREST,
+                            MIN_LINEAR_MIPMAP_NEAREST,
+                            MIN_NEAREST_MIPMAP_LINEAR,
+                            MIN_LINEAR_MIPMAP_LINEAR } ;
+
 
     Sampler2D() = default ;
-    Sampler2D(TextureMapMode wrap_u, TextureMapMode wrap_v):
+    Sampler2D(TextureWrapMode wrap_u, TextureWrapMode wrap_v):
         wrap_u_(wrap_u), wrap_v_(wrap_v) {}
 
-    TextureMapMode mapModeU() const { return wrap_u_; }
-    TextureMapMode mapModeV() const { return wrap_v_; }
+    void setMagnification(MagnificationMode m) {
+        mag_ = m ;
+    }
+
+    void setMinification(MinificationMode m) {
+        min_ = m ;
+    }
+
+    MagnificationMode magnification() const { return mag_ ; }
+    MinificationMode minification() const { return min_ ; }
+
+    TextureWrapMode wrapModeU() const { return wrap_u_; }
+    TextureWrapMode wrapModeV() const { return wrap_v_; }
 
 private:
-    TextureMapMode wrap_u_ = WRAP, wrap_v_ = WRAP ;
+    TextureWrapMode wrap_u_ = WRAP_REPEAT, wrap_v_ = WRAP_REPEAT ;
+    MagnificationMode mag_ = MAG_LINEAR ;
+    MinificationMode min_ = MIN_LINEAR_MIPMAP_LINEAR ;
 };
 
 class Texture2D {

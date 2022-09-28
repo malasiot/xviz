@@ -37,7 +37,7 @@ Renderer::Renderer() {
 impl::TextureData *Renderer::fetchTextureData(const Texture2D *texture) {
     if ( !texture ) return nullptr ;
 
-    return textures_.fetch(texture->image().get()) ;
+    return textures_.fetch(texture->image().get(), texture->sampler()) ;
 
 }
 

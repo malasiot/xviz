@@ -379,6 +379,7 @@ bool Mhx2Importer::parseVertexGroups(MHX2Mesh &mesh, JSONReader &reader)
             reader.beginArray() ;
             uint idx = reader.nextInt() ;
             double weight = reader.nextDouble() ;
+
             vg.idxs_.push_back(idx) ;
             vg.weights_.push_back(weight) ;
             reader.endArray() ;

@@ -109,6 +109,7 @@ class ConstantMaterialProgram: public MaterialProgram {
 public:
     struct Params {
         bool enable_skinning_ = false ;
+        bool has_texture_map_ = false ;
 
         std::string key() const ;
     };
@@ -126,6 +127,7 @@ public:
         return materialSingleton<ConstantMaterialProgram>(s_materials, params) ;
     }
 
+    void bindTextures(const MaterialPtr &mat, TextureLoader loader) override ;
 private:
 
     Params params_;

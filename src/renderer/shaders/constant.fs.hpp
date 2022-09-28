@@ -1,6 +1,12 @@
 static const char *constant_fragment_shader_vars = R"(
 uniform vec4 color ;
 uniform bool light_casts_shadows ;
+
+#ifdef HAS_DIFFUSE_MAP
+in vec2 uv ;
+uniform sampler2D diffuseMap;
+uniform mat3x3 map_transform ;
+#endif
 )";
 
 static const char *constant_fragment_shader = R"(
@@ -13,17 +19,10 @@ static const char *constant_fragment_shader = R"(
 out vec4 FragColor;
 
 void main (void) {
-float shadow = 0.0;
-/*#ifdef HAS_SHADOWS
-        for(int i=0 ;i<NUM_LIGHTS ; i++ ) {
-            if ( g_light_source[i].light_casts_shadows ) {
-                shadow += calcShadow(lspos[i], g_light_source[i].shadowMap, g_light_source[i].shadowBias);
-            }
-        }
-
-        shadow = clamp(shadow, 0.0, 1.0) ;
-#endif*/
-    /*FragColor = color * vec4(1-shadow, 1-shadow, 1-shadow, 1.0);*/
+#ifdef HAS_DIFFUSE_MAP
+FragColor = texture(diffuseMap, vec2(map_transform * vec3(uv, 1)));
+#else
 FragColor = color ;
+#endif
 }
 )";

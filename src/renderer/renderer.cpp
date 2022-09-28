@@ -75,6 +75,9 @@ MaterialProgramPtr Renderer::instantiateMaterial(const Material *mat, const std:
     } else if ( const ConstantMaterial *material = dynamic_cast<const ConstantMaterial *>(mat)) {
         ConstantMaterialProgram::Params params ;
         params.enable_skinning_ = has_skeleton ;
+        if ( material->texture()  ) {
+            params.has_texture_map_ = true ;
+        }
         return ConstantMaterialProgram::instance(params) ;
     } else if ( const PerVertexColorMaterial *material = dynamic_cast<const PerVertexColorMaterial *>(mat)) {
         PerVertexColorMaterialProgram::Params params ;

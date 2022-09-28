@@ -126,10 +126,15 @@ public:
         clr_ = clr ;
     }
 
+    void setTexture(Texture2D *tex) { texture_.reset(tex) ; }
+
     const Eigen::Vector4f &color() const { return clr_ ; }
+
+    const Texture2D *texture() const { return texture_.get() ; }
 
 private:
     Eigen::Vector4f clr_ ;
+    std::unique_ptr<Texture2D> texture_ ;
 };
 
 class PerVertexColorMaterial: public Material {

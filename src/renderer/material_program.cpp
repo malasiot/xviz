@@ -240,6 +240,8 @@ ConstantMaterialProgram::ConstantMaterialProgram(const Params &params): params_(
     OpenGLShaderPreproc preproc ;
 
     preproc.appendDefinition("USE_SKINNING", params.enable_skinning_);
+    preproc.appendDefinition("HAS_UVs", params.has_texture_map_) ;
+    preproc.appendDefinition("HAS_DIFFUSE_MAP", params.has_texture_map_) ;
 
     addShaderFromFile(VERTEX_SHADER, "@vertex_shader", preproc) ;
     addShaderFromFile(FRAGMENT_SHADER, "@constant_fragment_shader", preproc) ;
@@ -252,6 +254,18 @@ void ConstantMaterialProgram::applyParams(const MaterialPtr &mat) {
     assert( material ) ;
 
     setUniform("color", material->color()) ;
+
+    if ( params_.has_texture_map_ & HAS_DIFFUSE_TEXTURE ) {
+        setUniform("diffuseMap", 0) ;
+    }
+}
+
+void ConstantMaterialProgram::bindTextures(const MaterialPtr &mat, TextureLoader loader)
+{
+    const ConstantMaterial *m = dynamic_cast<const ConstantMaterial *>(mat.get()) ;
+    assert(m) ;
+
+    bindTexture(m->texture(), loader, 0) ;
 }
 
 PerVertexColorMaterialProgram::PerVertexColorMaterialProgram(const Params &params) {

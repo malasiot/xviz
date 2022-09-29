@@ -1,5 +1,5 @@
 #include <xviz/gui/viewer.hpp>
-
+#include <xviz/gui/offscreen.hpp>
 #include <xviz/scene/scene.hpp>
 #include <xviz/scene/geometry.hpp>
 #include <xviz/scene/light.hpp>
@@ -41,6 +41,17 @@ static void replace_texture(NodePtr node, const string &tpath) {
     });
 }
 
+void set_geom_visibility(NodePtr node, bool visible) {
+    node->visit([&](Node &n) {
+        if ( n.name() != "human-baseObject" ) {
+            if ( !n.drawables().empty() ) {
+                cout << n.name() << endl ;
+                n.setVisible(visible, true) ;
+            }
+        }
+    });
+}
+
 int main(int argc, char **argv)
 {
     TestApplication app("skeleton", argc, argv) ;
@@ -51,7 +62,38 @@ int main(int argc, char **argv)
 
     model->load( "/home/malasiot/Downloads/human.dae", Node::IMPORT_ANIMATIONS | Node::IMPORT_SKELETONS) ;
     replace_texture(model, "/home/malasiot/Downloads/textures/parts_texture.png") ;
+    set_geom_visibility(model, false) ;
 
+    float r = 0.5 ;
+    Vector3f c{0, 0.7, 0.0};
+    unsigned int width = 480, height = 480 ;
+    PerspectiveCamera *pcam = new PerspectiveCamera(1, // aspect ratio
+                                                    50*M_PI/180,   // fov
+                                                    0.0001,        // zmin
+                                                    10*r           // zmax
+                                                    ) ;
+
+
+//    OrthographicCamera *pcam = new OrthographicCamera(-0.6*r, 0.6*r, 0.6*r, -0.6*r,0.0001, 10*r) ;
+
+    CameraPtr cam(pcam) ;
+
+    cam->setBgColor({1, 0, 0, 1});
+
+    // position camera to look at the center of the object
+
+  //  pcam->viewSphere(c, r) ;
+    pcam->lookAt(c + Vector3f{0, 0, 4*r}, c, {0, 1, 0}) ;
+
+    // set camera viewpot
+
+    pcam->setViewport(width, height)  ;
+
+    OffscreenRenderer rdr(QSize(width, height));
+    rdr.render(model, cam) ;
+    rdr.getImage().save("/tmp/clr.png");
+    rdr.getDepthBuffer(0.0001, 10*r).save("/tmp/depth.png") ;
+/*
     SceneViewer::initDefaultGLContext();
     SceneViewer *viewer = new SceneViewer(model);
     viewer->setDefaultCamera() ;
@@ -63,4 +105,5 @@ int main(int argc, char **argv)
     window.show() ;
 
     return app.exec();
+    */
 }

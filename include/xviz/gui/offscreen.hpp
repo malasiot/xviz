@@ -14,15 +14,24 @@ class OffscreenRenderer : public QOffscreenSurface
 
 public:
 
-    explicit OffscreenRenderer(QScreen* targetScreen = nullptr, const QSize& size = QSize (1, 1));
+    explicit OffscreenRenderer(const QSize& size);
+    explicit OffscreenRenderer(const QSize &size, QSurfaceFormat &sformat);
+
     ~OffscreenRenderer();
 
-    QImage render(const xviz::NodePtr &scene, const xviz::CameraPtr &cam);
+    void render(const xviz::NodePtr &scene, const xviz::CameraPtr &cam);
+
+    QImage getImage() const ;
+    QImage getDepthBuffer(float znear, float zfar) const ;
+
 
 private:
-    QOpenGLFramebufferObject *fbo_;
-    QOpenGLContext *context_;
+    QOpenGLFramebufferObject *fbo_ = nullptr;
+    QOpenGLContext *context_ = nullptr;
     QSize size_;
+private:
+    void createContext();
+    void createFBO();
 };
 
 }

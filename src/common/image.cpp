@@ -13,17 +13,19 @@ namespace xviz {
 class ImageData {
 public:
     ImageData(ImageType t): type_(t) {}
+    virtual ~ImageData() = default ;
     ImageType type_ ;
 };
 
 class RawImageData: public ImageData {
 public:
 
-    RawImageData(const unsigned char *bytes, ImageFormat fmt, uint32_t w, uint32_t h):
+    RawImageData(unsigned char *bytes, ImageFormat fmt, uint32_t w, uint32_t h):
         ImageData(ImageType::Raw), width_(w), height_(h), format_(fmt) {
         uint32_t data_sz = sz()  ;
-        bytes_.reset(new unsigned char [data_sz]) ;
-        std::memcpy(bytes_.get(), bytes, data_sz) ;
+        bytes_.reset(bytes) ;
+      //  bytes_.reset(new unsigned char [data_sz]) ;
+      //  std::memcpy(bytes_.get(), bytes, data_sz) ;
       //  uuid_ = sole::uuid0().str() ;
     }
 
@@ -35,6 +37,8 @@ public:
             return width_ * height_ * 3 ;
         case ImageFormat::gray8:
             return width_ * height_ * 1 ;
+        case ImageFormat::gray16:
+            return width_ * height_ * 2 ;
         case ImageFormat::encoded:
             return width_ ;
         }
@@ -42,7 +46,7 @@ public:
 
     uint32_t width_, height_ ;
     ImageFormat format_ ;
-    std::unique_ptr<unsigned char []> bytes_ ;
+    std::unique_ptr<unsigned char> bytes_ ;
     std::string uuid_ ;
 
     ~RawImageData() {}
@@ -64,7 +68,7 @@ Image::Image(const string &uri) {
     data_.reset(new UriImageData(uri)) ;
 }
 
-Image::Image(const unsigned char *bytes, ImageFormat fmt, uint32_t w, uint32_t h) {
+Image::Image(unsigned char *bytes, ImageFormat fmt, uint32_t w, uint32_t h) {
     data_.reset(new RawImageData(bytes, fmt, w, h)) ;
 }
 

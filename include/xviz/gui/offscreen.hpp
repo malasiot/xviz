@@ -22,8 +22,8 @@ public:
 
     void render(const xviz::NodePtr &scene, const xviz::CameraPtr &cam);
 
-    ImagePtr getImage() const ;
-    ImagePtr getDepthBuffer(float znear, float zfar) const ;
+    Image getImage() const ;
+    Image getDepthBuffer(float znear, float zfar) const ;
 
 
 private:

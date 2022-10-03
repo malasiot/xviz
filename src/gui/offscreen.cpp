@@ -76,7 +76,7 @@ void OffscreenRenderer::render(const xviz::NodePtr &scene, const xviz::CameraPtr
 
 }
 
-ImagePtr OffscreenRenderer::getImage() const {
+Image OffscreenRenderer::getImage() const {
     uchar *bytes = new uchar [size_.width() * size_.height() * 4] ;
 
     glReadPixels(0, 0, size_.width(), size_.height(), GL_RGBA, GL_UNSIGNED_BYTE, bytes);
@@ -88,10 +88,10 @@ ImagePtr OffscreenRenderer::getImage() const {
                 bytes + 4 * size_.width() * (size_.height() - line - 1));
     }
 
-    return ImagePtr(new Image(bytes, ImageFormat::rgba32, size_.width(), size_.height())) ;
+    return Image(bytes, ImageFormat::rgba32, size_.width(), size_.height()) ;
 }
 
-ImagePtr OffscreenRenderer::getDepthBuffer(float znear, float zfar) const {
+Image OffscreenRenderer::getDepthBuffer(float znear, float zfar) const {
 
     glReadBuffer(GL_DEPTH_ATTACHMENT);
 
@@ -121,7 +121,7 @@ ImagePtr OffscreenRenderer::getDepthBuffer(float znear, float zfar) const {
         l_dst -= size_.width() ;
     }
 
-    return ImagePtr(new Image((uchar *)dst, ImageFormat::gray16, size_.width(), size_.height())) ;
+    return Image((uchar *)dst, ImageFormat::gray16, size_.width(), size_.height()) ;
 }
 
 }

@@ -111,8 +111,8 @@ static void hsv2rgb(float h, QRgb &rgb)
 const int nColors = 2 << 12 ;
 QRgb *hsvlut ;
 
-QImage imageToQImage(const ImagePtr &img) {
-    int w = img->width(), h = img->height(), lw = w * 2 ;
+QImage imageToQImage(const Image &img) {
+    int w = img.width(), h = img.height(), lw = w * 2 ;
 
     int nc = nColors ;
 
@@ -135,7 +135,7 @@ QImage imageToQImage(const ImagePtr &img) {
     minv = 0xffff ;
     maxv = 0 ;
 
-    const uchar *ppl = img->data() ;
+    const uchar *ppl = img.data() ;
     unsigned short *pp = (unsigned short *)ppl ;
 
     for ( i=0 ; i<h ; i++, ppl += lw )
@@ -151,7 +151,7 @@ QImage imageToQImage(const ImagePtr &img) {
     for( i=0 ; i<h ; i++ )
     {
         uchar *dst = image.scanLine(i) ;
-        unsigned short *src = (unsigned short *)img->data() + img->width() * i ;
+        unsigned short *src = (unsigned short *)img.data() + img.width() * i ;
 
         for( j=0 ; j<w ; j++ )
         {
@@ -181,7 +181,7 @@ QImage imageToQImage(const ImagePtr &img) {
 
 
 
-void write_depth(ImagePtr im, const std::string &fpath) {
+void write_depth(Image& im, const std::string &fpath) {
     QImage qim = imageToQImage(im) ;
     qim.save(QString::fromStdString(fpath)) ;
 
@@ -227,13 +227,18 @@ int main(int argc, char **argv)
     OffscreenRenderer rdr(QSize(width, height));
     rdr.render(model, cam) ;
     auto clr = rdr.getImage() ;
+    clr.saveToPNG("/tmp/oo.png") ;
 
-    QImage im(clr->data(), clr->width(), clr->height(), QImage::Format_RGBA8888) ;
+    QImage im(clr.data(), clr.width(), clr.height(), QImage::Format_RGBA8888) ;
     im.save("/tmp/clr.png") ;
 
     auto depth = rdr.getDepthBuffer(0.0001, 10*r) ;
 
+
+     depth.saveToPNG("/tmp/oo.png") ;
+
     write_depth(depth, "/tmp/depth.png") ;
+
 
 
     /*

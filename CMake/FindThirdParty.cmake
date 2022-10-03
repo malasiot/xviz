@@ -7,5 +7,6 @@ endif()
 
 find_package(OpenGL QUIET REQUIRED)
 find_package(Qt5 COMPONENTS Core Widgets OpenGL REQUIRED)
+find_package(PNG)
 
 

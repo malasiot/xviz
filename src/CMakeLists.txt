@@ -55,10 +55,15 @@ set(LIB_SOURCES
 
 add_library(xviz SHARED ${LIB_SOURCES})
 
+
+if ( PNG_FOUND )
+    target_compile_definitions(xviz PUBLIC HAS_LIBPNG)
+endif()
+
 if (msvc)
-target_link_libraries(xviz assimp::assimp ${OPENGL_LIBRARIES}  Qt5::Core Qt5::Widgets)
+target_link_libraries(xviz assimp::assimp ${OPENGL_LIBRARIES}  ${PNG_LIBRARIES} Qt5::Core Qt5::Widgets)
 else ()
-target_link_libraries(xviz assimp ${OPENGL_LIBRARIES}  Qt5::Core Qt5::Widgets)
+target_link_libraries(xviz assimp ${OPENGL_LIBRARIES} ${PNG_LIBRARIES} Qt5::Core Qt5::Widgets)
 endif ()
 
 # Install library

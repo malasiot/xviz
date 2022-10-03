@@ -49,6 +49,11 @@ public:
     // unique id used for resource management
     std::string id() const ;
 
+#ifdef HAS_LIBPNG
+    bool saveToPNG(const std::string &fileName) ;
+    bool saveToPNGBuffer(std::string &data);
+#endif
+
 private:
 
     friend class impl::TextureCache ;

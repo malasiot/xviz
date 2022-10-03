@@ -6,6 +6,7 @@
 #include <QOpenGLContext>
 
 #include <xviz/scene/scene_fwd.hpp>
+#include <xviz/common/image.hpp>
 
 namespace xviz {
 class OffscreenRenderer : public QOffscreenSurface
@@ -21,8 +22,8 @@ public:
 
     void render(const xviz::NodePtr &scene, const xviz::CameraPtr &cam);
 
-    QImage getImage() const ;
-    QImage getDepthBuffer(float znear, float zfar) const ;
+    ImagePtr getImage() const ;
+    ImagePtr getDepthBuffer(float znear, float zfar) const ;
 
 
 private:

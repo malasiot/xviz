@@ -58,5 +58,4 @@ int main(int argc, char *argv[]) {
 
     OffscreenRenderer rdr(QSize(width, height));
     rdr.render(scene, cam) ;
-    rdr.getImage().save("/tmp/oo.png");
 }

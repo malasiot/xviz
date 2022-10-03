@@ -3,6 +3,7 @@
 #include <QImage>
 
 #include <xviz/scene/renderer.hpp>
+#include <xviz/common/image.hpp>
 
 #include <iostream>
 using namespace std ;
@@ -75,50 +76,52 @@ void OffscreenRenderer::render(const xviz::NodePtr &scene, const xviz::CameraPtr
 
 }
 
-QImage OffscreenRenderer::getImage() const {
-    return fbo_->toImage() ;
+ImagePtr OffscreenRenderer::getImage() const {
+    uchar *bytes = new uchar [size_.width() * size_.height() * 4] ;
+
+    glReadPixels(0, 0, size_.width(), size_.height(), GL_RGBA, GL_UNSIGNED_BYTE, bytes);
+
+    for(int line = 0; line != size_.height()/2; ++line) {
+        std::swap_ranges(
+                bytes + 4 * size_.width() * line,
+                bytes + 4 * size_.width() * (line + 1),
+                bytes + 4 * size_.width() * (size_.height() - line - 1));
+    }
+
+    return ImagePtr(new Image(bytes, ImageFormat::rgba32, size_.width(), size_.height())) ;
 }
 
-QImage OffscreenRenderer::getDepthBuffer(float znear, float zfar) const {
-
-    QImage im(size_, QImage::Format_RGB888 ) ;
+ImagePtr OffscreenRenderer::getDepthBuffer(float znear, float zfar) const {
 
     glReadBuffer(GL_DEPTH_ATTACHMENT);
 
     std::unique_ptr<float []> data(new float[size_.width() * size_.height() * sizeof(float)]) ;
+    uint16_t *dst = new uint16_t[size_.width() * size_.height() * 2] ;
+
     glReadPixels(0, 0, size_.width(), size_.height(), GL_DEPTH_COMPONENT, GL_FLOAT, data.get());
 
     float max_allowed_z = zfar * 0.99;
 
-      //unsigned int i_min = width_, i_max = 0, j_min = height_, j_max = 0;
-
     float *ptr = data.get() ;
-    uchar *dst = im.bits() ;
+    uint16_t *l_dst = dst + (size_.height() - 1) * size_.width();
 
     for (int i = 0; i < size_.height() ; ++i) {
+        uint16_t *p_dst = l_dst ;
         for (int j = 0; j < size_.width(); ++j )
           {
               //need to undo the depth buffer mapping
               //http://olivers.posterous.com/linear-depth-in-glsl-for-real
               float z  = 2 * zfar * znear / (zfar + znear - (zfar - znear) * (2 * (*ptr) - 1));
 
-              uint64_t val = ( z > max_allowed_z ) ? 0 : round(z * 1e9) ;
-
-//              cout << z << endl ;
-              QColor clr ;
-
-              uchar r = (val >> 16) & 0xFF;
-              uchar g = (val >> 8) & 0xFF;
-              uchar b = val & 0xFF;
+              uint16_t val = ( z > max_allowed_z ) ? 0 : round(z * 1000) ;
 
               ++ptr ;
-              *dst++ = r ;
-              *dst++ = g ;
-              *dst++ = b ;
+              *p_dst++ = val ;
           }
+        l_dst -= size_.width() ;
     }
 
-      return im.mirrored(false, true);
+    return ImagePtr(new Image((uchar *)dst, ImageFormat::gray16, size_.width(), size_.height())) ;
 }
 
 }

@@ -16,8 +16,8 @@ int main(int argc, char *argv[]) {
 
     ScenePtr scene(new Scene) ;
    // scene->load("/home/malasiot/Downloads/greek_column.obj") ;
-//    scene->load(TestApplication::data() + "/models/cube.obj") ;
-    scene->load("/home/malasiot/Downloads/human.dae") ;
+    scene->load(TestApplication::data() + "/models/cube.obj") ;
+ //   scene->load("/home/malasiot/Downloads/human.dae") ;
 
     // optional compute center and radius to properly position camera
   //  auto c = scene->geomCenter() ;

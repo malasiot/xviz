@@ -104,7 +104,7 @@ QImage OffscreenRenderer::getDepthBuffer(float znear, float zfar) const {
 
               uint64_t val = ( z > max_allowed_z ) ? 0 : round(z * 1e9) ;
 
-              cout << z << endl ;
+//              cout << z << endl ;
               QColor clr ;
 
               uchar r = (val >> 16) & 0xFF;

@@ -22,7 +22,7 @@ static void replace_texture(NodePtr node, const string &tpath) {
     node->visit([&](Node &n) {
         cout << n.name() << endl ;
 
-        if ( n.name() == "human-baseObject" ) {
+        if ( n.name() == "human_cmu-baseObject" ) {
 
             MaterialPtr mat = n.drawables()[0].material() ;
 
@@ -43,7 +43,7 @@ static void replace_texture(NodePtr node, const string &tpath) {
 
 void set_geom_visibility(NodePtr node, bool visible) {
     node->visit([&](Node &n) {
-        if ( n.name() != "human-baseObject" ) {
+        if ( n.name() != "human_cmu-baseObject" ) {
             if ( !n.drawables().empty() ) {
                 cout << n.name() << endl ;
                 n.setVisible(visible, true) ;
@@ -60,12 +60,12 @@ int main(int argc, char **argv)
 
   //  model->load(TestApplication::data() + "/models/RiggedFigure.dae", Node::IMPORT_ANIMATIONS | Node::IMPORT_SKELETONS) ;
 
-    model->load( "/home/malasiot/Downloads/human.dae", Node::IMPORT_ANIMATIONS | Node::IMPORT_SKELETONS) ;
-    replace_texture(model, "/home/malasiot/Downloads/textures/parts_texture.png") ;
+    model->load( "/home/malasiot/source/human_tracking/pose_estimation/data/models/human-cmu.dae", Node::IMPORT_ANIMATIONS | Node::IMPORT_SKELETONS) ;
+    replace_texture(model, "/home/malasiot/source/human_tracking/pose_estimation/data/parts.png") ;
     set_geom_visibility(model, false) ;
 
-    float r = 0.5 ;
-    Vector3f c{0, 0.7, 0.0};
+    float r = 7 ;
+    Vector3f c{0, 0.75, 0.0};
     unsigned int width = 480, height = 480 ;
     PerspectiveCamera *pcam = new PerspectiveCamera(1, // aspect ratio
                                                     50*M_PI/180,   // fov

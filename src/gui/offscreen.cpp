@@ -19,6 +19,9 @@ OffscreenRenderer::OffscreenRenderer(const QSize &size): QOffscreenSurface(nullp
     sformat.setSamples(4);
     sformat.setProfile(QSurfaceFormat::CoreProfile);
 
+    sformat.setSwapInterval(0); //disable vsync
+    sformat.setSwapBehavior(QSurfaceFormat::SingleBuffer);
+
 
     setFormat(sformat);
     create();
@@ -47,6 +50,9 @@ void OffscreenRenderer::createFBO() {
         fbo_ = new QOpenGLFramebufferObject(size_, format);
         fbo_->bind() ;
 
+        if (!fbo_->isValid())
+                   throw std::runtime_error("OffscreenGL::allocFbo() - Failed to create background FBO!");
+
     }
 }
 
@@ -64,6 +70,16 @@ void OffscreenRenderer::createContext() {
 }
 
 OffscreenRenderer::~OffscreenRenderer() {
+
+    destroy() ;
+
+    fbo_->release();
+
+    glActiveTexture(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    context_->doneCurrent();
+
     delete context_ ;
     delete fbo_ ;
 }
@@ -72,11 +88,12 @@ void OffscreenRenderer::render(const xviz::NodePtr &scene, const xviz::CameraPtr
 {
     Renderer rdr ;
     rdr.init() ;
+    rdr.setDefaultFBO(fbo_->handle());
     rdr.render(scene, cam) ;
-
 }
 
 Image OffscreenRenderer::getImage() const {
+
     uchar *bytes = new uchar [size_.width() * size_.height() * 4] ;
 
     glReadPixels(0, 0, size_.width(), size_.height(), GL_RGBA, GL_UNSIGNED_BYTE, bytes);

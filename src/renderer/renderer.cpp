@@ -203,6 +203,8 @@ void Renderer::render(const NodePtr &scene, const CameraPtr &cam) {
     proj_ = cam->getViewMatrix() ;
 
     renderScene(cam) ;
+
+    glFlush() ;
 }
 
 Vector2f Renderer::project(const Vector3f &pos) {

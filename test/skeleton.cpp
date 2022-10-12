@@ -195,11 +195,11 @@ int main(int argc, char **argv)
 
     //  model->load(TestApplication::data() + "/models/RiggedFigure.dae", Node::IMPORT_ANIMATIONS | Node::IMPORT_SKELETONS) ;
 
-    model->load( "/home/malasiot/source/human_tracking/pose_estimation/data/models/human-cmu.dae", Node::IMPORT_ANIMATIONS | Node::IMPORT_SKELETONS) ;
-    replace_texture(model, "/home/malasiot/source/human_tracking/pose_estimation/data/parts.png") ;
-    set_geom_visibility(model, false) ;
+    model->load( "/home/malasiot/source/human_tracking/pose_estimation/data/models/human_cmu.dae", Node::IMPORT_ANIMATIONS | Node::IMPORT_SKELETONS) ;
+   replace_texture(model, "/home/malasiot/source/human_tracking/pose_estimation/data/parts.png") ;
+   set_geom_visibility(model, false) ;
 
-    float r = 7 ;
+    float r = 2.7 ;
     Vector3f c{0, 0.75, 0.0};
     unsigned int width = 480, height = 480 ;
     PerspectiveCamera *pcam = new PerspectiveCamera(1, // aspect ratio
@@ -213,31 +213,40 @@ int main(int argc, char **argv)
 
     CameraPtr cam(pcam) ;
 
-    cam->setBgColor({1, 0, 0, 1});
+    cam->setBgColor({0, 0, 0, 0});
 
     // position camera to look at the center of the object
 
     //  pcam->viewSphere(c, r) ;
-    pcam->lookAt(c + Vector3f{0, 0, 4*r}, c, {0, 1, 0}) ;
+    pcam->lookAt(c + Vector3f{0, 0, r}, c, {0, 1, 0}) ;
 
     // set camera viewpot
 
     pcam->setViewport(width, height)  ;
 
-    OffscreenRenderer rdr(QSize(width, height));
-    rdr.render(model, cam) ;
-    auto clr = rdr.getImage() ;
-    clr.saveToPNG("/tmp/oo.png") ;
+      OffscreenRenderer os(QSize(width, height));
 
-    QImage im(clr.data(), clr.width(), clr.height(), QImage::Format_RGBA8888) ;
-    im.save("/tmp/clr.png") ;
+    {
+          Renderer rdr ;
 
-    auto depth = rdr.getDepthBuffer(0.0001, 10*r) ;
+          rdr.init() ;
 
+          rdr.render(model, cam) ;
 
-     depth.saveToPNG("/tmp/oo.png") ;
+          os.getImage().saveToPNG("/tmp/oo.png") ;
+    }
 
-    write_depth(depth, "/tmp/depth.png") ;
+        {
+           set_geom_visibility(model,  true) ;
+
+          Renderer rdr ;
+
+          rdr.render(model, cam) ;
+
+          os.getImage().saveToPNG("/tmp/oo2.png") ;
+
+        }
+
 
 
 

@@ -10,13 +10,12 @@ using namespace std ;
 
 namespace xviz {
 
-OffscreenRenderer::OffscreenRenderer(const QSize &size): QOffscreenSurface(nullptr), size_(size) {
+OffscreenSurface::OffscreenSurface(const QSize &size): QOffscreenSurface(nullptr), size_(size) {
     QSurfaceFormat sformat;
-    sformat.setDepthBufferSize(24);
+    sformat.setDepthBufferSize(32);
     sformat.setMajorVersion(3);
     sformat.setMinorVersion(3);
 
-    sformat.setSamples(4);
     sformat.setProfile(QSurfaceFormat::CoreProfile);
 
     sformat.setSwapInterval(0); //disable vsync
@@ -31,32 +30,24 @@ OffscreenRenderer::OffscreenRenderer(const QSize &size): QOffscreenSurface(nullp
 
 
 
-OffscreenRenderer::OffscreenRenderer(const QSize &size, QSurfaceFormat &sformat): QOffscreenSurface(nullptr), size_(size) {
+OffscreenSurface::OffscreenSurface(const QSize &size, QSurfaceFormat &sformat): QOffscreenSurface(nullptr), size_(size) {
     setFormat(sformat);
     create();
-
     createContext() ;
     createFBO() ;
 }
 
-void OffscreenRenderer::createFBO() {
+void OffscreenSurface::createFBO() {
     if ( context_ && fbo_ == nullptr ) {
         QOpenGLFramebufferObjectFormat format;
-        format.setSamples(0);
         format.setTextureTarget(GL_TEXTURE_2D) ;
         format.setAttachment(QOpenGLFramebufferObject::Depth) ;
-
-
         fbo_ = new QOpenGLFramebufferObject(size_, format);
         fbo_->bind() ;
-
-        if (!fbo_->isValid())
-                   throw std::runtime_error("OffscreenGL::allocFbo() - Failed to create background FBO!");
-
     }
 }
 
-void OffscreenRenderer::createContext() {
+void OffscreenSurface::createContext() {
     context_ = new QOpenGLContext(this);
     context_->setFormat(format());
 
@@ -69,30 +60,17 @@ void OffscreenRenderer::createContext() {
     }
 }
 
-OffscreenRenderer::~OffscreenRenderer() {
-
-    destroy() ;
+OffscreenSurface::~OffscreenSurface() {
 
     fbo_->release();
-
-    glActiveTexture(0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
     context_->doneCurrent();
 
     delete context_ ;
     delete fbo_ ;
 }
 
-void OffscreenRenderer::render(const xviz::NodePtr &scene, const xviz::CameraPtr &cam)
-{
-    Renderer rdr ;
-    rdr.init() ;
-    rdr.setDefaultFBO(fbo_->handle());
-    rdr.render(scene, cam) ;
-}
 
-Image OffscreenRenderer::getImage() const {
+Image OffscreenSurface::getImage() const {
 
     uchar *bytes = new uchar [size_.width() * size_.height() * 4] ;
 
@@ -108,7 +86,7 @@ Image OffscreenRenderer::getImage() const {
     return Image(bytes, ImageFormat::rgba32, size_.width(), size_.height()) ;
 }
 
-Image OffscreenRenderer::getDepthBuffer(float znear, float zfar) const {
+Image OffscreenSurface::getDepthBuffer(float znear, float zfar) const {
 
     glReadBuffer(GL_DEPTH_ATTACHMENT);
 

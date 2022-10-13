@@ -1,4 +1,5 @@
 #include <xviz/gui/offscreen.hpp>
+#include <xviz/scene/renderer.hpp>
 #include <xviz/scene/scene.hpp>
 #include <xviz/scene/light.hpp>
 #include <xviz/scene/camera.hpp>
@@ -56,6 +57,7 @@ int main(int argc, char *argv[]) {
 
     pcam->setViewport(width, height)  ;
 
-    OffscreenRenderer rdr(QSize(width, height));
+    OffscreenSurface os(QSize(width, height));
+    Renderer rdr ;
     rdr.render(scene, cam) ;
 }

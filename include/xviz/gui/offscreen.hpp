@@ -9,18 +9,16 @@
 #include <xviz/common/image.hpp>
 
 namespace xviz {
-class OffscreenRenderer : public QOffscreenSurface
+class OffscreenSurface : public QOffscreenSurface
 {
     Q_OBJECT
 
 public:
 
-    explicit OffscreenRenderer(const QSize& size);
-    explicit OffscreenRenderer(const QSize &size, QSurfaceFormat &sformat);
+    explicit OffscreenSurface(const QSize& size);
+    explicit OffscreenSurface(const QSize &size, QSurfaceFormat &sformat);
 
-    ~OffscreenRenderer();
-
-    void render(const xviz::NodePtr &scene, const xviz::CameraPtr &cam);
+    ~OffscreenSurface();
 
     Image getImage() const ;
     Image getDepthBuffer(float znear, float zfar) const ;

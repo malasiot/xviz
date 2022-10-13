@@ -224,7 +224,10 @@ int main(int argc, char **argv)
 
     pcam->setViewport(width, height)  ;
 
-      OffscreenRenderer os(QSize(width, height));
+      OffscreenSurface os(QSize(width, height));
+      QSurfaceFormat fmt = os.format() ;
+      fmt.setSamples(0);
+    //  os.setFormat(fmt) ;
 
     {
           Renderer rdr ;
@@ -234,6 +237,7 @@ int main(int argc, char **argv)
           rdr.render(model, cam) ;
 
           os.getImage().saveToPNG("/tmp/oo.png") ;
+          os.getDepthBuffer(0.0001, 10*r).saveToPNG("/tmp/depth.png") ;
     }
 
         {

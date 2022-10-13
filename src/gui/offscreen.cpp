@@ -40,6 +40,7 @@ OffscreenSurface::OffscreenSurface(const QSize &size, QSurfaceFormat &sformat): 
 void OffscreenSurface::createFBO() {
     if ( context_ && fbo_ == nullptr ) {
         QOpenGLFramebufferObjectFormat format;
+        format.setSamples(OffscreenSurface::format().samples()) ;
         format.setTextureTarget(GL_TEXTURE_2D) ;
         format.setAttachment(QOpenGLFramebufferObject::Depth) ;
         fbo_ = new QOpenGLFramebufferObject(size_, format);
@@ -70,7 +71,11 @@ OffscreenSurface::~OffscreenSurface() {
 }
 
 
-Image OffscreenSurface::getImage() const {
+Image OffscreenSurface::readPixels(QOpenGLFramebufferObject *fbo) const {
+
+    bool is_bound = fbo->isBound() ;
+
+    if ( !is_bound ) fbo->bind() ;
 
     uchar *bytes = new uchar [size_.width() * size_.height() * 4] ;
 
@@ -78,12 +83,29 @@ Image OffscreenSurface::getImage() const {
 
     for(int line = 0; line != size_.height()/2; ++line) {
         std::swap_ranges(
-                bytes + 4 * size_.width() * line,
-                bytes + 4 * size_.width() * (line + 1),
-                bytes + 4 * size_.width() * (size_.height() - line - 1));
+                    bytes + 4 * size_.width() * line,
+                    bytes + 4 * size_.width() * (line + 1),
+                    bytes + 4 * size_.width() * (size_.height() - line - 1));
     }
 
+    if ( !is_bound ) fbo->release() ;
+
     return Image(bytes, ImageFormat::rgba32, size_.width(), size_.height()) ;
+}
+
+
+Image OffscreenSurface::getImage() const {
+
+    if ( format().samples() > 0 ) {
+        QOpenGLFramebufferObject temp(size(), QOpenGLFramebufferObjectFormat());
+
+        QRect rect(QPoint(0, 0), size());
+
+        QOpenGLFramebufferObject::blitFramebuffer(&temp, rect, const_cast<QOpenGLFramebufferObject *>(fbo_), rect);
+
+        return readPixels(&temp) ;
+    }
+    else return readPixels(fbo_) ;
 }
 
 Image OffscreenSurface::getDepthBuffer(float znear, float zfar) const {
@@ -103,16 +125,16 @@ Image OffscreenSurface::getDepthBuffer(float znear, float zfar) const {
     for (int i = 0; i < size_.height() ; ++i) {
         uint16_t *p_dst = l_dst ;
         for (int j = 0; j < size_.width(); ++j )
-          {
-              //need to undo the depth buffer mapping
-              //http://olivers.posterous.com/linear-depth-in-glsl-for-real
-              float z  = 2 * zfar * znear / (zfar + znear - (zfar - znear) * (2 * (*ptr) - 1));
+        {
+            //need to undo the depth buffer mapping
+            //http://olivers.posterous.com/linear-depth-in-glsl-for-real
+            float z  = 2 * zfar * znear / (zfar + znear - (zfar - znear) * (2 * (*ptr) - 1));
 
-              uint16_t val = ( z > max_allowed_z ) ? 0 : round(z * 1000) ;
+            uint16_t val = ( z > max_allowed_z ) ? 0 : round(z * 1000) ;
 
-              ++ptr ;
-              *p_dst++ = val ;
-          }
+            ++ptr ;
+            *p_dst++ = val ;
+        }
         l_dst -= size_.width() ;
     }
 

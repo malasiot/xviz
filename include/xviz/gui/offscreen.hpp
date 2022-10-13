@@ -23,7 +23,6 @@ public:
     Image getImage() const ;
     Image getDepthBuffer(float znear, float zfar) const ;
 
-
 private:
     QOpenGLFramebufferObject *fbo_ = nullptr;
     QOpenGLContext *context_ = nullptr;
@@ -31,6 +30,7 @@ private:
 private:
     void createContext();
     void createFBO();
+    Image readPixels(QOpenGLFramebufferObject *fbo) const;
 };
 
 }

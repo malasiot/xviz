@@ -224,10 +224,18 @@ int main(int argc, char **argv)
 
     pcam->setViewport(width, height)  ;
 
-      OffscreenSurface os(QSize(width, height));
-      QSurfaceFormat fmt = os.format() ;
-      fmt.setSamples(0);
-    //  os.setFormat(fmt) ;
+    QSurfaceFormat sformat;
+    sformat.setDepthBufferSize(32);
+    sformat.setMajorVersion(3);
+    sformat.setMinorVersion(3);
+
+    sformat.setProfile(QSurfaceFormat::CoreProfile);
+
+    sformat.setSwapInterval(0); //disable vsync
+    sformat.setSwapBehavior(QSurfaceFormat::SingleBuffer);
+    sformat.setSamples(4) ;
+
+    OffscreenSurface os(QSize(width, height), sformat);
 
     {
           Renderer rdr ;

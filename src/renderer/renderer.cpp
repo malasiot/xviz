@@ -27,10 +27,14 @@ namespace xviz {
 
 namespace impl {
 
+static bool gl_initialized_ = false ;
+
 Renderer::Renderer() {
     PhongMaterial *mat = new PhongMaterial() ;
     mat->setDiffuseColor({0.5, 0.5, 0.5}) ;
     default_material_.reset(mat) ;
+
+    init() ;
 }
 
 // lazy loading of textures on GPU and caching
@@ -93,7 +97,10 @@ MaterialProgramPtr Renderer::instantiateMaterial(const Material *mat, const std:
 }
 
 void Renderer::init() {
-    gl3wInit();
+    if ( !gl_initialized_ ) {
+        gl3wInit();
+        gl_initialized_ = true ;
+    }
 }
 
 Renderer::~Renderer() {

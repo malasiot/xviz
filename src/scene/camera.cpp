@@ -48,7 +48,7 @@ Eigen::Matrix4f PerspectiveCamera::projectionMatrix() const {
     return result;
 }
 
-Vector3f PerspectiveCamera::project(const Vector3f &p)
+Vector3f PerspectiveCamera::project(const Vector3f &p) const
 {
     Vector4f tmp { p.x(), p.y(), p.z(), 1.f };
 

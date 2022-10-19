@@ -39,10 +39,14 @@ public:
     TextureWrapMode wrapModeU() const { return wrap_u_; }
     TextureWrapMode wrapModeV() const { return wrap_v_; }
 
+    bool generateMipMaps() const { return mipmaps_ ; }
+    void setGenerateMipMaps(bool v) { mipmaps_ = v ; }
+
 private:
     TextureWrapMode wrap_u_ = WRAP_REPEAT, wrap_v_ = WRAP_REPEAT ;
     MagnificationMode mag_ = MAG_LINEAR ;
     MinificationMode min_ = MIN_LINEAR_MIPMAP_LINEAR ;
+    bool mipmaps_ = true ;
 };
 
 class Texture2D {

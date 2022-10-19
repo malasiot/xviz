@@ -33,9 +33,11 @@ static void replace_texture(NodePtr node, const string &tpath) {
             ImagePtr image(new Image(tpath)) ;
             Sampler2D sampler(Sampler2D::WRAP_CLAMP, Sampler2D::WRAP_CLAMP) ;
             sampler.setMagnification(Sampler2D::MAG_NEAREST) ;
-            sampler.setMinification(Sampler2D::MIN_NEAREST_MIPMAP_NEAREST) ;
+       //     sampler.setMinification(Sampler2D::MIN_NEAREST_MIPMAP_NEAREST) ;
+            sampler.setMinification(Sampler2D::MIN_NEAREST) ;
+            sampler.setGenerateMipMaps(false) ;
 
-            Texture2D *texture = new Texture2D(image, Sampler2D()) ;
+            Texture2D *texture = new Texture2D(image, sampler) ;
             cmat->setTexture(texture) ;
             n.drawables()[0].setMaterial(MaterialPtr(cmat)) ;
 
@@ -233,7 +235,7 @@ int main(int argc, char **argv)
 
     sformat.setSwapInterval(0); //disable vsync
     sformat.setSwapBehavior(QSurfaceFormat::SingleBuffer);
-    sformat.setSamples(4) ;
+    sformat.setSamples(0) ;
 
     OffscreenSurface os(QSize(width, height), sformat);
 

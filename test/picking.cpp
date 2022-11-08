@@ -132,7 +132,7 @@ public:
         Ray ray = camera_->getRay(x, y) ;
 
         RayCastResult result ;
-        if ( ray_caster_.intersect(ray, scene_->getNodesRecursive(), result) ) {
+        if ( ray_caster_.intersectOne(ray, scene_->getNodesRecursive(), result) ) {
             if ( result.drawable_->geometry()->ptype() == Geometry::Triangles ) {
             cout << result.node_->name() << ' '
                  << result.triangle_idx_[0] << ' ' <<
@@ -160,6 +160,29 @@ public:
         }
 
         SceneViewer::mouseMoveEvent(event) ;
+    }
+
+    void mousePressEvent(QMouseEvent *event) override {
+        if (event->button() == Qt::RightButton ) {
+            RayCaster rc ;
+            rc.setBackFaceCulling(false) ;
+
+            int x = event->x() ;
+            int y = event->y() ;
+
+            Ray ray = camera_->getRay(x, y) ;
+            vector<RayCastResult> results ;
+            if ( rc.intersect(ray, scene_->getNodesRecursive(), results) ) {
+
+            cout << "multiple hits ++" << endl ;
+            for ( const auto &res: results ) {
+                 cout << res.node_->name() << "(" << res.t_ << ")" << endl ;
+            }
+            cout << "multiple hits --" << endl ;
+            }
+
+        }
+        SceneViewer::mousePressEvent(event) ;
     }
 
     void paintGL() override {

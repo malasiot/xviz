@@ -146,9 +146,20 @@ public:
     virtual bool hasCheapIntersectionTest() const { return false ; }
     virtual bool intersect(const Ray &, float &) const { return false ; }
 
+    struct RayTriangleHit {
+        uint32_t tidx_[3] ;
+        float t_ ;
+    };
+
     // this is the expensive test visiting all triangles of the geometry
-    bool intersectTriangles(const Ray &, uint32_t tidx[3], float &t, bool back_face_culling) const ;
-    bool intersectLines(const Ray &, uint32_t tidx[2], float line_thresh_sq, float &t) const ;
+    bool intersectTriangles(const Ray &, std::vector<RayTriangleHit> &hit, bool back_face_culling) const ;
+
+    struct RayLineHit {
+        uint32_t tidx_[2] ;
+        float t_ ;
+    };
+
+    bool intersectLines(const Ray &, std::vector<RayLineHit> &hits, float line_thresh_sq) const ;
 
     void setVerticesUpdated(bool state) {
         vertices_updated_ = state ;

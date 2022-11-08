@@ -39,6 +39,7 @@ bool rayIntersectsAABB(const Ray &r, const AABB &box, float &t) {
     return true;
 }
 
+
 bool rayIntersectsTriangle(const Ray ray,
                            const Vector3f &v0,
                            const Vector3f &v1,
@@ -68,7 +69,7 @@ bool rayIntersectsTriangle(const Ray ray,
         t = f * edge2.dot(q) ;
     }
     else {
-        if ( a > -eps && a < eps ) return false;
+        if ( fabs(a) < eps ) return false;
         s = ray.orig_ - v0;
         u = f * ( s.dot(h) );
         if ( u < 0.0 || u > 1.0 ) return false;
@@ -85,6 +86,7 @@ bool rayIntersectsTriangle(const Ray ray,
     return t > eps ;
 
 }
+
 
 bool rayIntersectsSphere(const Ray &ray, const Vector3f &center, float radius, float &t) {
 

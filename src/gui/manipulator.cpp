@@ -392,7 +392,7 @@ int TransformGizmo::hitTest(QMouseEvent *event, RayCastResult &res)
     for( size_t i=0 ; i<N_COMPONENTS ; i++ ) {
         if ( !components_[i].node_ ) continue ;
         RayCastResult r ;
-        if ( ray_caster_.intersect(ray, components_[i].node_, r) && r.t_ < tmin ) {
+        if ( ray_caster_.intersectOne(ray, components_[i].node_, r) && r.t_ < tmin ) {
             tmin = r.t_ ;
             c = i ;
             res = r ;

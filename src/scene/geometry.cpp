@@ -649,11 +649,9 @@ void Geometry::computeBoundingBox(Vector3f &vmin, Vector3f &vmax) const {
 }
 
 
-bool Geometry::intersectTriangles(const Ray &ray, uint32_t t_idx[3], float &bestt, bool back_face_culling) const
+bool Geometry::intersectTriangles(const Ray &ray, vector<RayTriangleHit> &results, bool back_face_culling) const
 {
-    float mint = std::numeric_limits<float>::max() ;
     bool hit = false ;
-
 
     if ( !indices_.empty() ) {
         for( unsigned int i=0, ti =0 ; i<indices_.size() ; i+=3, ti++ ) {
@@ -665,12 +663,16 @@ bool Geometry::intersectTriangles(const Ray &ray, uint32_t t_idx[3], float &best
             const Vector3f &v1 = vertices_[idx1] ;
             const Vector3f &v2 = vertices_[idx2] ;
 
+
             float t ;
-            if ( detail::rayIntersectsTriangle(ray, v0, v1, v2, back_face_culling, t)  && t < mint  ) {
-                mint = t ;
-                bestt = t ;
-                t_idx[0] = idx0 ; t_idx[1] = idx1 ; t_idx[2] = idx2 ;
+            if ( detail::rayIntersectsTriangle(ray, v0, v1, v2, back_face_culling, t) ) {
+                RayTriangleHit result ;
+                result.t_ = t ;
+                result.tidx_[0] = idx0 ;
+                result.tidx_[1] = idx1 ;
+                result.tidx_[2] = idx2 ;
                 hit = true ;
+                results.emplace_back(std::move(result)) ;
             }
         }
     } else {
@@ -684,24 +686,26 @@ bool Geometry::intersectTriangles(const Ray &ray, uint32_t t_idx[3], float &best
             const Vector3f &v2 = vertices_[idx2] ;
 
             float t ;
-            if ( detail::rayIntersectsTriangle(ray, v0, v1, v2, back_face_culling, t)  && t < mint  ) {
-                mint = t ;
-                bestt = t ;
-                t_idx[0] = idx0 ; t_idx[1] = idx1 ; t_idx[2] = idx2 ;
+            if ( detail::rayIntersectsTriangle(ray, v0, v1, v2, back_face_culling, t) ) {
+                RayTriangleHit result ;
+                result.t_ = t ;
+                result.tidx_[0] = idx0 ;
+                result.tidx_[1] = idx1 ;
+                result.tidx_[2] = idx2 ;
                 hit = true ;
+                results.emplace_back(std::move(result)) ;
             }
         }
     }
 
+    std::sort(results.begin(), results.end(), [](const RayTriangleHit &h1, const RayTriangleHit &h2) { return h1.t_ < h2.t_ ;});
+
     return hit ;
 }
 
-bool Geometry::intersectLines(const Ray &ray, uint32_t t_idx[2], float thresh_sq, float &bestt) const
+
+bool Geometry::intersectLines(const Ray &ray, vector<RayLineHit> &hits, float thresh_sq) const
 {
-    float mint = std::numeric_limits<float>::max() ;
-    bool hit = false ;
-
-
     if ( !indices_.empty() ) {
         for( unsigned int i=0, ti =0 ; i<indices_.size() ; i+=2, ti++ ) {
             uint32_t idx0 = indices_[i] ;
@@ -711,11 +715,12 @@ bool Geometry::intersectLines(const Ray &ray, uint32_t t_idx[2], float thresh_sq
             const Vector3f &v1 = vertices_[idx1] ;
 
             float t ;
-            if ( detail::rayIntersectsLine(ray, v0, v1, thresh_sq, t)  && t < mint  ) {
-                mint = t ;
-                bestt = t ;
-                t_idx[0] = idx0 ; t_idx[1] = idx1 ;
-                hit = true ;
+            if ( detail::rayIntersectsLine(ray, v0, v1, thresh_sq, t)  ) {
+                RayLineHit result ;
+                result.t_ = t ;
+                result.tidx_[0] = idx0 ;
+                result.tidx_[1] = idx1 ;
+                hits.emplace_back(std::move(result)) ;
             }
         }
     } else {
@@ -727,16 +732,17 @@ bool Geometry::intersectLines(const Ray &ray, uint32_t t_idx[2], float thresh_sq
             const Vector3f &v1 = vertices_[idx1] ;
 
             float t ;
-            if ( detail::rayIntersectsLine(ray, v0, v1, thresh_sq, t)  && t < mint  ) {
-                mint = t ;
-                bestt = t ;
-                t_idx[0] = idx0 ; t_idx[1] = idx1 ;
-                hit = true ;
+            if ( detail::rayIntersectsLine(ray, v0, v1, thresh_sq, t)  ) {
+                RayLineHit result ;
+                result.t_ = t ;
+                result.tidx_[0] = idx0 ;
+                result.tidx_[1] = idx1 ;
+                hits.emplace_back(std::move(result)) ;
             }
         }
     }
 
-    return hit ;
+    return !hits.empty() ;
 }
 
 

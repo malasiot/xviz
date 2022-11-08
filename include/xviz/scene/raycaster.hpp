@@ -29,8 +29,11 @@ public:
     ~RayCaster() ;
     RayCaster() ;
 
-    bool intersect(const Ray &ray, const NodePtr &scene, RayCastResult &result) ;
-    bool intersect(const Ray &ray, const std::vector<NodePtr> &nodes, RayCastResult &result) ;
+    bool intersect(const Ray &ray, const NodePtr &scene, std::vector<RayCastResult> &results) ;
+    bool intersect(const Ray &ray, const std::vector<NodePtr> &nodes, std::vector<RayCastResult> &results) ;
+
+    bool intersectOne(const Ray &ray, const std::vector<NodePtr> &nodes, RayCastResult &results) ;
+    bool intersectOne(const Ray &ray, const NodePtr &scene, RayCastResult &result);
 
     void setPointDistanceThreshold(float t) {
         point_distance_thresh_sq_ = t * t;
@@ -44,13 +47,14 @@ public:
 
 private:
 
-    bool intersect(const Ray &ray, const GeometryPtr &geom, RayCastResult &result, float &mint);
+    bool intersect(const Ray &ray, const GeometryPtr &geom, std::vector<RayCastResult> &results);
 
 private:
     float point_distance_thresh_sq_ = 0.001 ;
     float line_distance_thresh_sq_ = 0.001 ;
 
     bool back_face_culling_ = true ;
+
 
 };
 

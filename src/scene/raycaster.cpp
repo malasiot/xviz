@@ -21,21 +21,26 @@ RayCaster::RayCaster() {
 
 }
 
-bool RayCaster::intersect(const Ray &ray, const NodePtr &scene, RayCastResult &result) {
-     return intersect(ray, scene->getNodesRecursive(), result) ;
+bool RayCaster::intersect(const Ray &ray, const NodePtr &scene, std::vector<RayCastResult> &results) {
+    return intersect(ray, scene->getNodesRecursive(), results) ;
 }
 
-bool RayCaster::intersect(const Ray &tr, const GeometryPtr &geom, RayCastResult &result, float &mint) {
+bool RayCaster::intersect(const Ray &tr, const GeometryPtr &geom, std::vector<RayCastResult> &results) {
 
     if ( geom->ptype() == Geometry::Triangles ) { // triangle mesh ray intersection
         if ( geom->hasCheapIntersectionTest() ) {
             float t ;
-            if ( geom->intersect(tr, t) && t < mint ) {
-                mint = t ;
-                result.t_ = t ;
+            if ( geom->intersect(tr, t) ) {
                 // call intersection to get the hit triangle
-                geom->intersectTriangles(tr, result.triangle_idx_, result.t_, back_face_culling_) ;
-                return true;
+
+                vector<Geometry::RayTriangleHit> rh ;
+                geom->intersectTriangles(tr, rh, back_face_culling_) ;
+                for( const auto &r: rh ) {
+                    RayCastResult result ;
+                    result.t_ = r.t_ ;
+                    for( size_t i=0 ; i<3 ; i++ ) result.triangle_idx_[i] = r.tidx_[i] ;
+                    results.emplace_back(std::move(result)) ;
+                }
             }
         } else { // expensive test
             float t ;
@@ -43,54 +48,47 @@ bool RayCaster::intersect(const Ray &tr, const GeometryPtr &geom, RayCastResult 
             if ( !rayIntersectsAABB(tr, box, t) ) return false ;
 
             // expensive test
-
-                uint32_t tindex[3] ;
-                if ( geom->intersectTriangles(tr, tindex, t, back_face_culling_) && t < mint ) {
-                    mint = t ;
-                    result.t_ = t ;
-                    result.triangle_idx_[0] = tindex[0] ;
-                    result.triangle_idx_[1] = tindex[1] ;
-                    result.triangle_idx_[2] = tindex[2] ;
-                    return true ;
-
+            vector<Geometry::RayTriangleHit> rh ;
+            if ( geom->intersectTriangles(tr, rh, back_face_culling_) ) {
+                for( const auto &r: rh ) {
+                    RayCastResult result ;
+                    result.t_ = r.t_ ;
+                    for( size_t i=0 ; i<3 ; i++ ) result.triangle_idx_[i] = r.tidx_[i] ;
+                    results.emplace_back(std::move(result)) ;
+                }
             }
         }
     } else if ( geom->ptype() == Geometry::Points ) {
         auto vertices = geom->vertices() ;
-        bool found = false ;
+
         for( unsigned int i=0 ; i<vertices.size() ; i++ ) {
             const Vector3f &v = vertices[i] ;
             float t ;
-            if ( detail::rayIntersectsPoint(tr, v, point_distance_thresh_sq_, t) && t<mint ) {
-                mint = t ;
+            if ( detail::rayIntersectsPoint(tr, v, point_distance_thresh_sq_, t)  ) {
+                RayCastResult result ;
                 result.t_ = t ;
                 result.point_idx_ = i ;
-                found = true ;
+                results.emplace_back(std::move(result)) ;
             }
         }
-        return found ;
+
     } else if ( geom->ptype() == Geometry::Lines ) {
-        float t ;
-        uint32_t tindex[2] ;
-        if ( geom->intersectLines(tr, tindex, line_distance_thresh_sq_, t) && t < mint ) {
-            mint = t ;
-            result.t_ = t ;
-            result.line_idx_[0] = tindex[0] ;
-            result.line_idx_[1] = tindex[1] ;
-            return true ;
+        vector<Geometry::RayLineHit> hits ;
+        if ( geom->intersectLines(tr, hits, line_distance_thresh_sq_)  ) {
+            for( const auto &r: hits ) {
+                RayCastResult result ;
+                result.t_ = r.t_ ;
+                for( size_t i=0 ; i<2 ; i++ ) result.line_idx_[i] = r.tidx_[i] ;
+                results.emplace_back(std::move(result)) ;
+            }
         }
     }
 
-    return false ;
-
+    return !results.empty() ;
 }
 
-bool RayCaster::intersect(const Ray &ray, const std::vector<NodePtr> &nodes, RayCastResult &result)
+bool RayCaster::intersect(const Ray &ray, const std::vector<NodePtr> &nodes, vector<RayCastResult> &results)
 {
-    float mint = std::numeric_limits<float>::max() ;
-    bool found = false ;
-
-
     for( NodePtr node: nodes ) {
         Affine3f tf = node->globalTransform().inverse() ;
         Ray tr(ray, tf) ; // ray transform to local coordinate system
@@ -98,18 +96,33 @@ bool RayCaster::intersect(const Ray &ray, const std::vector<NodePtr> &nodes, Ray
         for(  Drawable &dr: node->drawables() ) {
             GeometryPtr geom = dr.geometry() ;
 
-            if ( intersect(tr, geom, result, mint) ) {
-                result.drawable_ = &dr ;
-                result.node_ = node ;
-                found = true ;
+            vector<RayCastResult> lres ;
+            if ( intersect(tr, geom, lres) ) {
+                for( auto &l: lres ) {
+                    l.drawable_ = &dr ;
+                    l.node_ = node ;
+                    results.emplace_back(l) ;
+                }
             }
 
 
         }
     } ;
 
-    return found ;
+    return !results.empty() ;
 }
 
+bool RayCaster::intersectOne(const Ray &ray, const std::vector<NodePtr> &nodes, RayCastResult &result) {
+    vector<RayCastResult> results ;
+    if ( intersect(ray, nodes, results) ) {
+         result = results[0] ;
+         return true ;
+    } else
+        return false ;
+}
+
+bool RayCaster::intersectOne(const Ray &ray, const NodePtr &scene, RayCastResult &result) {
+    return intersectOne(ray, scene->getNodesRecursive(), result) ;
+}
 
 }

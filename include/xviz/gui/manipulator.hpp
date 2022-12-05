@@ -68,7 +68,7 @@ private:
     int selected_ = -1, dragging_ = -1 ;
     Eigen::Vector4f pick_clr_{1, 1, 0, 1} ;
     Eigen::Vector3f start_drag_, start_pos_ ;
-    Eigen::Affine3f start_tr_, orig_ ;
+    Eigen::Affine3f start_tr_, orig_, global_ ;
     Eigen::Vector3f position_ = {0, 0, 0};
     Eigen::Matrix3f orientation_ = Eigen::Matrix3f::Identity(), start_orientation_;
     CameraPtr camera_ ;

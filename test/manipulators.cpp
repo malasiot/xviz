@@ -76,7 +76,7 @@ Gui::Gui() {
 
     NodePtr box_node(new Node) ;
     box_node->transform().translation() = Vector3f{0, 0.5f, 0} ;
-    GeometryPtr geom(new BoxGeometry({0.1, 0.2, 0.1})) ;
+    GeometryPtr geom(new BoxGeometry({0.5, 0.7, 0.4})) ;
     PhongMaterial *material = new PhongMaterial({1, 0, 1}, 1) ;
     MaterialPtr mat(material) ;
     box_node->addDrawable(geom, mat) ;
@@ -89,13 +89,13 @@ Gui::Gui() {
     TransformGizmo *gizmo = new TransformGizmo(getCamera(), 2.0) ;
     gizmo->setOrder(2) ;
     gizmo->attachTo(box_node.get()) ;
-  //  gizmo->setLocalTransform(true);
+    gizmo->setLocalTransform(false);
     gizmo_.reset(gizmo) ;
 
-    box_node->addChild(gizmo_);
+    scene->addChild(gizmo_);
 
     setScene(scene) ;
-     makeAxes(2.5) ;
+    makeAxes(2.5) ;
 
 }
 

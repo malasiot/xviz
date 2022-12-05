@@ -161,17 +161,15 @@ void TransformGizmo::updateTransforms()
     tr.translate(position_) ;
     tr.rotate(orientation_) ;
 
-    cout << tr.matrix() << endl ;
-
     transform_node_->transform() = orig_ * tr ;
-/*
+
     if ( local_ ) {
-        transform() = tr ;
+        transform() = global_ * tr ;
     } else {
-        transform().translation() = position_ ;
+        transform().translation() = global_ * position_ ;
         transform().linear() = Matrix3f::Identity() ;
     }
-*/
+
 }
 
 Vector3f TransformGizmo::globalPosition() const
@@ -248,10 +246,6 @@ bool TransformGizmo::onMousePressed(QMouseEvent *event)
     start_pos_ = position_ ;
     start_orientation_ = orientation_ ;
 
-    Vector3f axis_x = ( local_ ) ? orientation_ * AXIS_X : AXIS_X ;
-    Vector3f axis_y = ( local_ ) ? orientation_ * AXIS_Y : AXIS_Y ;
-    Vector3f axis_z = ( local_ ) ? orientation_ * AXIS_Z : AXIS_Z ;
-
     for( int i=0 ; i<N_COMPONENTS ; i++ ) {
         if ( i != c )
             components_[i].node_->setVisible(false) ;
@@ -260,23 +254,23 @@ bool TransformGizmo::onMousePressed(QMouseEvent *event)
     float t ;
     switch ( c ) {
     case TX:
-        ray_ray_intersection(tr, ZERO, axis_x, start_drag_) ; break ;
+        ray_ray_intersection(tr, ZERO, AXIS_X, start_drag_) ; break ;
     case TY:
-        ray_ray_intersection(tr, ZERO, axis_y, start_drag_) ; break ;
+        ray_ray_intersection(tr, ZERO, AXIS_Y, start_drag_) ; break ;
     case TZ:
-        ray_ray_intersection(tr, ZERO, axis_z, start_drag_) ; break ;
+        ray_ray_intersection(tr, ZERO, AXIS_Z, start_drag_) ; break ;
     case TYZ:
-        ray_plane_intersection(r, axis_x, start_pos_, start_drag_); break ;
+        ray_plane_intersection(tr, AXIS_X, ZERO, start_drag_); break ;
     case TXZ:
-        ray_plane_intersection(r, axis_y, start_pos_, start_drag_); break ;
+        ray_plane_intersection(tr, AXIS_Y, ZERO, start_drag_); break ;
     case TXY:
-        ray_plane_intersection(r, axis_z, start_pos_, start_drag_); break ;
+        ray_plane_intersection(tr, AXIS_Z, ZERO, start_drag_); break ;
     case RX:
-         ray_plane_intersection(r, axis_x, start_pos_, start_drag_); break ;
+         ray_plane_intersection(tr, AXIS_X, ZERO, start_drag_); break ;
     case RY:
-        ray_plane_intersection(r, axis_y, start_pos_, start_drag_); break ;
+        ray_plane_intersection(tr, AXIS_Y, ZERO, start_drag_); break ;
     case RZ:
-        ray_plane_intersection(r, axis_z, start_pos_, start_drag_); break ;
+        ray_plane_intersection(tr, AXIS_Z, ZERO, start_drag_); break ;
 
     }
 
@@ -306,54 +300,48 @@ bool TransformGizmo::onMouseMoved(QMouseEvent *event) {
         Ray r = camera_->getRay(event->x(), event->y()) ;
         Ray tr(r, start_tr_) ;
 
-
-
-        Vector3f axis_x = ( local_ ) ? orientation_ * AXIS_X : AXIS_X;
-        Vector3f axis_y = ( local_ ) ? orientation_ * AXIS_Y : AXIS_Y ;
-        Vector3f axis_z = ( local_ ) ? orientation_ * AXIS_Z : AXIS_Z ;
-
         Vector3f pt ;
-        float t ;
+
         switch (dragging_) {
         case TX:
-            ray_ray_intersection(tr, ZERO, axis_x, pt) ;
+            ray_ray_intersection(tr, ZERO, AXIS_X, pt) ;
             setTranslation(pt - start_drag_) ;
             break ;
         case TY:
-            ray_ray_intersection(tr, ZERO, axis_y, pt) ;
+            ray_ray_intersection(tr, ZERO, AXIS_Y, pt) ;
             setTranslation(pt - start_drag_) ;
             break ;
         case TZ:
-            ray_ray_intersection(tr, ZERO, axis_z, pt) ;
+            ray_ray_intersection(tr, ZERO, AXIS_Z, pt) ;
             setTranslation(pt - start_drag_) ;
             break ;
         case TYZ:
-            ray_plane_intersection(r, axis_x, start_pos_, pt);
+            ray_plane_intersection(tr, AXIS_X, ZERO, pt);
             setTranslation(pt - start_drag_) ;
             break ;
         case TXZ:
-            ray_plane_intersection(r, axis_y, start_pos_, pt);
+            ray_plane_intersection(tr, AXIS_Y, ZERO, pt);
             setTranslation(pt - start_drag_) ;
             break ;
         case TXY:
-            ray_plane_intersection(r, axis_z, start_pos_, pt);
+            ray_plane_intersection(tr, AXIS_Z, ZERO, pt);
             setTranslation(pt - start_drag_) ;
             break ;
         case RX: {
-            ray_plane_intersection(r, axis_x, start_pos_, pt);
-            float angle = rotation_angle(pt, start_drag_, start_pos_, axis_x) ;
+            ray_plane_intersection(tr, AXIS_X, ZERO, pt);
+            float angle = rotation_angle(pt, start_drag_, ZERO, AXIS_X) ;
             setRotation(AngleAxisf(angle, AXIS_X).matrix()) ;
             break ;
         }
         case RY: {
-            ray_plane_intersection(r, axis_y, start_pos_, pt);
-            float angle = rotation_angle(pt, start_drag_, start_pos_, axis_y) ;
+            ray_plane_intersection(tr, AXIS_Y, ZERO, pt);
+            float angle = rotation_angle(pt, start_drag_, ZERO, AXIS_Y) ;
             setRotation(AngleAxisf(angle, AXIS_Y).matrix()) ;
             break ;
         }
         case RZ: {
-            ray_plane_intersection(r, axis_z, start_pos_, pt);
-            float angle = rotation_angle(pt, start_drag_, start_pos_, axis_z) ;
+            ray_plane_intersection(tr, AXIS_Z, ZERO, pt);
+            float angle = rotation_angle(pt, start_drag_, ZERO, AXIS_Z) ;
             setRotation(AngleAxisf(angle, AXIS_Z).matrix()) ;
             break ;
         }
@@ -394,8 +382,7 @@ void TransformGizmo::highlight(int c, bool v)
 void TransformGizmo::attachTo(Node *node) {
     transform_node_ = node ;
     orig_ = node->transform() ;
-//    position_ = node->transform().translation() ;
-//    orientation_ =  node->transform().rotation() ;
+    global_ = node->globalTransform() ;
     updateTransforms() ;
 }
 

@@ -272,9 +272,16 @@ void Renderer::renderShadowDebug(const LightData &sd) {
 
 void Renderer::renderScene(const CameraPtr &cam) {
     for ( ConstNodePtr node: scene_->getOrderedNodes() ) {
-        if ( !node->isVisible() ) continue ;
-        for( const auto &drawable: node->drawables() )
+        for( const auto &drawable: node->drawables() ) {
+            GeometryPtr mesh = drawable.geometry() ;
+            if ( !mesh ) continue ;
+
+            // prefetch fetch vbo
+            meshes_.fetch(mesh.get()) ;
+
+            if ( !node->isVisible() ) continue  ;
             render(cam, drawable, node->globalTransform() ) ;
+        }
     }
 }
 
@@ -377,7 +384,7 @@ void Renderer::render(const CameraPtr &cam, const Drawable &dr, const Affine3f &
 
     glBindVertexArray(0) ;
 #else
-    drawMeshData(*data, mesh) ;
+    drawMeshData(*data, mesh, false) ;
 
 #endif
 

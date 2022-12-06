@@ -27,7 +27,7 @@ SceneViewer::SceneViewer(QWidget *parent): QOpenGLWidget(parent), scene_(new Nod
 }
 
 void SceneViewer::setScene(const NodePtr &scene) {
-    scene_->children().clear() ;
+//    scene_->children().clear() ;
 
     scene_->addChild(scene) ;
 
@@ -81,6 +81,7 @@ void SceneViewer::setDrawAxes(bool draw_axes) {
     draw_axes_ = draw_axes ;
     if ( axes_ )
         axes_->setVisible(draw_axes) ;
+    update() ;
 }
 
 void SceneViewer::initCamera(const Vector3f &c, float r, UpAxis axis) {

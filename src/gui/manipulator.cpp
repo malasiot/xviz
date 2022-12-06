@@ -161,16 +161,22 @@ void TransformGizmo::updateTransforms()
     tr.translate(position_) ;
     tr.rotate(orientation_) ;
 
+    cout << tr.matrix() << endl ;
 
-    transform_node_->transform() = tr ;
-
+    transform_node_->transform() = orig_ * tr ;
+/*
     if ( local_ ) {
         transform() = tr ;
     } else {
         transform().translation() = position_ ;
         transform().linear() = Matrix3f::Identity() ;
     }
+*/
+}
 
+Vector3f TransformGizmo::globalPosition() const
+{
+    return transform_node_->parent()->globalTransform() * position_ ;
 }
 
 
@@ -213,9 +219,21 @@ static float rotation_angle(const Vector3f &pt, const Vector3f &start_drag, cons
     return angle ;
 }
 
+void ray_ray_intersection(const Ray &ray, const Vector3f &p, const Vector3f &dir, Vector3f &intersection) {
+    Vector3f da = ray.dir();
+    Vector3f db = dir ;
+    Vector3f dc = p - ray.origin() ;
+
+    Vector3f cab = da.cross(db) ;
+
+    float s = dc.cross(da).dot(cab) / cab.squaredNorm() ;
+    intersection = p + s * dir ;
+}
+
 static Vector3f AXIS_X{1, 0, 0} ;
 static Vector3f AXIS_Y{0, 1, 0} ;
 static Vector3f AXIS_Z{0, 0, 1} ;
+static Vector3f ZERO{0, 0, 0} ;
 
 bool TransformGizmo::onMousePressed(QMouseEvent *event)
 {
@@ -224,6 +242,8 @@ bool TransformGizmo::onMousePressed(QMouseEvent *event)
     if ( c == -1 ) return false ;
 
     Ray r = camera_->getRay(event->x(), event->y()) ;
+    start_tr_ = transform_node_->globalTransform().inverse();
+    Ray tr(r, start_tr_) ;
 
     start_pos_ = position_ ;
     start_orientation_ = orientation_ ;
@@ -237,13 +257,14 @@ bool TransformGizmo::onMousePressed(QMouseEvent *event)
             components_[i].node_->setVisible(false) ;
     }
 
+    float t ;
     switch ( c ) {
     case TX:
-        ray_plane_intersection(r, axis_x, start_pos_, camera_->eye(), start_drag_); break ;
+        ray_ray_intersection(tr, ZERO, axis_x, start_drag_) ; break ;
     case TY:
-        ray_plane_intersection(r, axis_y, start_pos_, camera_->eye(), start_drag_); break ;
+        ray_ray_intersection(tr, ZERO, axis_y, start_drag_) ; break ;
     case TZ:
-        ray_plane_intersection(r, axis_z, start_pos_, camera_->eye(), start_drag_); break ;
+        ray_ray_intersection(tr, ZERO, axis_z, start_drag_) ; break ;
     case TYZ:
         ray_plane_intersection(r, axis_x, start_pos_, start_drag_); break ;
     case TXZ:
@@ -283,26 +304,27 @@ bool TransformGizmo::onMouseReleased(QMouseEvent *) {
 bool TransformGizmo::onMouseMoved(QMouseEvent *event) {
     if ( dragging_ != -1 ) {
         Ray r = camera_->getRay(event->x(), event->y()) ;
+        Ray tr(r, start_tr_) ;
+
+
 
         Vector3f axis_x = ( local_ ) ? orientation_ * AXIS_X : AXIS_X;
         Vector3f axis_y = ( local_ ) ? orientation_ * AXIS_Y : AXIS_Y ;
         Vector3f axis_z = ( local_ ) ? orientation_ * AXIS_Z : AXIS_Z ;
 
         Vector3f pt ;
+        float t ;
         switch (dragging_) {
         case TX:
-            ray_plane_intersection(r, axis_x, start_pos_, camera_->eye(), pt);
-            project_on_axis(pt, start_pos_, axis_x) ;
+            ray_ray_intersection(tr, ZERO, axis_x, pt) ;
             setTranslation(pt - start_drag_) ;
-           break ;
+            break ;
         case TY:
-            ray_plane_intersection(r, axis_y, start_pos_, camera_->eye(), pt);
-            project_on_axis(pt, start_pos_, axis_y) ;
+            ray_ray_intersection(tr, ZERO, axis_y, pt) ;
             setTranslation(pt - start_drag_) ;
             break ;
         case TZ:
-            ray_plane_intersection(r, axis_z, start_pos_, camera_->eye(), pt);
-            project_on_axis(pt, start_pos_, axis_z) ;
+            ray_ray_intersection(tr, ZERO, axis_z, pt) ;
             setTranslation(pt - start_drag_) ;
             break ;
         case TYZ:
@@ -371,8 +393,9 @@ void TransformGizmo::highlight(int c, bool v)
 
 void TransformGizmo::attachTo(Node *node) {
     transform_node_ = node ;
-    position_ = node->transform().translation() ;
-    orientation_ =  node->transform().rotation() ;
+    orig_ = node->transform() ;
+//    position_ = node->transform().translation() ;
+//    orientation_ =  node->transform().rotation() ;
     updateTransforms() ;
 }
 

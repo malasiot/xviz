@@ -65,6 +65,28 @@ Vector3f PerspectiveCamera::project(const Vector3f &p) const
     return Vector3f { tmp[0], tmp[1], tmp[2] } ;
 }
 
+Vector3f PerspectiveCamera::unProject(float wx, float wy, float z) const {
+
+    Matrix4f pmi = (getProjectionMatrix() * mat_).inverse() ;
+    wy = vp_.height_ - wy ;
+    wx = ( wx - vp_.x_ ) / vp_.width_ ;
+    wy = ( wy - vp_.y_ ) / vp_.height_ ;
+    wx = wx * 2.f - 1.f ;
+    wy = wy * 2.f - 1.f ;
+
+// convert depth to normalised coordinates
+    z = ( zfar_ + znear_)/(zfar_ - znear_) - 2 * zfar_ * znear_ / (z * (zfar_ - znear_)) ;
+    z = z * 0.5f + 0.5f ;
+
+    Vector4f tmp { wx, wy, z, 1 };
+
+    Vector4f  obj = pmi * tmp;
+    obj /= obj.w() ;
+
+    return obj.head<3>() ;
+
+}
+
 
 void Camera::lookAt(const Vector3f &eye, const Vector3f &center, const Vector3f &up) {
     Vector3f f = (center - eye).normalized();

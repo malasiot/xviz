@@ -55,6 +55,8 @@ protected:
             gizmo_->setLocalTransform(true) ;
         else if ( event->key() == Qt::Key_G )
             gizmo_->setLocalTransform(false) ;
+        else
+            SceneViewer::keyPressEvent(event) ;
         update() ;
     }
 
@@ -64,18 +66,21 @@ private:
 
 Gui::Gui() {
 
-    initCamera({0, 0, 0}, 4.0);
+    initCamera({0, 0, 0}, 4.0, UpAxis::ZAxis);
 
     NodePtr scene(new Node) ;
 
+    NodePtr root_node(new Node) ;
+    root_node->transform().translation() = Vector3f{1.0, 0.5f, 0} ;
+    scene->addChild(root_node);
+
     NodePtr box_node(new Node) ;
     box_node->transform().translation() = Vector3f{0, 0.5f, 0} ;
-    GeometryPtr geom(new BoxGeometry({1, 2, 1})) ;
+    GeometryPtr geom(new BoxGeometry({0.1, 0.2, 0.1})) ;
     PhongMaterial *material = new PhongMaterial({1, 0, 1}, 1) ;
     MaterialPtr mat(material) ;
     box_node->addDrawable(geom, mat) ;
-    scene->addChild(box_node) ;
-
+    root_node->addChild(box_node) ;
 
     DirectionalLight *dl = new DirectionalLight(Vector3f(0.5, 0.5, 1)) ;
     dl->setDiffuseColor(Vector3f(1, 1, 1)) ;
@@ -84,12 +89,13 @@ Gui::Gui() {
     TransformGizmo *gizmo = new TransformGizmo(getCamera(), 2.0) ;
     gizmo->setOrder(2) ;
     gizmo->attachTo(box_node.get()) ;
-
+  //  gizmo->setLocalTransform(true);
     gizmo_.reset(gizmo) ;
 
-    scene->addChild(gizmo_);
+    box_node->addChild(gizmo_);
 
     setScene(scene) ;
+     makeAxes(2.5) ;
 
 }
 

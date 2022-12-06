@@ -47,6 +47,10 @@ int main(int argc, char **argv)
     viewer->setDefaultCamera() ;
     viewer->makeAxes(1.5) ;
     viewer->setDrawAxes(true);
+
+    auto cam = viewer->getCamera() ;
+
+
     QMainWindow window ;
     window.setCentralWidget(viewer) ;
     window.resize(512, 512) ;

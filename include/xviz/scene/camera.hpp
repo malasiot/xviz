@@ -109,8 +109,7 @@ public:
     void viewSphere(const Eigen::Vector3f &center, float radius) ;
 
     Eigen::Vector3f project(const Eigen::Vector3f &p) const ;
-    Eigen::Vector3f unProject(const Eigen::Vector3f &p) const ;
-
+    Eigen::Vector3f unProject(float wx, float wy, float z) const ;
 protected:
 
     float yfov_, aspect_, znear_, zfar_ ;

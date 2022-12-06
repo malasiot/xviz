@@ -10,6 +10,8 @@
 #include <QMainWindow>
 #include <QApplication>
 #include <QPainter>
+#include <QDirIterator>
+#include <QDebug>
 
 #include "util.hpp"
 
@@ -163,6 +165,14 @@ public:
     }
 
     void mousePressEvent(QMouseEvent *event) override {
+        PerspectiveCamera *pcam = dynamic_cast<PerspectiveCamera *>(camera_.get()) ;
+        int x = event->x() ;
+        int y = event->y() ;
+        Vector3f p(0.5, 0.21, 2.0) ;
+        auto u = pcam->project(p) ;
+        auto v = pcam->unProject(u.x(), u.y(), u.z()) ;
+        std::cout << v << std::endl ;
+
         if (event->button() == Qt::RightButton ) {
             RayCaster rc ;
             rc.setBackFaceCulling(false) ;
@@ -217,6 +227,16 @@ private:
 int main(int argc, char **argv)
 {
     TestApplication app("picking", argc, argv) ;
+    QDirIterator it("/home/malasiot/source/ramcip_certh/certh_core/src/", QDirIterator::Subdirectories) ;
+    while (it.hasNext()) {
+        QString dir = it.next();
+        qDebug() << dir;
+        // /etc/.
+        // /etc/..
+        // /etc/X11
+        // /etc/X11/fs
+        // ...
+    }
 
     NodePtr model(new Node) ;
     model->load(TestApplication::data() + "/models/2CylinderEngine.glb", 0);

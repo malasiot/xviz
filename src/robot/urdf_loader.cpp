@@ -466,6 +466,8 @@ std::string URDFLoader::parseMaterial(const xml_node &node, URDFRobot &rb, const
             return name;
         }
     }
+
+    return name ;
 }
 
 }

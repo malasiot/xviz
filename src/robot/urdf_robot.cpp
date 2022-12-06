@@ -60,14 +60,17 @@ void URDFRobot::computeLinkTransformRecursive(std::map<std::string, Isometry3f> 
     p2j.setIdentity() ;
 
     URDFJoint *parent_joint = link->parent_joint_ ;
+    Isometry3f local_inertial_frame = Isometry3f::Identity() ;
+    if ( link->inertial_ )
+        local_inertial_frame = link->inertial_->origin_;
 
     if ( parent_joint ) {
         p2j = parent_joint->getMatrix() ;
+
     }
 
     tr = parent * p2j ;
-
-    transforms.emplace(link->name_, tr) ;
+    transforms.emplace(link->name_, global_ * tr) ;
 
     for( const URDFLink *l: link->child_links_ ) {
         computeLinkTransformRecursive(transforms, l, tr) ;

@@ -119,9 +119,6 @@ RobotScenePtr RobotScene::parseRobotURDF(const URDFRobot &rb, bool collision_geo
             NodePtr link_node(new Node) ;
             link_node->setName(link.name_) ;
 
-            Isometry3f local_inertial_frame = Isometry3f::Identity() ;
-            if ( link.inertial_ )
-                local_inertial_frame = link.inertial_->origin_ ;
 
             for( const auto &geom: link.visual_geoms_ ) {
 
@@ -135,7 +132,7 @@ RobotScenePtr RobotScene::parseRobotURDF(const URDFRobot &rb, bool collision_geo
                 Vector3f scale{1, 1, 1} ;
                 NodePtr geom_node = createLinkGeometry(geom.get(), mat, scale) ;
 
-                geom_node->setTransform(local_inertial_frame.inverse() * geom->origin_) ;
+                geom_node->setTransform(geom->origin_) ;
 
                 link_node->addChild(geom_node) ;
 
@@ -152,6 +149,7 @@ RobotScenePtr RobotScene::parseRobotURDF(const URDFRobot &rb, bool collision_geo
 
     map<string, Isometry3f> trs ;
     rb.computeLinkTransforms(trs) ;
+
     scene->updateTransforms(trs) ;
     return scene ;
 

@@ -97,12 +97,15 @@ struct URDFRobot {
     URDFJoint *findJoint(const std::string &name);
 
     float setJointPosition(const std::string &jname, float pos) ;
+    void setWorldTransform(const Eigen::Isometry3f &global) { global_ = global ; }
+    const Eigen::Isometry3f &worldTransform() const { return global_ ; }
 
     std::string name_ ;
     std::map<std::string, URDFJoint> joints_ ;
     std::map<std::string, URDFLink> links_ ;
     std::map<std::string, std::shared_ptr<URDFMaterial>> materials_ ;
     URDFLink *root_ ;
+    Eigen::Isometry3f global_ = Eigen::Isometry3f::Identity();
 
 public:
 

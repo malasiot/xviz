@@ -31,6 +31,10 @@ public:
 
     enum ComponentId { TX = 0, TY = 1, TZ = 2, TXY = 3, TYZ = 4, TXZ = 5, RX = 6, RY = 7, RZ = 8, N_COMPONENTS  } ;
 
+    void show(bool v) {
+        setVisible(v, -1) ;
+    }
+
     void setVisible(bool v, int c) ;
     void setSelection(int c);
     void highlight(int c, bool v);

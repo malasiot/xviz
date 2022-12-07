@@ -10,9 +10,9 @@ using namespace std ;
 
 namespace xviz {
 
-TransformGizmo::TransformGizmo(const CameraPtr &cam, float radius): Manipulator(), camera_(cam)
-{
-    ray_caster_.setBackFaceCulling(false) ;
+TransformGizmo::TransformGizmo(float radius) {
+
+    ray_caster_.setBackFaceCulling(false);
 
     createAxisTranslationNode(components_[TX], radius, {1, 0, 0}, {1, 0, 0, 1}) ;
     createAxisTranslationNode(components_[TY], radius, {0, 1, 0}, {0, 1, 0, 1}) ;
@@ -26,6 +26,14 @@ TransformGizmo::TransformGizmo(const CameraPtr &cam, float radius): Manipulator(
     createRotateAxisNode(components_[RY], radius, {0, 1, 0}, {0, 1, 0, 1}) ;
     createRotateAxisNode(components_[RZ], radius, {0, 0, 1}, {0, 0, 1, 1}) ;
 }
+
+void TransformGizmo::setVisible(bool v, int c) {
+    for( int i=0 ; i<N_COMPONENTS ; i++ ) {
+        if ( i != c )
+            components_[i].node_->setVisible(v) ;
+    }
+}
+
 
 void TransformGizmo::createAxisTranslationNode(TransformGizmo::Component &c, float rad, const Vector3f &axis, const Vector4f &clr)
 {
@@ -138,13 +146,44 @@ void TransformGizmo::createRotateAxisNode(TransformGizmo::Component &c, float ra
     addChild(root) ;
 }
 
-void TransformGizmo::setTranslation(const Vector3f &v)
+
+void TransformGizmo::setSelection(int c) {
+    if ( selected_ != -1 && selected_ != c ) highlight(selected_, false) ;
+    selected_ = c ;
+    if ( selected_ != -1 ) {
+        highlight(selected_, true) ;
+    }
+}
+
+void TransformGizmo::highlight(int c, bool v)
+{
+    auto &comp = components_[c] ;
+    if ( v )
+        comp.setMaterialColor(pick_clr_) ;
+    else
+        comp.setMaterialColor(comp.clr_) ;
+}
+
+
+void TransformGizmo::Component::setMaterialColor(const Vector4f &clr)
+{
+    ConstantMaterial *cm = static_cast<ConstantMaterial *>(mat_.get()) ;
+    cm->setColor(clr) ;
+}
+
+TransformManipulator::TransformManipulator(const CameraPtr &cam, float radius): Manipulator(), camera_(cam)
+{
+    gizmo_.reset(new TransformGizmo(radius)) ;
+    gizmo_->setOrder(10) ;
+}
+
+void TransformManipulator::setTranslation(const Vector3f &v)
 {
     position_ = start_pos_ + v ;
     updateTransforms() ;
 }
 
-void TransformGizmo::setRotation(const Matrix3f &m)
+void TransformManipulator::setRotation(const Matrix3f &m)
 {
     if ( local_ )
         orientation_ = start_orientation_ * m ;
@@ -154,7 +193,7 @@ void TransformGizmo::setRotation(const Matrix3f &m)
     updateTransforms() ;
 }
 
-void TransformGizmo::updateTransforms()
+void TransformManipulator::updateTransforms()
 {
     Isometry3f tr = Isometry3f::Identity() ;
 
@@ -164,15 +203,15 @@ void TransformGizmo::updateTransforms()
     transform_node_->transform() = orig_ * tr ;
 
     if ( local_ ) {
-        transform() = global_ * tr ;
+        gizmo_->transform() = orig_ * tr ;
     } else {
-        transform().translation() = global_ * position_ ;
-        transform().linear() = Matrix3f::Identity() ;
+        gizmo_->transform().translation() = orig_ * position_ ;
+        gizmo_->transform().linear() = Matrix3f::Identity() ;
     }
 
 }
 
-Vector3f TransformGizmo::globalPosition() const
+Vector3f TransformManipulator::globalPosition() const
 {
     return transform_node_->parent()->globalTransform() * position_ ;
 }
@@ -233,10 +272,10 @@ static Vector3f AXIS_Y{0, 1, 0} ;
 static Vector3f AXIS_Z{0, 0, 1} ;
 static Vector3f ZERO{0, 0, 0} ;
 
-bool TransformGizmo::onMousePressed(QMouseEvent *event)
+bool TransformManipulator::onMousePressed(QMouseEvent *event)
 {
     RayCastResult rc ;
-    int c = hitTest(event, rc) ;
+    int c = gizmo_->hitTest(event->x(), event->y(), camera_, rc) ;
     if ( c == -1 ) return false ;
 
     Ray r = camera_->getRay(event->x(), event->y()) ;
@@ -246,56 +285,49 @@ bool TransformGizmo::onMousePressed(QMouseEvent *event)
     start_pos_ = position_ ;
     start_orientation_ = orientation_ ;
 
-    for( int i=0 ; i<N_COMPONENTS ; i++ ) {
-        if ( i != c )
-            components_[i].node_->setVisible(false) ;
-    }
+    gizmo_->setVisible(false, c) ;
 
     float t ;
     switch ( c ) {
-    case TX:
+    case TransformGizmo::TX:
         ray_ray_intersection(tr, ZERO, AXIS_X, start_drag_) ; break ;
-    case TY:
+    case TransformGizmo::TY:
         ray_ray_intersection(tr, ZERO, AXIS_Y, start_drag_) ; break ;
-    case TZ:
+    case TransformGizmo::TZ:
         ray_ray_intersection(tr, ZERO, AXIS_Z, start_drag_) ; break ;
-    case TYZ:
+    case TransformGizmo::TYZ:
         ray_plane_intersection(tr, AXIS_X, ZERO, start_drag_); break ;
-    case TXZ:
+    case TransformGizmo::TXZ:
         ray_plane_intersection(tr, AXIS_Y, ZERO, start_drag_); break ;
-    case TXY:
+    case TransformGizmo::TXY:
         ray_plane_intersection(tr, AXIS_Z, ZERO, start_drag_); break ;
-    case RX:
+    case TransformGizmo::RX:
          ray_plane_intersection(tr, AXIS_X, ZERO, start_drag_); break ;
-    case RY:
+    case TransformGizmo::RY:
         ray_plane_intersection(tr, AXIS_Y, ZERO, start_drag_); break ;
-    case RZ:
+    case TransformGizmo::RZ:
         ray_plane_intersection(tr, AXIS_Z, ZERO, start_drag_); break ;
 
     }
 
-    if ( cb_) cb_(TRANSFORM_GIZMO_MOTION_STARTED, transform_node_->transform()) ;
+    if ( cb_) cb_(TRANSFORM_MANIP_MOTION_STARTED, transform_node_->transform()) ;
 
     dragging_ = c ;
     return true ;
 }
 
-bool TransformGizmo::onMouseReleased(QMouseEvent *) {
-    for( int i=0 ; i<N_COMPONENTS ; i++ ) {
-        if ( i != dragging_ ) {
-            components_[i].node_->setVisible(true) ;
-        }
-    }
+bool TransformManipulator::onMouseReleased(QMouseEvent *) {
+    gizmo_->setVisible(true, dragging_) ;
 
     if ( cb_ && dragging_ != -1 ) {
-        cb_(TRANSFORM_GIZMO_MOTION_ENDED, transform_node_->transform()) ;
+        cb_(TRANSFORM_MANIP_MOTION_ENDED, transform_node_->transform()) ;
     }
 
     dragging_ = -1 ;
     return false ;
 }
 
-bool TransformGizmo::onMouseMoved(QMouseEvent *event) {
+bool TransformManipulator::onMouseMoved(QMouseEvent *event) {
     if ( dragging_ != -1 ) {
         Ray r = camera_->getRay(event->x(), event->y()) ;
         Ray tr(r, start_tr_) ;
@@ -303,43 +335,43 @@ bool TransformGizmo::onMouseMoved(QMouseEvent *event) {
         Vector3f pt ;
 
         switch (dragging_) {
-        case TX:
+        case TransformGizmo::TX:
             ray_ray_intersection(tr, ZERO, AXIS_X, pt) ;
             setTranslation(pt - start_drag_) ;
             break ;
-        case TY:
+        case TransformGizmo::TY:
             ray_ray_intersection(tr, ZERO, AXIS_Y, pt) ;
             setTranslation(pt - start_drag_) ;
             break ;
-        case TZ:
+        case TransformGizmo::TZ:
             ray_ray_intersection(tr, ZERO, AXIS_Z, pt) ;
             setTranslation(pt - start_drag_) ;
             break ;
-        case TYZ:
+        case TransformGizmo::TYZ:
             ray_plane_intersection(tr, AXIS_X, ZERO, pt);
             setTranslation(pt - start_drag_) ;
             break ;
-        case TXZ:
+        case TransformGizmo::TXZ:
             ray_plane_intersection(tr, AXIS_Y, ZERO, pt);
             setTranslation(pt - start_drag_) ;
             break ;
-        case TXY:
+        case TransformGizmo::TXY:
             ray_plane_intersection(tr, AXIS_Z, ZERO, pt);
             setTranslation(pt - start_drag_) ;
             break ;
-        case RX: {
+        case TransformGizmo::RX: {
             ray_plane_intersection(tr, AXIS_X, ZERO, pt);
             float angle = rotation_angle(pt, start_drag_, ZERO, AXIS_X) ;
             setRotation(AngleAxisf(angle, AXIS_X).matrix()) ;
             break ;
         }
-        case RY: {
+        case TransformGizmo::RY: {
             ray_plane_intersection(tr, AXIS_Y, ZERO, pt);
             float angle = rotation_angle(pt, start_drag_, ZERO, AXIS_Y) ;
             setRotation(AngleAxisf(angle, AXIS_Y).matrix()) ;
             break ;
         }
-        case RZ: {
+        case TransformGizmo::RZ: {
             ray_plane_intersection(tr, AXIS_Z, ZERO, pt);
             float angle = rotation_angle(pt, start_drag_, ZERO, AXIS_Z) ;
             setRotation(AngleAxisf(angle, AXIS_Z).matrix()) ;
@@ -348,54 +380,41 @@ bool TransformGizmo::onMouseMoved(QMouseEvent *event) {
 
         }
 
-        if ( cb_) cb_(TRANSFORM_GIZMO_MOVING, transform_node_->transform()) ;
+        if ( cb_) cb_(TRANSFORM_MANIP_MOVING, transform_node_->transform()) ;
 
         return true ;
     } else {
         RayCastResult r ;
-        int c = hitTest(event, r) ;
-        setSelection(c) ;
+        int c = gizmo_->hitTest(event->x(), event->y(), camera_, r) ;
+        gizmo_->setSelection(c) ;
         return ( c != -1 )  ;
     }
 
     return false ;
 }
 
-void TransformGizmo::setSelection(int c) {
-    if ( selected_ != -1 && selected_ != c ) highlight(selected_, false) ;
-    selected_ = c ;
-    if ( selected_ != -1 ) {
-        highlight(selected_, true) ;
-    }
-}
-
-void TransformGizmo::highlight(int c, bool v)
-{
-    auto &comp = components_[c] ;
-    if ( v )
-        comp.setMaterialColor(pick_clr_) ;
-    else
-        comp.setMaterialColor(comp.clr_) ;
-}
 
 
-void TransformGizmo::attachTo(Node *node) {
+void TransformManipulator::attachTo(Node *node) {
     transform_node_ = node ;
     orig_ = node->transform() ;
-    global_ = node->globalTransform() ;
+    Node * parent = node->parent() ;
+    assert(parent) ;
+    // reparent gizmo to be a sibling of transform node
+    if ( gizmo_->parent() )
+        gizmo_->parent()->removeChild(gizmo_);
+    parent->addChild(gizmo_) ;
     updateTransforms() ;
 }
 
-void TransformGizmo::setLocalTransform(bool v) {
+void TransformManipulator::setLocalTransform(bool v) {
     local_ = v ;
-    attachTo(transform_node_);
+    updateTransforms();
 }
 
+int TransformGizmo::hitTest(int x, int y, const CameraPtr &cam, RayCastResult &res) {
 
-
-int TransformGizmo::hitTest(QMouseEvent *event, RayCastResult &res)
-{
-    Ray ray = camera_->getRay(event->x(), event->y()) ;
+    Ray ray = cam->getRay(x, y) ;
 
     float tmin = std::numeric_limits<float>::max() ;
     int c = -1 ;
@@ -412,11 +431,6 @@ int TransformGizmo::hitTest(QMouseEvent *event, RayCastResult &res)
     return c ;
 }
 
-void TransformGizmo::Component::setMaterialColor(const Vector4f &clr)
-{
-    ConstantMaterial *cm = static_cast<ConstantMaterial *>(mat_.get()) ;
-    cm->setColor(clr) ;
-}
 
 
 }

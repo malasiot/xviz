@@ -61,7 +61,7 @@ protected:
     }
 
 private:
-    std::shared_ptr<TransformGizmo> gizmo_ ;
+    std::shared_ptr<TransformManipulator> gizmo_ ;
 };
 
 Gui::Gui() {
@@ -86,13 +86,13 @@ Gui::Gui() {
     dl->setDiffuseColor(Vector3f(1, 1, 1)) ;
     scene->addLightNode(LightPtr(dl)) ;
 
-    TransformGizmo *gizmo = new TransformGizmo(getCamera(), 2.0) ;
-    gizmo->setOrder(2) ;
+    TransformManipulator *gizmo = new TransformManipulator(getCamera(), 2.0) ;
+    gizmo->gizmo()->setOrder(2) ;
     gizmo->attachTo(box_node.get()) ;
-    gizmo->setLocalTransform(false);
+    gizmo->setLocalTransform(true);
     gizmo_.reset(gizmo) ;
 
-    scene->addChild(gizmo_);
+
 
     setScene(scene) ;
     makeAxes(2.5) ;

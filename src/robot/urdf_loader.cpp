@@ -24,7 +24,7 @@ URDFRobot URDFLoader::parse(const string &urdf_file) {
         throw URDFLoadException(result.description()) ;
 
     if ( xml_node root = doc.child("robot") ) { // URDF
-        robot.name_ = root.attribute("name").as_string() ;
+        robot.name_ = prefix_ + root.attribute("name").as_string() ;
         parseRobot(root, robot, urdf_file) ;
     } else
         throw URDFLoadException("No URDF root element found") ;
@@ -51,7 +51,7 @@ void URDFLoader::parseLink(const xml_node &node, URDFRobot &rb, const string &pa
 
     URDFLink link ;
 
-    string name = node.attribute("name").as_string() ;
+    string name = prefix_ + node.attribute("name").as_string() ;
 
     if ( name.empty() )
         throw URDFLoadException("Attribute \"name\" missing from <link>") ;
@@ -199,7 +199,7 @@ static Vector4f parse_vec4(const std::string &s) {
 
 
 void URDFLoader::parseJoint(const xml_node &node, URDFRobot &rb) {
-    string name = node.attribute("name").as_string() ;
+    string name = prefix_ + node.attribute("name").as_string() ;
     string type = node.attribute("type").as_string() ;
 
     if ( name.empty() )

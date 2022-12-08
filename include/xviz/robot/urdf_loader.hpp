@@ -13,7 +13,8 @@ class URDFRobot ;
 
 class URDFLoader {
 public:
-    URDFLoader(const std::map<std::string, std::string> package_map): package_map_(package_map) {}
+    URDFLoader(const std::map<std::string, std::string> package_map, const std::string &name_prefix):
+        package_map_(package_map), prefix_(name_prefix) {}
 
     URDFRobot parse(const std::string &urdf_file) ;
 
@@ -33,6 +34,7 @@ private:
     std::map<std::string, std::string> package_map_ ;
 
     bool parse_collision_geometry_ ;
+    std::string prefix_ ;
 
 };
 

@@ -84,8 +84,8 @@ int main(int argc, char *argv[]) {
 
     scene->updateTransforms(transforms) ;
 
-    scene->addChild(makeBox("box1", {0.15, 0.15, 0.15}, {0, 0, 0.2}, {1, 0, 0, 1}));
-    scene->addChild(makeBox("box2", {0.15, 0.15, 0.15}, {0, 0, 0.9}, {1, 1, 0, 1}));
+    scene->addChild(makeBox("box1", {0.005, 0.005, 0.05}, {0.25, 0.15, 0.355}, {1, 0, 0, 1}));
+    scene->addChild(makeBox("box2", {0.05, 0.05, 0.05}, {0, 0.4, 0.1}, {1, 1, 0, 1}));
 
     DirectionalLight *dl = new DirectionalLight(Vector3f(1.5, 2.5, 1)) ;
     dl->setDiffuseColor(Vector3f(1, 1, 1)) ;

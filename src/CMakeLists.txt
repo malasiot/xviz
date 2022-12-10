@@ -31,16 +31,16 @@ set(LIB_SOURCES
     scene/raycaster.cpp
     scene/node_helpers.cpp
 
-    robot/robot_scene.cpp
-    robot/urdf_loader.cpp
-    robot/urdf_robot.cpp
+#    robot/robot_scene.cpp
+#    robot/urdf_loader.cpp
+#    robot/urdf_robot.cpp
 
     common/image.cpp
     common/transform.cpp
     common/vector.cpp
     common/matrix.cpp
 
-    3rdparty/pugi/pugixml.cpp
+#    3rdparty/pugi/pugixml.cpp
 
     gui/viewer.cpp
     gui/trackball.cpp

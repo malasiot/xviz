@@ -15,7 +15,19 @@ URDFRobot URDFRobot::load(const std::string &filename, const string &name_prefix
     return rb ;
 }
 
-URDFLink *URDFRobot::getLink(const std::string &name)  {
+const URDFLink *URDFRobot::getLink(const std::string &name) const {
+    auto it = links_.find(name) ;
+    if ( it == links_.end() ) return nullptr ;
+    else return &(it->second) ;
+}
+
+const URDFJoint *URDFRobot::findJoint(const std::string &name) const {
+    auto it = joints_.find(name) ;
+    if ( it == joints_.end() ) return nullptr ;
+    else return &(it->second) ;
+}
+
+URDFLink *URDFRobot::getLink(const std::string &name) {
     auto it = links_.find(name) ;
     if ( it == links_.end() ) return nullptr ;
     else return &(it->second) ;

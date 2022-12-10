@@ -93,8 +93,8 @@ struct URDFRobot {
     // loads URDF models
     static URDFRobot load(const std::string &fname, const std::string &name_prefix = {}, const std::map<std::string, std::string> package_map = {}) ;
 
-    URDFLink *getLink(const std::string &name)  ;
-    URDFJoint *findJoint(const std::string &name);
+    const URDFLink *getLink(const std::string &name) const ;
+    const URDFJoint *findJoint(const std::string &name) const ;
 
     float setJointPosition(const std::string &jname, float pos) ;
     void setWorldTransform(const Eigen::Isometry3f &global) { global_ = global ; }
@@ -112,6 +112,14 @@ public:
     void computeLinkTransforms(std::map<std::string, Eigen::Isometry3f> &transforms) const ;
     void computeLinkTransformRecursive(std::map<std::string, Eigen::Isometry3f> &transforms,
                                        const URDFLink *link, const Eigen::Isometry3f &parent) const;
+
+private:
+
+    friend class URDFLoader ;
+
+    URDFLink *getLink(const std::string &name) ;
+    URDFJoint *findJoint(const std::string &name)  ;
+
 };
 
 class URDFLoadException: public std::runtime_error {

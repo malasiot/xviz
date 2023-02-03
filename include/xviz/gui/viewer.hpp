@@ -48,10 +48,19 @@ public:
 
     CameraPtr getCamera() const { return camera_ ; }
 
+    void configureFrameGrabber(const QString &path, float fps = 30) ;
+
 public slots:
 
     void updateAnimation() ;
 
+private slots:
+    void grabScreen();
+    void startRecording() ;
+    void stopRecording() ;
+signals:
+    void recordingStarted() ;
+    void recoringStopped() ;
 
 protected:
 
@@ -85,6 +94,10 @@ protected:
     float ts_ = 0 ;
 
     QElapsedTimer et_ ;
+
+    QTimer *grab_timer_ ;
+    int64_t grab_count_ ;
+    QString grab_frame_path_ ;
 };
 
 }

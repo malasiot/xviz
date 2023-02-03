@@ -9,6 +9,9 @@
 #include <QTimer>
 #include <QPainter>
 #include <QApplication>
+#include <QStandardPaths>
+#include <QDir>
+#include <QDebug>
 
 using namespace std ;
 using namespace Eigen ;
@@ -24,6 +27,12 @@ SceneViewer::SceneViewer(QWidget *parent): QOpenGLWidget(parent), scene_(new Nod
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     setMouseTracking(true) ;
 
+    grab_timer_ = new QTimer(this);
+    connect(grab_timer_, &QTimer::timeout, this, &SceneViewer::grabScreen);
+    grab_count_ = 0;
+
+    QString path = QStandardPaths::standardLocations(QStandardPaths::PicturesLocation)[0];
+    configureFrameGrabber(path + "/grab", 30);
 }
 
 void SceneViewer::setScene(const NodePtr &scene) {
@@ -116,6 +125,11 @@ void SceneViewer::startAnimations()
     timer->start(30);
 }
 
+void SceneViewer::configureFrameGrabber(const QString &path, float fps) {
+    grab_frame_path_ = path ;
+    grab_timer_->setInterval(1000/fps) ;
+}
+
 
 void SceneViewer::mousePressEvent(QMouseEvent *event)
 {
@@ -190,6 +204,10 @@ void SceneViewer::keyPressEvent(QKeyEvent *event)
         update() ;
     } else if ( key == Qt::Key_Escape ) {
         QApplication::quit();
+    } else if ( key == Qt::Key_R ) {
+        startRecording();
+    } else if ( key == Qt::Key_S ) {
+        stopRecording() ;
     }
 
 }
@@ -253,6 +271,37 @@ void SceneViewer::updateAnimation() {
 
     update() ;
 
+}
+
+void SceneViewer::startRecording() {
+    stopRecording() ;
+    grab_count_ = 0 ;
+    grab_timer_->start() ;
+    emit recordingStarted();
+}
+
+
+void SceneViewer::grabScreen() {
+    auto image = grabFramebuffer();
+
+    if (grab_frame_path_.isEmpty()) {
+        grab_frame_path_ = QDir::currentPath();
+        grab_frame_path_ += "/grab" ;
+    }
+
+    QString file_name = QString("%1_%2.png").arg(grab_frame_path_).arg((int)grab_count_, 4, 10, QLatin1Char('0'));
+
+
+    if (!image.save(file_name)) {
+        qDebug() << "The image could not be saved to " << QDir::toNativeSeparators(file_name);
+    }
+
+    grab_count_++;
+}
+
+void SceneViewer::stopRecording() {
+    grab_timer_->stop();
+    grab_count_ = 0;
 }
 
 }

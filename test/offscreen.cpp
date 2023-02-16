@@ -3,6 +3,7 @@
 #include <xviz/scene/scene.hpp>
 #include <xviz/scene/light.hpp>
 #include <xviz/scene/camera.hpp>
+#include <xviz/scene/geometry.hpp>
 
 #include <QImage>
 #include <QApplication>
@@ -28,12 +29,17 @@ int main(int argc, char *argv[]) {
     auto r = scene->geomRadius(c) ;
 
 
+    NodePtr box(new Node) ;
+    GeometryPtr box_geom(new Geometry(Geometry::createSolidCube({0.1f, 0.1f, 0.1f})));
+    MaterialPtr mat(new WireFrameMaterial({1, 0, 0, 1}, {0, 1, 1, 1})) ;
+    box->addDrawable(box_geom, mat) ;
+    scene->addChild(box) ;
 
     // add a light source
 
     DirectionalLight *dl = new DirectionalLight(Vector3f(1, 1, 1)) ;
     dl->setDiffuseColor(Vector3f(1, 1, 1)) ;
-    scene->addLightNode(LightPtr(dl)) ;
+    scene->setLight(LightPtr(dl)) ;
 
     // create a camera
 
@@ -61,6 +67,8 @@ int main(int argc, char *argv[]) {
 
 
     Renderer rdr ;
+
+    rdr.setDefaultFBO(os.fboId());
 
     rdr.render(scene, cam) ;
     auto im = os.getImage() ;

@@ -20,7 +20,7 @@ vec3 phong(LightSourceParameters ls, vec3 dc, vec3 N, vec3 L, float shadow, floa
     vec3 Idiff = ls.diffuse * dc * diff;
     vec3 Ispec = ls.specular * g_material.specular * spec ;
 
-    return att * ((1 - shadow)*(Ispec + Idiff)) + Iamb ;
+   return att * ((1 - shadow)*(Ispec + Idiff)) + Iamb ;
 }
 
 vec3 phongDirectional(LightSourceParameters ls, vec3 dc, vec3 N, float shadow) {

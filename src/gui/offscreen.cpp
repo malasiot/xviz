@@ -12,14 +12,15 @@ namespace xviz {
 
 OffscreenSurface::OffscreenSurface(const QSize &size): QOffscreenSurface(nullptr), size_(size) {
     QSurfaceFormat sformat;
-    sformat.setDepthBufferSize(16);
+    sformat.setDepthBufferSize(24);
     sformat.setMajorVersion(3);
     sformat.setMinorVersion(3);
 
     sformat.setProfile(QSurfaceFormat::CoreProfile);
 
     sformat.setSwapInterval(0); //disable vsync
-    sformat.setSwapBehavior(QSurfaceFormat::SingleBuffer);
+ //   sformat.setSwapBehavior(QSurfaceFormat::SingleBuffer);
+
 
 
     setFormat(sformat);
@@ -43,7 +44,7 @@ void OffscreenSurface::createFBO() {
         format.setSamples(OffscreenSurface::format().samples()) ;
     //    format.setTextureTarget(GL_TEXTURE_2D) ;
      //   format.setAttachment(QOpenGLFramebufferObject::Depth) ;
-        format.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil) ;
+        format.setAttachment(QOpenGLFramebufferObject::Depth) ;
         fbo_ = new QOpenGLFramebufferObject(size_, format);
         fbo_->bind() ;
     }
@@ -141,6 +142,10 @@ Image OffscreenSurface::getDepthBuffer(float znear, float zfar) const {
     }
 
     return Image((uchar *)dst, ImageFormat::gray16, size_.width(), size_.height()) ;
+}
+
+GLuint OffscreenSurface::fboId() const {
+    return fbo_->handle() ;
 }
 
 }

@@ -295,6 +295,7 @@ LightData &Renderer::getLightData(const LightPtr &l) {
     if ( !data.shadow_map_ ) {
         data.shadow_map_.reset(new ShadowMap()) ;
         data.shadow_map_->init(shadow_map_width_, shadow_map_height_) ;
+        data.shadow_map_->unbind(default_fbo_);
     }
 
     return data ;
@@ -310,7 +311,7 @@ std::vector<LightData *> Renderer::getLights() {
             ld.mat_ = node->globalTransform() ;
 
             if ( l->castsShadows() ) {
-                updateShadows(ld) ;
+               updateShadows(ld) ;
             }
 
             lights.push_back(&ld) ;

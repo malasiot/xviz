@@ -12,7 +12,7 @@ namespace xviz {
 
 OffscreenSurface::OffscreenSurface(const QSize &size): QOffscreenSurface(nullptr), size_(size) {
     QSurfaceFormat sformat;
-    sformat.setDepthBufferSize(32);
+    sformat.setDepthBufferSize(16);
     sformat.setMajorVersion(3);
     sformat.setMinorVersion(3);
 
@@ -95,6 +95,7 @@ Image OffscreenSurface::readPixels(QOpenGLFramebufferObject *fbo) const {
 
 
 Image OffscreenSurface::getImage() const {
+
 
     if ( format().samples() > 0 ) {
         QOpenGLFramebufferObject temp(size(), QOpenGLFramebufferObjectFormat());

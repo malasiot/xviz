@@ -1,5 +1,5 @@
 find_package(Eigen3 REQUIRED)
-find_package(Assimp REQUIRED)
+find_package(assimp REQUIRED)
 
 if( POLICY CMP0072 )
   cmake_policy(SET CMP0072 NEW)

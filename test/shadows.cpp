@@ -170,14 +170,14 @@ int main(int argc, char **argv)
         else randomCylinder(scene, strm.str(), rnd_uniform(0.05, 0.1), rnd_uniform(0.1, 0.15), clr);
     }
 
-    SpotLight *dl = new SpotLight(Vector3f(0, 5, 1), Vector3f(0, -1, 0)) ;
+    SpotLight *dl = new SpotLight(Vector3f(0, 2, 1), Vector3f(0, -1, 0)) ;
 
     dl->setInnerCutoffAngle(45) ;
     dl->setOuterCutoffAngle(60) ;
 
     dl->setLinearAttenuation(0.09) ;
     dl->setQuadraticAttenuation(0.032) ;
-    dl->setDiffuseColor(Vector3f(1.0, 0.5, 0.5));
+    dl->setDiffuseColor(Vector3f(1.0, 1, 1));
     dl->setSpecularColor(Vector3f(0.0, 1.0, 0.15)) ;
     dl->setShadowCamera(PerspectiveCamera(1.0, 40.0 * M_PI/180)) ;
      dl->setCastsShadows(true);
@@ -185,12 +185,12 @@ int main(int argc, char **argv)
     scene->addLightNode(LightPtr(dl)) ;
 
     xviz::DirectionalLight *dl2 = new xviz::DirectionalLight(Vector3f(0, 4, 4)) ;
-    dl2->setDiffuseColor(Vector3f(0.15, 0.15, 0.15)) ;
+    dl2->setDiffuseColor(Vector3f(0.95, 0.95, 0.95)) ;
     dl2->setSpecularColor(Vector3f(0.75, 0.0, 0.15)) ;
     dl2->setShadowCamera(OrthographicCamera(-0.5, 0.5, 0.5, -0.5, 0.01, 3)) ;
     dl2->setShadowBias(0.0005);
 
-    dl2->setCastsShadows(true);
+    dl2->setCastsShadows(false);
     xviz::LightPtr light2(dl2) ;
    scene->addLightNode(light2) ;
 

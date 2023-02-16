@@ -24,7 +24,7 @@ int main(int argc, char **argv)
     scene->load(TestApplication::data() + "models/capsule.obj") ;
 
     DirectionalLight *dl = new DirectionalLight(Vector3f(0.5, 0.5, 1)) ;
-    dl->setDiffuseColor(Vector3f(0.5, 0.5, 0.5)) ;
+    dl->setDiffuseColor(Vector3f(1, 1, 1)) ;
     dl->setSpecularColor(Vector3f(0.5, 0.5, 0.5)) ;
     dl->setAmbientColor(Vector3f(0.5, 0.5, 0.5)) ;
 

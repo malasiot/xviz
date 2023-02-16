@@ -47,7 +47,7 @@ void SceneViewer::setScene(const NodePtr &scene) {
 
     if ( !has_light ) {
         auto dl = make_shared<DirectionalLight>(Vector3f(0.5, 0.5, 1))  ;
-        dl->setDiffuseColor({0.75, 0.75, 0.75}) ;
+        dl->setDiffuseColor({1, 1, 1}) ;
         scene_->addLightNode(dl) ;
     }
 }

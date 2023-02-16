@@ -41,8 +41,9 @@ void OffscreenSurface::createFBO() {
     if ( context_ && fbo_ == nullptr ) {
         QOpenGLFramebufferObjectFormat format;
         format.setSamples(OffscreenSurface::format().samples()) ;
-        format.setTextureTarget(GL_TEXTURE_2D) ;
-        format.setAttachment(QOpenGLFramebufferObject::Depth) ;
+    //    format.setTextureTarget(GL_TEXTURE_2D) ;
+     //   format.setAttachment(QOpenGLFramebufferObject::Depth) ;
+        format.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil) ;
         fbo_ = new QOpenGLFramebufferObject(size_, format);
         fbo_->bind() ;
     }

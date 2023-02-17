@@ -68,8 +68,6 @@ int main(int argc, char *argv[]) {
 
     Renderer rdr ;
 
-    rdr.setDefaultFBO(os.fboId());
-
     rdr.render(scene, cam) ;
     auto im = os.getImage() ;
     im.saveToPNG("/tmp/im.png") ;

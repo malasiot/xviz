@@ -313,6 +313,7 @@ void WireFrameMaterialProgram::applyParams(const MaterialPtr &mat) {
 
 string PhongMaterialProgram::Params::key() const {
     std::stringstream strm ;
+    strm << "phong:" ;
     strm << num_dir_lights_ << ',' ;
     strm << num_dir_lights_shadow_ << ',' ;
     strm << num_point_lights_ << ',' ;
@@ -328,18 +329,21 @@ string PhongMaterialProgram::Params::key() const {
 
 string ConstantMaterialProgram::Params::key() const {
     std::stringstream strm ;
+    strm << "constant:" ;
     strm << (int)enable_skinning_ ;
     return strm.str() ;
 }
 
 string PerVertexColorMaterialProgram::Params::key() const {
     std::stringstream strm ;
+    strm << "per_vertex:" ;
     strm << (int)enable_skinning_ ;
     return strm.str() ;
 }
 
 string WireFrameMaterialProgram::Params::key() const {
     std::stringstream strm ;
+    strm << "wireframe:" ;
     strm << (int)enable_skinning_ ;
     return strm.str() ;
 }

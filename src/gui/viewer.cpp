@@ -244,7 +244,7 @@ void SceneViewer::drawText(const Vector3f &c, const QString &text, const QColor 
 void SceneViewer::paintGL()
 {
     if ( !scene_ ) return ;
-    rdr_.setDefaultFBO(defaultFramebufferObject());
+
     rdr_.render(scene_, camera_) ;
 
     if ( draw_axes_ ) {

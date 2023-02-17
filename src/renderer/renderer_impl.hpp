@@ -9,6 +9,9 @@
 
 #include "mesh_data.hpp"
 #include "texture_data.hpp"
+#include "material_program.hpp"
+
+#include <iostream>
 
 namespace xviz {
 namespace impl {
@@ -42,10 +45,6 @@ public:
 
     void render(const NodePtr &scene, const CameraPtr &cam) ;
 
-    void setDefaultFBO(unsigned int fbo) {
-        default_fbo_ = fbo ;
-    }
-
     // transform model coordinates to screen coordinates
     Eigen::Vector2f project(const Eigen::Vector3f &pos) ;
 
@@ -59,8 +58,7 @@ private:
 
     MeshDataManager meshes_ ;
     TextureCache textures_ ;
-    //std::map<std::string, std::unique_ptr<impl::TextureData>> textures_ ;
-    unsigned int default_fbo_ ;
+    GLint default_fbo_ ;
 
     std::unique_ptr<impl::OpenGLShaderProgram> shadow_map_shader_, shadow_map_debug_shader_ ;
 
@@ -68,6 +66,7 @@ private:
     const uint32_t shadow_map_height_ = 2048 ;
 
     std::map<LightPtr, LightData> light_data_ ;
+    MaterialProgramManager material_manager_ ;
 
 private:
 

@@ -35,6 +35,7 @@ Renderer::Renderer() {
     default_material_.reset(mat) ;
 
     init() ;
+
 }
 
 // lazy loading of textures on GPU and caching
@@ -46,7 +47,6 @@ impl::TextureData *Renderer::fetchTextureData(const Texture2D *texture) {
 }
 
 MaterialProgramPtr Renderer::instantiateMaterial(const Material *mat, const std::vector<LightData *> &lights, bool has_skeleton) {
-
 
     if ( const PhongMaterial *material = dynamic_cast<const PhongMaterial *>(mat)) {
         PhongMaterialProgram::Params params ;
@@ -75,22 +75,22 @@ MaterialProgramPtr Renderer::instantiateMaterial(const Material *mat, const std:
             params.has_diffuse_map_ = true ;
         }
 
-        return PhongMaterialProgram::instance(params) ;
+        return material_manager_.instance<PhongMaterialProgram>(params) ;
     } else if ( const ConstantMaterial *material = dynamic_cast<const ConstantMaterial *>(mat)) {
         ConstantMaterialProgram::Params params ;
         params.enable_skinning_ = has_skeleton ;
         if ( material->texture()  ) {
             params.has_texture_map_ = true ;
         }
-        return ConstantMaterialProgram::instance(params) ;
-    } else if ( const PerVertexColorMaterial *material = dynamic_cast<const PerVertexColorMaterial *>(mat)) {
+        return material_manager_.instance<ConstantMaterialProgram>(params) ;
+     } else if ( const PerVertexColorMaterial *material = dynamic_cast<const PerVertexColorMaterial *>(mat)) {
         PerVertexColorMaterialProgram::Params params ;
         params.enable_skinning_ = has_skeleton ;
-        return PerVertexColorMaterialProgram::instance(params) ;
+        return material_manager_.instance<PerVertexColorMaterialProgram>(params) ;
     } else if ( const WireFrameMaterial *material = dynamic_cast<const WireFrameMaterial *>(mat)) {
         WireFrameMaterialProgram::Params params ;
         params.enable_skinning_ = has_skeleton ;
-        return WireFrameMaterialProgram::instance(params) ;
+        return material_manager_.instance<WireFrameMaterialProgram>(params) ;
     }
 
     return nullptr ;
@@ -193,6 +193,8 @@ void Renderer::renderShadowMap(const LightData &sd) {
 }
 
 void Renderer::render(const NodePtr &scene, const CameraPtr &cam) {
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &default_fbo_);
+
     scene_ = scene ;
     // render background
 
@@ -472,10 +474,6 @@ void Renderer::init() {
 
 void Renderer::render(const NodePtr &scene, const CameraPtr &cam) {
     impl_->render(scene, cam) ;
-}
-
-void Renderer::setDefaultFBO(unsigned int fbo) {
-    impl_->setDefaultFBO(fbo) ;
 }
 
 Vector2f Renderer::project(const Vector3f &pos) {

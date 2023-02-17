@@ -128,6 +128,7 @@ public:
       //  ray_caster_.addNode(scene_, true) ;
     }
 
+
     void keyPressEvent(QKeyEvent *key) {
 
         if ( key->key() == Qt::Key_G ) {
@@ -140,8 +141,8 @@ public:
          //   scene->load("/home/malasiot/Downloads/human.dae") ;
 
             // optional compute center and radius to properly position camera
-            auto c = scene->geomCenter() ;
-            auto r = scene->geomRadius(c) ;
+            auto c = scene_->geomCenter() ;
+            auto r = scene_->geomRadius(c) ;
 
 
             NodePtr box(new Node) ;
@@ -152,7 +153,7 @@ public:
 
             // add a light source
 
-            DirectionalLight *dl = new DirectionalLight(Vector3f(1, 1, 1)) ;
+            DirectionalLight *dl = new DirectionalLight(Vector3f(3, 3, 3)) ;
             dl->setDiffuseColor(Vector3f(1, 1, 1)) ;
             scene->setLight(LightPtr(dl)) ;
 
@@ -160,7 +161,7 @@ public:
             PerspectiveCamera *pcam = new PerspectiveCamera(1, // aspect ratio
                                                             50*M_PI/180,   // fov
                                                             0.00001,        // zmin
-                                                            10           // zmax
+                                                            10*r           // zmax
                                                             ) ;
 
 
@@ -173,7 +174,7 @@ public:
             // position camera to look at the center of the object
 
           //  pcam->viewSphere(c, r) ;
-            pcam->lookAt({0, 0, 5}, {0, 0, 0}, {0, 1, 0}) ;
+            pcam->lookAt({0, 0, 2*r}, c, {0, 1, 0}) ;
 
             // set camera viewpot
 
@@ -182,13 +183,12 @@ public:
 
             Renderer rdr ;
 
-            rdr.setDefaultFBO(os.fboId());
-
-            rdr.render(scene, cam) ;
+            rdr.render(scene_, cam) ;
             auto im = os.getImage() ;
             im.saveToPNG("/tmp/im.png") ;
 
-            rdr_.setDefaultFBO(defaultFramebufferObject());
+        } else {
+            SceneViewer::keyPressEvent(key) ;
         }
     }
 
@@ -261,6 +261,7 @@ public:
     }
 
     void paintGL() override {
+
         SceneViewer::paintGL() ;
 
         for( unsigned int i=0 ; i<10 ; i++ ) {

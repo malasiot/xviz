@@ -92,6 +92,7 @@ public:
 
     void link(bool validate = true) ;
     void use() ;
+    void release() ;
 
     int attributeLocation(const std::string &attr_name) ;
     void bindAttributeLocation(const std::string &attr_name, int loc) ;

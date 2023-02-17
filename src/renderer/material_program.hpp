@@ -20,20 +20,31 @@ struct LightData ;
 class MaterialProgram ;
 using MaterialProgramPtr = std::shared_ptr<MaterialProgram> ;
 
+// The  program corresponding to each material may have variations (e.g. depending on shadows, skinning)
+// Therefore each program is instantiated with a set of params. From the parameters a unique key is extracted
+// and then its unique program is associated with these key
 
+class MaterialProgramManager {
+public:
 
-template<class T, class P, typename ...Args>
-MaterialProgramPtr materialSingleton(std::map<std::string, MaterialProgramPtr> &instances, const P &params, Args... args) {
-    const auto key = params.key() ;
-    auto it = instances.find(key) ;
-    if ( it == instances.end() ) {
-        std::shared_ptr<T> instance(new T(params, args...)) ;
-        instances.emplace(key, instance) ;
-        return instance ;
-    } else {
-        return it->second ;
+    MaterialProgramManager() = default;
+
+    template<class T, class P, typename ...Args>
+    MaterialProgramPtr instance(const P &params, Args... args) {
+        const auto key = params.key() ;
+        auto it = instances_.find(key) ;
+        if ( it == instances_.end() ) {
+            std::shared_ptr<T> instance(new T(params, args...)) ;
+            instances_.emplace(key, instance) ;
+            return instance ;
+        } else {
+            return it->second ;
+        }
     }
-}
+
+private:
+    std::map<std::string, MaterialProgramPtr> instances_ ;
+};
 
 using TextureLoader = std::function<impl::TextureData *(const Texture2D *)> ;
 
@@ -45,7 +56,6 @@ public:
     virtual void applyLights(const std::vector<LightData *> &lights) {}
     virtual void applyBoneTransform(GLuint idx, const Eigen::Matrix4f &tf) ;
     virtual void bindTextures(const MaterialPtr &, TextureLoader) {}
-
 
 protected:
 
@@ -94,10 +104,6 @@ public:
 
     void bindTextures(const MaterialPtr &, TextureLoader) override ;
 
-    static MaterialProgramPtr instance(const Params &params) {
-        static std::map<std::string, MaterialProgramPtr> s_materials ;
-        return materialSingleton<PhongMaterialProgram>(s_materials, params) ;
-    }
 
 private:
 
@@ -120,11 +126,6 @@ public:
 
     void applyTransform(const Eigen::Matrix4f &cam, const Eigen::Matrix4f &view, const Eigen::Matrix4f &model) override {
         applyDefaultPerspective(cam, view, model) ;
-    }
-
-    static MaterialProgramPtr instance(const Params &params) {
-        static std::map<std::string, MaterialProgramPtr> s_materials ;
-        return materialSingleton<ConstantMaterialProgram>(s_materials, params) ;
     }
 
     void bindTextures(const MaterialPtr &mat, TextureLoader loader) override ;
@@ -151,10 +152,6 @@ public:
         applyDefaultPerspective(cam, view, model) ;
     }
 
-    static MaterialProgramPtr instance(const Params &params) {
-        static std::map<std::string, MaterialProgramPtr> s_materials ;
-        return materialSingleton<PerVertexColorMaterialProgram>(s_materials, params) ;
-    }
 };
 
 class WireFrameMaterialProgram: public MaterialProgram {
@@ -174,10 +171,7 @@ public:
         applyDefaultPerspective(cam, view, model) ;
     }
 
-    static MaterialProgramPtr instance(const Params &params) {
-        static std::map<std::string, MaterialProgramPtr> s_materials ;
-        return materialSingleton<WireFrameMaterialProgram>(s_materials, params) ;
-    }
+
 };
 
 }}

@@ -21,8 +21,6 @@ public:
 
     void render(const NodePtr &scene, const CameraPtr &cam) ;
 
-    void setDefaultFBO(unsigned int fbo) ;
-
     // transform model coordinates to screen coordinates
     Eigen::Vector2f project(const Eigen::Vector3f &pos) ;
 

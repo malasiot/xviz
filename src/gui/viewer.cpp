@@ -33,6 +33,8 @@ SceneViewer::SceneViewer(QWidget *parent): QOpenGLWidget(parent), scene_(new Nod
 
     QString path = QStandardPaths::standardLocations(QStandardPaths::PicturesLocation)[0];
     configureFrameGrabber(path + "/grab", 30);
+
+    et_.start() ;
 }
 
 void SceneViewer::setScene(const NodePtr &scene) {
@@ -121,7 +123,6 @@ void SceneViewer::startAnimations()
     QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(updateAnimation()));
 
-    et_.start() ;
     timer->start(30);
 }
 

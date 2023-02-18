@@ -19,7 +19,7 @@ OffscreenSurface::OffscreenSurface(const QSize &size): QOffscreenSurface(nullptr
     sformat.setProfile(QSurfaceFormat::CoreProfile);
 
     sformat.setSwapInterval(0); //disable vsync
- //   sformat.setSwapBehavior(QSurfaceFormat::SingleBuffer);
+    //   sformat.setSwapBehavior(QSurfaceFormat::SingleBuffer);
 
 
 
@@ -42,8 +42,8 @@ void OffscreenSurface::createFBO() {
     if ( context_ && fbo_ == nullptr ) {
         QOpenGLFramebufferObjectFormat format;
         format.setSamples(OffscreenSurface::format().samples()) ;
-    //    format.setTextureTarget(GL_TEXTURE_2D) ;
-     //   format.setAttachment(QOpenGLFramebufferObject::Depth) ;
+        //    format.setTextureTarget(GL_TEXTURE_2D) ;
+        //   format.setAttachment(QOpenGLFramebufferObject::Depth) ;
         format.setAttachment(QOpenGLFramebufferObject::Depth) ;
         fbo_ = new QOpenGLFramebufferObject(size_, format);
         fbo_->bind() ;
@@ -73,32 +73,49 @@ OffscreenSurface::~OffscreenSurface() {
 }
 
 
-Image OffscreenSurface::readPixels(QOpenGLFramebufferObject *fbo) const {
+Image OffscreenSurface::readPixels(QOpenGLFramebufferObject *fbo, bool alpha) const {
 
     bool is_bound = fbo->isBound() ;
 
     if ( !is_bound ) fbo->bind() ;
 
-    uchar *bytes = new uchar [size_.width() * size_.height() * 4] ;
+    if ( alpha ) {
+        uchar *bytes = new uchar [size_.width() * size_.height() * 4] ;
 
-    glReadPixels(0, 0, size_.width(), size_.height(), GL_RGBA, GL_UNSIGNED_BYTE, bytes);
+        glReadPixels(0, 0, size_.width(), size_.height(), GL_RGBA, GL_UNSIGNED_BYTE, bytes);
 
-    for(int line = 0; line != size_.height()/2; ++line) {
-        std::swap_ranges(
-                    bytes + 4 * size_.width() * line,
-                    bytes + 4 * size_.width() * (line + 1),
-                    bytes + 4 * size_.width() * (size_.height() - line - 1));
+        for(int line = 0; line != size_.height()/2; ++line) {
+            std::swap_ranges(
+                        bytes + 4 * size_.width() * line,
+                        bytes + 4 * size_.width() * (line + 1),
+                        bytes + 4 * size_.width() * (size_.height() - line - 1));
+        }
+
+        if ( !is_bound ) fbo->release() ;
+
+        return Image(bytes, ImageFormat::rgba32, size_.width(), size_.height()) ;
+
+    } else {
+
+        uchar *bytes = new uchar [size_.width() * size_.height() * 3] ;
+
+        glReadPixels(0, 0, size_.width(), size_.height(), GL_RGB, GL_UNSIGNED_BYTE, bytes);
+
+        for(int line = 0; line != size_.height()/2; ++line) {
+            std::swap_ranges(
+                        bytes + 3 * size_.width() * line,
+                        bytes + 3 * size_.width() * (line + 1),
+                        bytes + 3 * size_.width() * (size_.height() - line - 1));
+        }
+        if ( !is_bound ) fbo->release() ;
+
+        return Image(bytes, ImageFormat::rgb24, size_.width(), size_.height()) ;
     }
 
-    if ( !is_bound ) fbo->release() ;
-
-    return Image(bytes, ImageFormat::rgba32, size_.width(), size_.height()) ;
 }
 
 
-Image OffscreenSurface::getImage() const {
-
-
+Image OffscreenSurface::getImage(bool alpha) const {
     if ( format().samples() > 0 ) {
         QOpenGLFramebufferObject temp(size(), QOpenGLFramebufferObjectFormat());
 
@@ -106,9 +123,9 @@ Image OffscreenSurface::getImage() const {
 
         QOpenGLFramebufferObject::blitFramebuffer(&temp, rect, const_cast<QOpenGLFramebufferObject *>(fbo_), rect);
 
-        return readPixels(&temp) ;
+        return readPixels(&temp, alpha) ;
     }
-    else return readPixels(fbo_) ;
+    else return readPixels(fbo_, alpha) ;
 }
 
 Image OffscreenSurface::getDepthBuffer(float znear, float zfar) const {

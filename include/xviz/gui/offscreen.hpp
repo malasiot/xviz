@@ -20,7 +20,7 @@ public:
 
     ~OffscreenSurface();
 
-    Image getImage() const ;
+    Image getImage(bool alpha = true) const ;
     Image getDepthBuffer(float znear, float zfar) const ;
 
     GLuint fboId() const ;
@@ -32,7 +32,7 @@ private:
 private:
     void createContext();
     void createFBO();
-    Image readPixels(QOpenGLFramebufferObject *fbo) const;
+    Image readPixels(QOpenGLFramebufferObject *fbo, bool alpha) const;
 };
 
 }

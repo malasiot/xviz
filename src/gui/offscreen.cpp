@@ -165,4 +165,15 @@ GLuint OffscreenSurface::fboId() const {
     return fbo_->handle() ;
 }
 
+void OffscreenSurface::use() {
+    context_->makeCurrent(this);
+    fbo_->bind() ;
+}
+
+void OffscreenSurface::release() {
+    context_->doneCurrent();
+    fbo_->release() ;
+}
+
+
 }

@@ -192,7 +192,7 @@ void Renderer::renderShadowMap(const LightData &sd) {
     sd.shadow_map_->unbind(default_fbo_) ;
 }
 
-void Renderer::render(const NodePtr &scene, const CameraPtr &cam) {
+void Renderer::render(const NodePtr &scene, const CameraPtr &cam, bool cb) {
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &default_fbo_);
 
     scene_ = scene ;
@@ -202,8 +202,10 @@ void Renderer::render(const NodePtr &scene, const CameraPtr &cam) {
 
     Vector4f bg_clr = cam->bgColor() ;
 
-    glClearColor(bg_clr.x(), bg_clr.y(), bg_clr.z(), bg_clr.w()) ;
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+    if ( cb ) {
+        glClearColor(bg_clr.x(), bg_clr.y(), bg_clr.z(), bg_clr.w()) ;
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+    }
 
     // setup camera matrices
 
@@ -213,7 +215,7 @@ void Renderer::render(const NodePtr &scene, const CameraPtr &cam) {
 
     renderScene(cam) ;
 
-    glFlush() ;
+  //  glFlush() ;
 }
 
 Vector2f Renderer::project(const Vector3f &pos) {
@@ -472,8 +474,8 @@ void Renderer::init() {
     impl_->init() ;
 }
 
-void Renderer::render(const NodePtr &scene, const CameraPtr &cam) {
-    impl_->render(scene, cam) ;
+void Renderer::render(const NodePtr &scene, const CameraPtr &cam, bool clear_buffers) {
+    impl_->render(scene, cam, clear_buffers) ;
 }
 
 Vector2f Renderer::project(const Vector3f &pos) {

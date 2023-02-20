@@ -67,11 +67,17 @@ public:
     void lookAt(const Eigen::Vector3f &eye, const Eigen::Vector3f &center, float roll = 0);
     void lookAt(const Eigen::Vector3f &eye, const Eigen::Vector3f &center, const Eigen::Vector3f &up);
     Eigen::Vector3f eye() const;
+
+    void setAspectRatio(float asp) {
+        aspect_ = asp ;
+    }
+
 protected:
 
     Eigen::Matrix4f mat_ ; // view transformation
     Viewport vp_ ;
     Eigen::Vector4f bg_clr_ = {0, 0, 0, 1} ;
+    float aspect_ = 1.0 ;
 };
 
 // Perspective camera
@@ -79,19 +85,7 @@ protected:
 class PerspectiveCamera: public Camera {
 public:
     PerspectiveCamera(float aspect, float yfov, float znear = 0.01, float zfar = 10.0):
-        aspect_(aspect), yfov_(yfov), znear_(znear), zfar_(zfar) {
-    }
-/*
-    PerspectiveCamera(const cvx::util::PinholeCamera &cam, float znear = 0.01, float zfar = 10.0): znear_(znear), zfar_(zfar) {
-        yfov_ = 2 * atan( cam.sz().height / cam.fy()/2.0)  ;
-     //   aspect_ = cam.sz().width / (float) cam.sz().height ;
-        aspect_ = 1.0 ;
-        vp_.width_ = cam.sz().width ;
-        vp_.height_ = cam.sz().height ;
-    }
-*/
-    void setAspectRatio(float asp) {
-        aspect_ = asp ;
+        yfov_(yfov), znear_(znear), zfar_(zfar) {
     }
 
     Eigen::Matrix4f getProjectionMatrix() const override {
@@ -112,7 +106,7 @@ public:
     Eigen::Vector3f unProject(float wx, float wy, float z) const ;
 protected:
 
-    float yfov_, aspect_, znear_, zfar_ ;
+    float yfov_, znear_, zfar_ ;
 };
 
 // Orthographic camera
@@ -126,6 +120,10 @@ public:
 
     Eigen::Matrix4f getProjectionMatrix() const override ;
 
+    void setAspect(float a) {
+        aspect_ = a ;
+    }
+
     float left() const { return left_ ; }
     float right() const { return right_ ; }
     float top() const { return top_ ; }
@@ -135,6 +133,7 @@ public:
 
 protected:
     float left_, right_, top_, bottom_, near_, far_ ;
+
 
 };
 

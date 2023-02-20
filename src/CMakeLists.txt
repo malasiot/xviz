@@ -10,6 +10,9 @@ include_directories(
     3rdparty/
     ${EIGEN3_INCLUDE_DIR}
     ${OpenCV_INCLUDE_DIR}
+    ${FREETYPE_INCLUDE_DIRS}
+    ${HARFBUZZ_INCLUDE_DIRS}
+    ${FONTCONFIG_INCLUDE_DIR}
 )
 
 set(LIB_SOURCES
@@ -21,6 +24,9 @@ set(LIB_SOURCES
     renderer/mesh_data.cpp
     renderer/texture_data.cpp
     renderer/resource_manager.cpp
+    renderer/text_item.cpp
+    renderer/glyph_cache.cpp
+    renderer/font_manager.cpp
 
     scene/node.cpp
     scene/assimp_loader.cpp

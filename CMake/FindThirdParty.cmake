@@ -9,4 +9,6 @@ find_package(OpenGL QUIET REQUIRED)
 find_package(Qt5 COMPONENTS Core Widgets OpenGL REQUIRED)
 find_package(PNG)
 
-
+FIND_PACKAGE(Freetype REQUIRED)
+FIND_PACKAGE(Fontconfig REQUIRED)
+FIND_PACKAGE(HarfBuzz REQUIRED)

@@ -25,6 +25,9 @@ public:
 
     GLuint fboId() const ;
 
+    void use() ;
+    void release() ;
+
 private:
     QOpenGLFramebufferObject *fbo_ = nullptr;
     QOpenGLContext *context_ = nullptr;

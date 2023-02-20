@@ -140,7 +140,7 @@ Ray OrthographicCamera::getRay(float x, float y) const
 Matrix4f OrthographicCamera::getProjectionMatrix() const {
     Matrix4f res ;
 
-    res <<  2.0f/(right_ - left_), 0, 0, 0,
+    res <<  2.0f/(right_ - left_)/aspect_, 0, 0, 0,
             0, 2.0f/(top_ - bottom_), 0, 0,
             0, 0, -2.0f/(far_ - near_), 0,
     - (right_ + left_) / (right_ - left_), - (top_ + bottom_) / (top_ - bottom_), - (far_ + near_) / (far_ - near_), 1.0;

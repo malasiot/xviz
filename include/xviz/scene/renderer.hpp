@@ -19,7 +19,7 @@ public:
 
     // render a scene hierarchy
 
-    void render(const NodePtr &scene, const CameraPtr &cam) ;
+    void render(const NodePtr &scene, const CameraPtr &cam, bool clear_buffers = true) ;
 
     // transform model coordinates to screen coordinates
     Eigen::Vector2f project(const Eigen::Vector3f &pos) ;

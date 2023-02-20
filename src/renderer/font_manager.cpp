@@ -5,7 +5,7 @@
 
 using namespace std ;
 
-namespace xviz { namespace detail {
+namespace xviz { namespace impl {
 
 FT_Face FontManager::find(const std::string &key) {
     std::lock_guard<std::mutex> g(mx_) ;

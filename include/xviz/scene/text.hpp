@@ -1,14 +1,14 @@
-#ifndef __CVX_VIZ_TEXT_HPP__
-#define __CVX_VIZ_TEXT_HPP__
+#ifndef XVIZ_TEXT_HPP
+#define XVIZ_TEXT_HPP
 
 #include <memory>
 #include <Eigen/Core>
 
-#include <cvx/viz/renderer/font.hpp>
+#include <xviz/common/font.hpp>
 
-namespace cvx { namespace viz {
+namespace xviz {
 
-namespace detail {
+namespace impl {
     class TextItem ;
     class RendererImpl ;
 }
@@ -23,10 +23,10 @@ public:
 
 private:
 
-    friend class detail::RendererImpl ;
-    std::shared_ptr<detail::TextItem> impl_ ;
+    friend class impl::RendererImpl ;
+    std::shared_ptr<impl::TextItem> impl_ ;
 } ;
 
-}}
+}
 
 #endif

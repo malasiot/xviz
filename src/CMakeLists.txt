@@ -27,6 +27,10 @@ set(LIB_SOURCES
     renderer/text_item.cpp
     renderer/glyph_cache.cpp
     renderer/font_manager.cpp
+    renderer/text.cpp
+    renderer/text_layout.cpp
+    renderer/text_layout_engine.cpp
+    renderer/scrptrun.cpp
 
     scene/node.cpp
     scene/assimp_loader.cpp
@@ -36,6 +40,7 @@ set(LIB_SOURCES
     scene/octree.cpp
     scene/raycaster.cpp
     scene/node_helpers.cpp
+
 
 #    robot/robot_scene.cpp
 #    robot/urdf_loader.cpp
@@ -69,7 +74,7 @@ endif()
 if (msvc)
 target_link_libraries(xviz assimp::assimp ${OPENGL_LIBRARIES}  ${PNG_LIBRARIES} Qt5::Core Qt5::Widgets)
 else ()
-target_link_libraries(xviz assimp ${OPENGL_LIBRARIES} ${PNG_LIBRARIES} Qt5::Core Qt5::Widgets)
+target_link_libraries(xviz assimp ${OPENGL_LIBRARIES} ${PNG_LIBRARIES} Freetype::Freetype Fontconfig::Fontconfig Qt5::Core Qt5::Widgets)
 endif ()
 
 # Install library

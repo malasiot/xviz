@@ -8,7 +8,7 @@ using namespace std ;
 
 // adopted from https://github.com/SRombauts/gltext/
 
-namespace xviz { namespace detail {
+namespace xviz { namespace impl {
 
 GlyphCacheMap GlyphCache::g_glyphs ;
 

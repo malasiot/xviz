@@ -6,9 +6,9 @@
 #include <array>
 
 #include "gl/gl3w.h"
+#include <hb-ft.h>
 
-
-namespace xviz { namespace detail {
+namespace xviz { namespace impl {
 
 struct Glyph {
     GLfloat x_ ;

@@ -1,12 +1,12 @@
-#include <cvx/viz/renderer/text.hpp>
+#include <xviz/scene/text.hpp>
 #include "text_item.hpp"
 
 using namespace std ;
 using namespace Eigen ;
 
-namespace cvx { namespace viz {
+namespace xviz {
 
-Text::Text(const std::string &t, const Font &f): impl_(new detail::TextItem(t, f)) {
+Text::Text(const std::string &t, const Font &f): impl_(new impl::TextItem(t, f)) {
 }
 
 void Text::render(float x, float y, const Vector3f &clr) {
@@ -15,4 +15,4 @@ void Text::render(float x, float y, const Vector3f &clr) {
 
 
 
-}}
+}

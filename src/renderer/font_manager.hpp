@@ -8,7 +8,7 @@
 #include <mutex>
 #include <map>
 
-namespace xviz { namespace detail {
+namespace xviz { namespace impl {
 
 class FontManager {
 public:

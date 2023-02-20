@@ -6,10 +6,12 @@
 #include <xviz/scene/scene_fwd.hpp>
 #include <xviz/scene/material.hpp>
 #include <xviz/common/resource_loader.hpp>
+#include <xviz/scene/text.hpp>
 
 #include "mesh_data.hpp"
 #include "texture_data.hpp"
 #include "material_program.hpp"
+#include "text_item.hpp"
 
 #include <iostream>
 
@@ -45,9 +47,12 @@ public:
 
     void render(const NodePtr &scene, const CameraPtr &cam, bool cb) ;
 
+    void renderText(const Text &t, float x, float y, const Font &f, const Eigen::Vector3f &clr) ;
+
     // transform model coordinates to screen coordinates
     Eigen::Vector2f project(const Eigen::Vector3f &pos) ;
 
+    void renderText(const std::string &text, float x, float y, const Font &font, const Eigen::Vector3f &clr);
 private:
 
     NodePtr scene_;

@@ -1,13 +1,13 @@
 #include "text_item.hpp"
 #include "glyph_cache.hpp"
-
-#include <cvx/viz/renderer/ogl_shaders.hpp>
-#include <opencv2/opencv.hpp>
+#include "shader.hpp"
+#include "text_layout_engine.hpp"
 
 using namespace std ;
 using namespace Eigen ;
 
-namespace cvx { namespace viz { namespace detail {
+
+namespace xviz { namespace impl {
 
 TextItem::TextItem(const string &text, const Font &font)
 {
@@ -20,6 +20,10 @@ TextItem::TextItem(const string &text, const Font &font)
         it =  GlyphCache::g_glyphs.emplace(std::piecewise_construct,
                              std::forward_as_tuple(f, (size_t)font.size()),
                              std::forward_as_tuple(f, font.size())).first ;
+
+    TextLayoutEngine engine ;
+    engine.setWrapWidth(100);
+    engine.run(text, f) ;
 
     GlyphCache &cache = it->second ;
 
@@ -46,6 +50,7 @@ TextItem::TextItem(const string &text, const Font &font)
 
 /// Source of the vertex shader used to scale the glyphs vertices
 static const char* text_vertex_shader_code = R"(
+#version 330
 layout(location = 0) in vec2 position;
 layout(location = 1) in vec2 texCoord;
 
@@ -64,6 +69,7 @@ void main() {
 
 /// Source of the fragment shader used to draw the glyphs using the cache texture
 static const char* text_fragment_shader_code = R"(
+#version 330
 smooth in vec2 smoothTexCoord;
 out vec4 outputColor;
 
@@ -76,22 +82,26 @@ void main() {
 }
 )";
 
+
 static OpenGLShaderProgram::Ptr get_text_program() {
 
-    static OpenGLShaderProgram::Ptr prog_ ;
+    static OpenGLShaderProgram::Ptr prog ;
 
-    if ( prog_ ) return prog_ ;
+    if ( prog ) return prog ;
 
-    OpenGLShader::Ptr vs(new OpenGLShader(OpenGLShader::Vertex, text_vertex_shader_code, "text_vertex_shader")) ;
-    OpenGLShader::Ptr fs(new OpenGLShader(OpenGLShader::Fragment, text_fragment_shader_code, "text_fragment_shader"))  ;
+    OpenGLShaderPtr vs(new OpenGLShader(VERTEX_SHADER)) ;
+    vs->setSourceCode(text_vertex_shader_code);
 
-    prog_.reset(new OpenGLShaderProgram) ;
-    prog_->addShader(vs) ;
-    prog_->addShader(fs) ;
+    OpenGLShaderPtr fs(new OpenGLShader(FRAGMENT_SHADER))  ;
+    fs->setSourceCode(text_fragment_shader_code);
 
-    prog_->link() ;
+    prog.reset(new OpenGLShaderProgram) ;
+    prog->addShader(vs) ;
+    prog->addShader(fs) ;
 
-    return prog_ ;
+    prog->link() ;
+
+    return prog ;
 }
 
 
@@ -170,4 +180,4 @@ TextItem::~TextItem() {
     glDeleteBuffers(1, &ebo_);
 }
 
-}}}
+}}

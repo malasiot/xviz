@@ -215,7 +215,14 @@ void Renderer::render(const NodePtr &scene, const CameraPtr &cam, bool cb) {
 
     renderScene(cam) ;
 
-  //  glFlush() ;
+    //  glFlush() ;
+}
+
+void Renderer::renderText(const std::string &text, float x, float y, const Font &font, const Vector3f &clr) {
+    if ( text.empty() ) return ;
+
+    TextItem ti(text, font) ;
+    ti.render(x, y, clr) ;
 }
 
 Vector2f Renderer::project(const Vector3f &pos) {
@@ -476,6 +483,11 @@ void Renderer::init() {
 
 void Renderer::render(const NodePtr &scene, const CameraPtr &cam, bool clear_buffers) {
     impl_->render(scene, cam, clear_buffers) ;
+}
+
+void Renderer::renderText(const string &text, float x, float y, const Font &font, const Vector3f &clr)
+{
+    impl_->renderText(text, x, y, font, clr) ;
 }
 
 Vector2f Renderer::project(const Vector3f &pos) {

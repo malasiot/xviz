@@ -5,6 +5,7 @@
 #include <xviz/scene/light.hpp>
 #include <xviz/gui/offscreen.hpp>
 #include <xviz/scene/node_helpers.hpp>
+#include <xviz/scene/text.hpp>
 
 #include <random>
 #include <iostream>
@@ -226,6 +227,8 @@ public:
         SceneViewer::paintGL() ;
 
         decorator_.render(dec_scene_, dec_camera_, false) ;
+
+        rdr_.renderText("Hello", 20, 20, Font("Arial", 12), {1, 0, 0});
 #if 0
         for( unsigned int i=0 ; i<10 ; i++ ) {
             stringstream strm ;

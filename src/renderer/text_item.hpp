@@ -6,7 +6,7 @@
 
 #include <Eigen/Core>
 
-namespace xviz { namespace detail {
+namespace xviz { namespace impl {
 
 class TextItem {
 public:

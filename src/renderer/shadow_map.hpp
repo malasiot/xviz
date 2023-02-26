@@ -1,7 +1,7 @@
 #ifndef XVIZ_RENDERER_SHADOW_MAP_HPP
 #define XVIZ_RENDERER_SHADOW_MAP_HPP
 
-#include "gl/gl3w.h"
+#include "common/gl/gl3w.h"
 
 namespace xviz { namespace impl {
 

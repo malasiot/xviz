@@ -6,10 +6,7 @@
 
 #include <xviz/common/font.hpp>
 
-
-class TextLayoutEngine ;
-
-namespace xviz {
+namespace xviz { namespace impl {
 
 enum class TextDirection { Auto, LeftToRight, RightToLeft } ;
 
@@ -26,6 +23,7 @@ struct Rectangle2d {
 };
 
 class GlyphRun ;
+class TextLayoutEngine ;
 
 // The Text object can be used to cache text layout for repeated text drawing
 // It can be also used to measure the string bounding box
@@ -73,60 +71,8 @@ private:
     std::unique_ptr<TextLayoutEngine> engine_ ;
 };
 
-struct Glyph {
-
-    Glyph(unsigned cp): index_(cp) {}
-
-    unsigned index_;  // glyph code point
-    double x_advance_, y_advance_;  // amount to advance cursor
-    double x_offset_, y_offset_ ;   // glyphs offset
-};
-
-class GlyphRun {
-
-public:
-
-    unsigned numGlyphs() const { return glyphs_.size() ; }
-
-    // line height as given by the font metrics
-    double height() const { return height_ ; }
-
-    // line width
-    double width() const { return width_ ; }
-
-    // distance from base-line to highest point
-    double ascent() const { return ascent_ ; }
-
-    // distance from base-line to lowest hanging point
-    double descent() const { return descent_ ;  }
-
-    const std::vector<Glyph> &glyphs() const { return glyphs_ ; }
-
-protected:
-
-    friend class TextLayoutEngine ;
-
-    GlyphRun(int32_t first, int32_t last): first_(first), last_(last) {}
-
-    void addGlyph(Glyph && glyph)  {
-        double advance = glyph.x_advance_ ;
-
-        width_ += advance ;
-        glyphs_.emplace_back(std::move(glyph));
-    }
-
-    double height_ = 0 ; // line height
-    double width_ = 0; // line width
-    double ascent_ ;  // distance from base-line to highest point
-    double descent_ ; // distance from base-line to lowest hanging point
-
-    int32_t first_; // index to first unicode code point in logical order
-    int32_t last_;
-
-    std::vector<Glyph> glyphs_ ;
-} ;
 
 
-}
+}}
 
 #endif

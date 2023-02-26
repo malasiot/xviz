@@ -11,7 +11,6 @@
 #include "mesh_data.hpp"
 #include "texture_data.hpp"
 #include "material_program.hpp"
-#include "text_item.hpp"
 
 #include <iostream>
 

@@ -219,10 +219,14 @@ void Renderer::render(const NodePtr &scene, const CameraPtr &cam, bool cb) {
 }
 
 void Renderer::renderText(const std::string &text, float x, float y, const Font &font, const Vector3f &clr) {
-    if ( text.empty() ) return ;
+/*    if ( text.empty() ) return ;
 
-    TextItem ti(text, font) ;
-    ti.render(x, y, clr) ;
+    GLint viewport[4];
+    glGetIntegerv( GL_VIEWPORT, viewport );
+
+    OpenGLText ti(text, font, clr) ;
+    ti.render(x, viewport[3] - y) ;
+    */
 }
 
 Vector2f Renderer::project(const Vector3f &pos) {

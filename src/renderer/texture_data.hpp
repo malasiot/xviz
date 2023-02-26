@@ -4,7 +4,7 @@
 #include <string>
 #include <memory>
 
-#include "gl/gl3w.h"
+#include "common/gl/gl3w.h"
 #include <map>
 
 #include <xviz/common/image.hpp>

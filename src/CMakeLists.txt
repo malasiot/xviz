@@ -1,4 +1,3 @@
-
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
@@ -16,21 +15,30 @@ include_directories(
 )
 
 set(LIB_SOURCES
-    renderer/gl/gl3w.c
-    renderer/shader.cpp
+    common/gl/gl3w.c
+    common/shader.cpp
+    common/resource_manager.cpp
+
     renderer/material_program.cpp
     renderer/renderer.cpp
     renderer/shadow_map.cpp
     renderer/mesh_data.cpp
     renderer/texture_data.cpp
-    renderer/resource_manager.cpp
-    renderer/text_item.cpp
-    renderer/glyph_cache.cpp
-    renderer/font_manager.cpp
-    renderer/text.cpp
-    renderer/text_layout.cpp
-    renderer/text_layout_engine.cpp
-    renderer/scrptrun.cpp
+
+    overlay/text_item.cpp
+    overlay/glyph_cache.cpp
+    overlay/font_manager.cpp
+    overlay/gl_rect.cpp
+    overlay/gl_image.cpp
+
+    overlay/text_layout_engine.cpp
+    overlay/scrptrun.cpp
+    overlay/text_engine.cpp
+
+    overlay/overlay.cpp
+    overlay/text.cpp
+    overlay/image_box.cpp
+    overlay/flex_box.cpp
 
     scene/node.cpp
     scene/assimp_loader.cpp
@@ -64,6 +72,12 @@ set(LIB_SOURCES
     ${LIBRARY_INCLUDE_DIR}/gui/offscreen.hpp
 )
 
+file(GLOB YOGA_SOURCES CONFIGURE_DEPENDS
+    3rdparty/yoga/*.cpp
+    3rdparty/yoga/**/*.cpp)
+
+list(APPEND LIB_SOURCES ${YOGA_SOURCES})
+
 add_library(xviz SHARED ${LIB_SOURCES})
 
 
@@ -74,7 +88,7 @@ endif()
 if (msvc)
 target_link_libraries(xviz assimp::assimp ${OPENGL_LIBRARIES}  ${PNG_LIBRARIES} Qt5::Core Qt5::Widgets)
 else ()
-target_link_libraries(xviz assimp ${OPENGL_LIBRARIES} ${PNG_LIBRARIES} Freetype::Freetype Fontconfig::Fontconfig Qt5::Core Qt5::Widgets)
+target_link_libraries(xviz  assimp ${OPENGL_LIBRARIES} ${PNG_LIBRARIES} Freetype::Freetype Fontconfig::Fontconfig Qt5::Core Qt5::Widgets)
 endif ()
 
 # Install library

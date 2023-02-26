@@ -9,7 +9,7 @@
 namespace xviz {
 
 namespace impl {
-    class TextItem ;
+    class OpenGLText ;
     class RendererImpl ;
 }
 
@@ -24,7 +24,7 @@ public:
 private:
 
     friend class impl::RendererImpl ;
-    std::shared_ptr<impl::TextItem> impl_ ;
+    std::shared_ptr<impl::OpenGLText> impl_ ;
 } ;
 
 }

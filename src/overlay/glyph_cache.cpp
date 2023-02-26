@@ -1,4 +1,5 @@
 #include "glyph_cache.hpp"
+#include "text_layout_engine.hpp"
 
 #include <cmath>
 #include <iostream>
@@ -10,9 +11,9 @@ using namespace std ;
 
 namespace xviz { namespace impl {
 
-GlyphCacheMap GlyphCache::g_glyphs ;
+GlyphAtlasCache GlyphAtlas::g_glyphs ;
 
-GlyphCache::GlyphCache(FT_Face face, size_t px): face_(face), sz_(px) {
+GlyphAtlas::GlyphAtlas(FT_Face face, size_t px): face_(face), sz_(px) {
 
     FT_Set_Pixel_Sizes(face_, 0, sz_);
     font_ = hb_ft_font_create(face_, 0);
@@ -32,12 +33,12 @@ GlyphCache::GlyphCache(FT_Face face, size_t px): face_(face), sz_(px) {
 
 }
 
-GlyphCache::~GlyphCache() {
+GlyphAtlas::~GlyphAtlas() {
     hb_font_destroy(font_);
     glDeleteTextures(1, &texture_);
 }
 
-void GlyphCache::prepare(const std::string &text, TextQuads &data)
+void GlyphAtlas::prepare(const std::string &text, TextQuads &data)
 {
     // Put the provided UTF-8 encoded characters into a Harfbuzz buffer
 
@@ -82,8 +83,8 @@ void GlyphCache::prepare(const std::string &text, TextQuads &data)
         // offset each quad according to hurfbazz shaping
 
         for( uint k=0 ; k<4 ; k++ ) {
-            Glyph &q = quad[k] ;
-            data.vertices_.emplace_back( Glyph{ q.x_ + position_x + positions[i].x_offset, q.y_ + position_y + positions[i].y_offset , q.u_, q.v_} ) ;
+            GlyphVertex &q = quad[k] ;
+            data.vertices_.emplace_back( GlyphVertex{ q.x_ + position_x + positions[i].x_offset, q.y_ + position_y + positions[i].y_offset , q.u_, q.v_} ) ;
         }
 
         GLuint ioffset = 4 * i ;
@@ -95,8 +96,55 @@ void GlyphCache::prepare(const std::string &text, TextQuads &data)
 
 }
 
+void GlyphAtlas::prepare(const GlyphRun &line, std::vector<GlyphVertex> &vertices,
+                         std::vector<GLuint> &indices)
+{
+    glActiveTexture(GL_TEXTURE0 + TEXTURE_UNIT);
+    glBindTexture(GL_TEXTURE_2D, texture_);
 
-void GlyphCache::cache(hb_codepoint_t cp, GlyphQuad &quad) {
+    vector<GlyphQuad> quads ;
+    // Iterate over the glyphs of the text and cache characters (codepoints) not already cached
+    // fill in quads
+    for( size_t j=0 ; j<line.glyphs().size() ; j++ ) {
+        const auto &glyph = line.glyphs()[j] ;
+        const auto it = glyph_map_.find(glyph.index_) ;
+        if ( it == glyph_map_.end() ) {
+            GlyphQuad quad ;
+            cache(glyph.index_, quad) ;
+            glyph_map_.emplace(glyph.index_, quad) ;
+            quads.emplace_back(quad) ;
+        }
+        else quads.emplace_back(it->second) ;
+    }
+
+
+    int position_y = 0, position_x = 0;
+
+    for( size_t j=0 ; j<line.glyphs().size() ; j++ ) {
+        const auto &glyph = line.glyphs()[j] ;
+
+        GlyphQuad &quad = quads[j] ;
+
+        // offset each quad according to hurfbazz shaping
+
+        for( uint n=0 ; n<4 ; n++ ) {
+            GlyphVertex &q = quad[n] ;
+            vertices.emplace_back( GlyphVertex{ q.x_ + position_x + glyph.x_offset_,
+                                                q.y_ + position_y + glyph.y_offset_ , q.u_, q.v_} ) ;
+        }
+
+        GLuint ioffset = 4 * j ;
+
+        indices.insert(indices.end(), { ioffset, ioffset + 1, ioffset + 2, ioffset + 1, ioffset + 2, ioffset + 3}) ;
+
+        position_x += glyph.x_advance_ ;
+    }
+
+
+}
+
+
+void GlyphAtlas::cache(hb_codepoint_t cp, GlyphQuad &quad) {
     const FT_Bitmap& bitmap = face_->glyph->bitmap;
 
     if ( FT_Load_Glyph(face_, cp, FT_LOAD_RENDER) != 0 ) {
@@ -125,7 +173,7 @@ void GlyphCache::cache(hb_codepoint_t cp, GlyphQuad &quad) {
     }
 
     // GL_UNPACK_ROW_LENGTH defines the number of pixels in a row
-  //  glPixelStorei(GL_UNPACK_ROW_LENGTH, pitch);
+    //  glPixelStorei(GL_UNPACK_ROW_LENGTH, pitch);
 
     // paste bitmap rendered by FT to texture memory
 
@@ -140,22 +188,22 @@ void GlyphCache::cache(hb_codepoint_t cp, GlyphQuad &quad) {
     // 0 - 1 -> x/s
 
     float offset_x = face_->glyph->bitmap_left;
-    float offset_y = face_->glyph->bitmap_top - bitmap.rows; // Can be negative
+    float offset_y = face_->glyph->bitmap_top - (int)bitmap.rows; // Can be negative
 
     quad = {
-        Glyph{ offset_x, offset_y, x_/static_cast<float>(width_), (y_ + bitmap.rows)/static_cast<float>(height_) },
-        Glyph{ offset_x + bitmap.width, offset_y, (x_ + bitmap.width)/static_cast<float>(width_), (y_ + bitmap.rows)/static_cast<float>(height_) },
-        Glyph{ offset_x, offset_y + bitmap.rows, x_/static_cast<float>(width_), y_/static_cast<float>(height_) },
-        Glyph{ offset_x + bitmap.width, offset_y + bitmap.rows, (x_ + bitmap.width)/static_cast<float>(width_), y_/static_cast<float>(height_)}
+        GlyphVertex{ offset_x, offset_y, x_/static_cast<float>(width_), (y_ + bitmap.rows)/static_cast<float>(height_) },
+        GlyphVertex{ offset_x + bitmap.width, offset_y, (x_ + bitmap.width)/static_cast<float>(width_), (y_ + bitmap.rows)/static_cast<float>(height_) },
+        GlyphVertex{ offset_x, offset_y + bitmap.rows, x_/static_cast<float>(width_), y_/static_cast<float>(height_) },
+        GlyphVertex{ offset_x + bitmap.width, offset_y + bitmap.rows, (x_ + bitmap.width)/static_cast<float>(width_), y_/static_cast<float>(height_)}
     } ;
 
-   //  advance cursor to hold the new glyph
-   x_ += bitmap.width + PADDING ;
+    //  advance cursor to hold the new glyph
+    x_ += bitmap.width + PADDING ;
 
-   if ( x_ >= width_ ) {
-       x_ = 0 ;
-       y_ += line_height_ ;
-       line_height_ = 0 ;
+    if ( x_ >= width_ ) {
+        x_ = 0 ;
+        y_ += line_height_ ;
+        line_height_ = 0 ;
     }
 
 

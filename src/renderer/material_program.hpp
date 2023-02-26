@@ -4,7 +4,7 @@
 #include <Eigen/Geometry>
 #include <xviz/scene/scene_fwd.hpp>
 
-#include "shader.hpp"
+#include "common/shader.hpp"
 #include <xviz/scene/renderer.hpp>
 #include <xviz/scene/material.hpp>
 

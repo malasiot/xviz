@@ -5,7 +5,9 @@
 #include <xviz/scene/light.hpp>
 #include <xviz/gui/offscreen.hpp>
 #include <xviz/scene/node_helpers.hpp>
-#include <xviz/scene/text.hpp>
+#include <xviz/overlay/text.hpp>
+#include <xviz/overlay/image_box.hpp>
+#include <xviz/overlay/flex_box.hpp>
 
 #include <random>
 #include <iostream>
@@ -144,7 +146,61 @@ public:
      MaterialPtr mat(material) ;
      box_node->addDrawable(geom, mat) ;
      dec_scene_ = box_node ;
+    }
 
+    void initializeGL() override {
+        SceneViewer::initializeGL() ;
+
+        TextBox *text = new TextBox() ;
+
+        text->addTextSpan(new Text("Graphics", Font("Times", 32), {1, 0, 0})) ;
+        text->newLine() ;
+        text->addTextSpan(new Text("Optimization", Font("Times", 32), {0, 1, 0})) ;
+        text->setAlignment(TextBox::AlignBottom | TextBox::AlignLeft) ;
+        text->setMargins(10, 10, 10, 10) ;
+        text->setSize(400, 200) ;
+        text->setPosition(20, 50) ;
+   //     text->setBackgroundColor({0.7, 0.7, 0.7}) ;
+   //     text->setBorderWidth(4);
+   //     text->setOpacity(0.5) ;
+        text->layout() ;
+     //   overlay_.addChild(text) ;
+
+        ImageBox *image = new ImageBox(Image("/tmp/image.jpg")) ;
+
+             image->setMargins(20, 10, 20, 10);
+        image->setAlignment(ImageBox::AlignLeft);
+   //     image->setBackgroundColor({0.9, 0.9, 0.9}) ;
+    //    image->setBorderWidth(4);
+    //    image->setOpacity(0.5) ;
+      //  image->layout() ;
+
+        Frame *frame1 = new Frame(text) ;
+       // frame->setPosition(0, 0) ;
+        frame1->setSize(200, 200) ;
+     //   frame1->setMinHeight(100) ;
+      //    frame1->setMaxHeight(200) ;
+          frame1->setMaxWidth(200) ;
+
+        frame1->setBackgroundColor({0.9, 0.9, 0.9}) ;
+        frame1->setBorderWidth(4);
+        frame1->setOpacity(0.5) ;
+
+        Frame *frame2 = new Frame(image) ;
+       // frame->setPosition(0, 0) ;
+      //  frame2->setMinHeight(100);
+     //   frame2->setMaxHeight(200) ;
+        frame2->setMaxWidth(200) ;
+
+        frame2->setBackgroundColor({0.0, 0.9, 0.9}) ;
+        frame2->setBorderWidth(4);
+        frame2->setOpacity(0.5) ;
+
+        box_ = new FlexBox() ;
+        box_->addChild(frame1) ;
+        box_->addChild(frame2) ;
+
+       // overlay_.addChild(box) ;
     }
 
 
@@ -220,6 +276,10 @@ public:
         SceneViewer::resizeGL(w, h) ;
         dec_camera_->setViewport(w, h) ;
         dec_camera_->setAspectRatio(w/static_cast<float>(h));
+
+        glViewport(0, 0, w, h) ;
+        box_->setSize(w, 20.0_perc) ;
+        box_->layout() ;
     }
 
     void paintGL() override {
@@ -228,7 +288,10 @@ public:
 
         decorator_.render(dec_scene_, dec_camera_, false) ;
 
-        rdr_.renderText("Hello", 20, 20, Font("Arial", 12), {1, 0, 0});
+        //rdr_.renderText("Graphics & Ideas", 20, 50, Font("Times", 32), {1, 0, 0});
+        overlay_.draw() ;
+
+        box_->draw() ;
 #if 0
         for( unsigned int i=0 ; i<10 ; i++ ) {
             stringstream strm ;
@@ -257,6 +320,10 @@ private:
     Renderer decorator_ ;
     NodePtr dec_scene_ ;
     CameraPtr dec_camera_ ;
+
+    OverlayGroup overlay_ ;
+    FlexBox *box_ ;
+
 };
 
 int main(int argc, char **argv)

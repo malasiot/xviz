@@ -7,7 +7,7 @@
 #include <cstdint>
 
 
-#include "resource_manager.hpp"
+#include "common/resource_manager.hpp"
 
 using namespace std ;
 using namespace Eigen ;

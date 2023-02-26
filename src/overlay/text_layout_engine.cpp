@@ -10,7 +10,7 @@
 
 using namespace std ;
 
-namespace xviz {
+namespace xviz { namespace impl {
 
 bool TextLayoutEngine::itemizeBiDi(icu::UnicodeString &us, vector<DirectionRun> &d_runs, int32_t s_begin, int32_t s_end) {
 
@@ -116,96 +116,6 @@ void TextLayoutEngine::mergeRuns(const vector<LangScriptRun> &script_runs, const
     }
 }
 
-void TextLayoutEngine::addLine(GlyphRun&& line)
-{
-    width_ = std::max(width_, line.width());
-    lines_.emplace_back(std::move(line));
-}
-
-class ICUBreakIterator {
-public:
-
-    static ICUBreakIterator &instance() {
-        static ICUBreakIterator instance_ ;
-        return instance_ ;
-    }
-
-    ICUBreakIterator() {
-        UErrorCode status = U_ZERO_ERROR;
-        breakitr_.reset(icu::BreakIterator::createLineInstance(icu::Locale::getUS(), status));
-    }
-
-    std::unique_ptr<icu::BreakIterator> breakitr_ ;
-
-    icu::BreakIterator *iterator() {
-        return breakitr_.get() ;
-    }
-
-} ;
-
-void TextLayoutEngine::breakLine(icu::UnicodeString &us, int32_t start, int32_t end, FT_Face face) {
-
-    GlyphRun line(start, end);
-
-    shape(us, line, face);
-
-    if ( wrap_width_ < 0 || line.width_ < wrap_width_ ) {
-        addLine(std::move(line)) ;
-        return ;
-    }
-
-    icu::BreakIterator *breakitr = ICUBreakIterator::instance().iterator() ;
-
-    if ( !breakitr ) {
-        addLine(std::move(line));
-        return;
-    }
-
-    breakitr->setText(us) ;
-
-
-    double current_line_length = 0;
-    int last_break_position = static_cast<int>(line.first_);
-    for ( int i=line.first_; i < line.last_; ++i )
-    {
-        const auto width_itr = width_map_.find(i);
-        if ( width_itr != width_map_.end() )
-            current_line_length += width_itr->second;
-        if ( current_line_length <= wrap_width_ ) continue;
-
-        int break_position = wrap_before_ ? breakitr->preceding(i + 1) : breakitr->following(i);
-
-        if ( break_position <= last_break_position || break_position == static_cast<int>(icu::BreakIterator::DONE) ) {
-            break_position = breakitr->following(i) ;
-            if ( break_position == static_cast<int>(icu::BreakIterator::DONE) )
-                break_position = line.last_ ;
-        }
-        if ( break_position < line.first_ )
-            break_position = line.first_ ;
-
-        if ( break_position > line.last_ )
-            break_position = line.last_ ;
-
-        bool adjust_for_space_character = break_position > 0 && us[break_position - 1] == 0x0020;
-
-        GlyphRun new_line(last_break_position, adjust_for_space_character ? break_position - 1 : break_position);
-        clearWidths(last_break_position, adjust_for_space_character ? break_position - 1 : break_position);
-        shape(us, new_line, face);
-        addLine(std::move(new_line));
-        last_break_position = break_position ;
-        i = break_position - 1;
-        current_line_length = 0;
-    }
-    if ( last_break_position == line.first_ )
-        addLine(std::move(line));
-    else if ( last_break_position != line.last_ ) {
-        GlyphRun new_line(last_break_position, line.last_);
-        clearWidths(last_break_position, line.last_);
-        shape(us, new_line, face);
-        addLine(std::move(new_line));
-    }
-
-}
 
 bool TextLayoutEngine::getGlyphsAndClusters(hb_buffer_t *buffer,  GlyphCollection &glyphs) {
 
@@ -261,16 +171,11 @@ bool TextLayoutEngine::getGlyphsAndClusters(hb_buffer_t *buffer,  GlyphCollectio
 }
 
 
-void TextLayoutEngine::clearWidths(int32_t start, int32_t end) {
-    for ( int32_t i = start; i<end; ++i )
-        width_map_[i] = 0 ;
-}
-
-void TextLayoutEngine::fillGlyphInfo(GlyphCollection &glyphs, GlyphRun &line)
-{
-
+void TextLayoutEngine::fillGlyphInfo(GlyphCollection &glyphs, hb_font_t *font, GlyphRun &line) {
     // iterate all clusters
 
+    double advance = 0 ;
+    float x = 0, minx = 1000, maxx = 0;
     for (auto c_id : glyphs.clusters_)
     {
         // iterate over all glyphs in this cluster
@@ -285,48 +190,48 @@ void TextLayoutEngine::fillGlyphInfo(GlyphCollection &glyphs, GlyphRun &line)
             unsigned char_index = glyph.cluster;
             Glyph g(glyph.codepoint);
 
+            hb_glyph_extents_t extents ;
+            hb_font_get_glyph_extents(font, glyph.codepoint, &extents) ;
+
+            float x1 = extents.x_bearing/64.0;
+            float y1 = -extents.y_bearing/64.0;
+            float width = extents.width/64.0;
+            float height = -extents.height/64.0;
+
+            minx = std::min(minx, x + x1) ;
+            maxx = std::max(maxx, x + width) ;
+
             g.x_advance_ = gpos.x_advance/64.0 ;
             g.y_advance_ = gpos.y_advance/64.0 ;
             g.x_offset_ = gpos.x_offset/64.0;
             g.y_offset_ = gpos.y_offset/64.0 ;
 
-            width_map_[char_index] += g.x_advance_  ;
+            x += g.x_advance_ ;
+
+
 
             line.addGlyph(std::move(g)) ;
+            line.ascent_ = std::max(line.ascent_, extents.y_bearing/64.0);
+            line.descent_ = std::min(line.descent_, (extents.height + extents.y_bearing)/64.0) ;
+            line.height_ = std::max(line.height_, -extents.height/64.0) ;
+            line.width_ += g.x_advance_ ;
+
+            advance = g.x_advance_ - extents.width/64.0 + extents.x_bearing/64.0 ;
         }
     }
+
+    line.advance_ = advance ;
+   // line.width_ -= advance ;
+
+    hb_font_extents_t extents ;
+    hb_font_get_h_extents (font, &extents);
+    line.leading_ = (extents.ascender - extents.descender + extents.line_gap)/64.0 ;
+    line.width_ = maxx - minx ;
+    line.origin_ = minx ;
 }
 
-#if 0
-void TextLayoutEngine::makeGlyphsAndMetrics(GlyphRun &line) {
 
-   // line.height_ = f_extents.height ;
-
-    uint num_glyphs = line.glyphs_.size() ;
-
-    unsigned i ;
-
-    for (i=0; i<num_glyphs; i++) {
-        cairo_glyphs[i].index = line.glyphs_[i].index_ ;
-        cairo_glyphs[i].x = x + line.glyphs_[i].x_offset_ ;
-        cairo_glyphs[i].y = y - line.glyphs_[i].y_offset_ ;
-
-        x +=  line.glyphs_[i].x_advance_;
-    }
-
-    cairo_text_extents_t extents ;
-    cairo_scaled_font_glyph_extents(font_, cairo_glyphs, num_glyphs, &extents);
-
-    double ascent = -extents.y_bearing ;
-    double descent = extents.height + extents.y_bearing ;
-
- //   line.glyphs_ = cairo_glyphs ;
-    line.ascent_ = ascent ;
-    line.descent_ = descent ;
-}
-#endif
-
-bool TextLayoutEngine::shape(icu::UnicodeString &us, GlyphRun &line, FT_Face face)
+bool TextLayoutEngine::shape(icu::UnicodeString &us, GlyphRun &line, FT_Face face, TextDirection dir)
 {
     unsigned start = line.first_ ;
     unsigned end = line.last_ ;
@@ -336,7 +241,7 @@ bool TextLayoutEngine::shape(icu::UnicodeString &us, GlyphRun &line, FT_Face fac
 
     // itemize text span
     vector<TextItem> items ;
-    itemize(us, start, end, items);
+    itemize(us, start, end, dir, items);
 
     // prepare HarfBuzz shaping engine
 
@@ -372,31 +277,29 @@ bool TextLayoutEngine::shape(icu::UnicodeString &us, GlyphRun &line, FT_Face fac
 
         hb_shape(hb_font, buffer.get(), 0, 0);
 
-        hb_font_destroy(hb_font);
 
-  //      cairo_ft_scaled_font_unlock_face(font_) ;
-
-        // get resulting glyphs and find which of the characters were correctly mapped by the current font face
+       // get resulting glyphs and find which of the characters were correctly mapped by the current font face
 
         getGlyphsAndClusters(buffer.get(), glyphs) ;
 
-        fillGlyphInfo(glyphs, line);
+        fillGlyphInfo(glyphs, hb_font, line);
+
+        hb_font_destroy(hb_font);
+
     }
 
-    line.height_ = face->height >> 6;
-  //  makeCairoGlyphsAndMetrics(line) ;
 
     return true ;
 }
 
-bool TextLayoutEngine::itemize(icu::UnicodeString &us, int32_t start, int32_t end, vector<TextItem> &items) {
+bool TextLayoutEngine::itemize(icu::UnicodeString &us, int32_t start, int32_t end, TextDirection dir, vector<TextItem> &items) {
     using namespace icu ;
 
     // itemize directions
     vector<DirectionRun> dir_runs ;
-    if ( bidi_mode_ ==TextDirection::Auto ) {
+    if ( dir ==TextDirection::Auto ) {
         if ( !itemizeBiDi(us, dir_runs, start, end) ) return false ;
-    } else if ( bidi_mode_ == TextDirection::LeftToRight ) {
+    } else if ( dir == TextDirection::LeftToRight ) {
         dir_runs.emplace_back(HB_DIRECTION_LTR, start, end) ;
     } else {
         dir_runs.emplace_back(HB_DIRECTION_RTL, start, end) ;
@@ -416,56 +319,16 @@ TextLayoutEngine::TextLayoutEngine() {
 
 }
 
-void TextLayoutEngine::setFont(const Font &font) {
-  //    font_ =  FontManager::instance().createFont(font) ;
-  //    font_desc_ = font ;
-}
-
-void TextLayoutEngine::setWrapWidth(double w) {
-    wrap_width_ = w ;
-}
-
 TextLayoutEngine::~TextLayoutEngine() {
-   // cairo_scaled_font_destroy(font_) ;
+
 }
 
 
-bool TextLayoutEngine::run(const std::string &text, FT_Face face) {
-
+GlyphRun TextLayoutEngine::run(const std::string &text, FT_Face face, size_t start, size_t end, TextDirection dir) {
     icu::UnicodeString us = icu::UnicodeString::fromUTF8(text) ;
-
-    lines_.clear() ;
-
-    int32_t start = 0, end = 0;
-
-    while ( (end = us.indexOf('\n', start)) > 0 ) {
-        breakLine(us, start, end, face) ;
-        start = end+1;
-    }
-
-    breakLine(us, start, us.length(), face) ;
-
-    computeHeight() ;
-
-    return true ;
+    GlyphRun line(start, end);
+    shape(us, line, face, dir);
+    return line ;
 }
 
-void TextLayoutEngine::computeHeight()
-{
-    height_ = 0 ;
-
-    if ( lines_.empty() ) return ;
-
-    height_ += lines_[0].ascent_ ;
-
-    uint i ;
-    for( i=0 ; i<lines_.size() - 1; i++ ) {
-        const GlyphRun &l = lines_[i] ;
-        height_ += l.height_ ;
-    }
-
-    height_ += lines_[i].descent_ ;
-
-}
-
-}
+}}

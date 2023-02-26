@@ -5,38 +5,45 @@
 
 #include <array>
 
-#include "gl/gl3w.h"
+#include "common/gl/gl3w.h"
 #include <hb-ft.h>
 
 namespace xviz { namespace impl {
 
-struct Glyph {
+class GlyphRun ;
+class TextLayoutParams ;
+
+struct GlyphVertex {
     GLfloat x_ ;
     GLfloat y_ ;
     GLfloat u_ ;
     GLfloat v_ ;
 };
 struct TextQuads {
-    std::vector<Glyph> vertices_ ;
+    std::vector<GlyphVertex> vertices_ ;
     std::vector<GLuint> indices_ ;
 };
 
-class GlyphCache ;
-using GlyphCacheMap = std::map< std::pair<FT_Face, size_t>, GlyphCache> ;
+class GlyphAtlas ;
+using GlyphAtlasCache = std::map< std::pair<FT_Face, size_t>, GlyphAtlas> ;
 
-class GlyphCache {
+class GlyphAtlas {
 public:
-    GlyphCache(FT_Face face, size_t pixel_size) ;
-    ~GlyphCache() ;
+    GlyphAtlas(FT_Face face, size_t pixel_size) ;
+    ~GlyphAtlas() ;
 
     // performs shaping and composition of quads that may be used for rendering
     void prepare(const std::string &characters, TextQuads &td) ;
+
+    void prepare(const GlyphRun &res, std::vector<GlyphVertex> &vertices,
+                 std::vector<GLuint> &indices) ;
+
 
     GLuint textureId() const { return texture_ ; }
 
 private:
 
-     using GlyphQuad = std::array<Glyph, 4> ;
+     using GlyphQuad = std::array<GlyphVertex, 4> ;
 
     void cache(hb_codepoint_t cp, GlyphQuad &) ;
 
@@ -56,7 +63,7 @@ private:
     static const uint PADDING = 1 ;
 
 public:
-    static GlyphCacheMap g_glyphs ;
+    static GlyphAtlasCache g_glyphs ;
 };
 
 

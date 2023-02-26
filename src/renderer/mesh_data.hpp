@@ -3,7 +3,7 @@
 
 #include <xviz/scene/geometry.hpp>
 
-#include "gl/gl3w.h"
+#include "common/gl/gl3w.h"
 
 namespace xviz { namespace impl {
 

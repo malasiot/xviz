@@ -309,12 +309,23 @@ public:
 
         box2_->draw() ;
 
-        GLint viewport[4];
-        glGetIntegerv( GL_VIEWPORT, viewport );
-        GLint vw = viewport[2], vh = viewport[3] ;
-        Canvas canvas(vw, vh) ;
+        Canvas canvas ;
+        canvas.save() ;
+        canvas.beginPath() ;
+        canvas.moveTo(10, 10) ;
+        canvas.lineTo(500, 500) ;
+        canvas.stroke() ;
 
-        canvas.draw() ;
+        canvas.beginPath();
+        canvas.roundedRect(10, 10, 100, 50, 4);
+        canvas.setPaint(0.2, 0.3, 0.5, 0.5) ;
+        canvas.fill();
+
+        canvas.setStrokeColor(0.4, 0.5, 0.2);
+        canvas.setStrokeWidth(4) ;
+        canvas.stroke() ;
+
+
 #if 0
         for( unsigned int i=0 ; i<10 ; i++ ) {
             stringstream strm ;

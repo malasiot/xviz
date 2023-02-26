@@ -39,6 +39,7 @@ set(LIB_SOURCES
     overlay/text.cpp
     overlay/image_box.cpp
     overlay/flex_box.cpp
+    overlay/canvas.cpp
 
     scene/node.cpp
     scene/assimp_loader.cpp
@@ -76,7 +77,9 @@ file(GLOB YOGA_SOURCES CONFIGURE_DEPENDS
     3rdparty/yoga/*.cpp
     3rdparty/yoga/**/*.cpp)
 
-list(APPEND LIB_SOURCES ${YOGA_SOURCES})
+list(APPEND LIB_SOURCES ${YOGA_SOURCES} 3rdparty/nanovg/nanovg.c)
+
+set_property(SOURCE 3rdparty/nanovg/nanovg.c APPEND PROPERTY COMPILE_DEFINITIONS "NVG_NO_STB")
 
 add_library(xviz SHARED ${LIB_SOURCES})
 

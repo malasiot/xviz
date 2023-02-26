@@ -8,6 +8,7 @@
 #include <xviz/overlay/text.hpp>
 #include <xviz/overlay/image_box.hpp>
 #include <xviz/overlay/flex_box.hpp>
+#include <xviz/overlay/canvas.hpp>
 
 #include <random>
 #include <iostream>
@@ -208,6 +209,8 @@ public:
 
         box2_->addChild(box1_) ;
         box2_->addChild(frame3) ;
+
+
     }
 
 
@@ -305,6 +308,13 @@ public:
         counter_->updateText(strm.str()) ;
 
         box2_->draw() ;
+
+        GLint viewport[4];
+        glGetIntegerv( GL_VIEWPORT, viewport );
+        GLint vw = viewport[2], vh = viewport[3] ;
+        Canvas canvas(vw, vh) ;
+
+        canvas.draw() ;
 #if 0
         for( unsigned int i=0 ; i<10 ; i++ ) {
             stringstream strm ;
@@ -336,6 +346,7 @@ private:
 
     OverlayGroup overlay_ ;
     FlexBox *box1_, *box2_ ;
+
     Text *counter_ ;
 
 };

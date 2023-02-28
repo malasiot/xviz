@@ -23,6 +23,11 @@ void ImageBox::draw() {
     glDisable(GL_SCISSOR_TEST);
 }
 
+void ImageBox::measure(float &mw, float &mh) {
+    mw = margins_.left_ + margins_.right_ ;
+    mh = margins_.top_ + margins_.bottom_ ;
+}
+
 void ImageBox::layout()
 {
     float w = w_ - margins_.left_ - margins_.right_ ;

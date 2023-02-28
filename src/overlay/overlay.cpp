@@ -11,10 +11,10 @@ void OverlayItem::setPosition(float x, float y) {
 void Frame::draw() {
 
     impl::OpenGLRect rect ;
-    rect.render(x_ + margins_.left_,
-                y_ + margins_.top_,
-                w_ - margins_.left_ - margins_.right_,
-                h_ - margins_.top_ - margins_.bottom_,
+    rect.render(x_ + margins_.left_ + bw_/2.0,
+                y_ + margins_.top_ + bw_/2.0,
+                w_ - margins_.left_ - margins_.right_ - bw_,
+                h_ - margins_.top_ - margins_.bottom_ - bw_,
                 fill_, stroke_, bw_, opacity_) ;
     if ( child_ ) child_->draw() ;
 }
@@ -22,10 +22,22 @@ void Frame::draw() {
 void Frame::layout() {
     if ( !child_ ) return ;
 
-    child_->setPosition(x_ + margins_.left_ + bw_/2, y_ + margins_.top_ + bw_/2) ;
-    child_->setSize(w_ - margins_.left_ - margins_.right_ - bw_,
-                    h_ - margins_.top_ - margins_.bottom_ - bw_) ;
+    child_->setPosition(x_ + margins_.left_ + bw_, y_ + margins_.top_ + bw_) ;
+    child_->setSize(w_ - margins_.left_ - margins_.right_ - bw_ - bw_,
+                    h_ - margins_.top_ - margins_.bottom_ - bw_ - bw_) ;
     child_->layout() ;
+}
+
+void Frame::measure(float &mw, float &mh) {
+
+    float cw = 0, ch = 0 ;
+
+    if ( child_ ) {
+        child_->measure(cw, ch) ;
+    }
+
+    mw = cw + margins_.left_ + margins_.right_ + 2 * bw_ ;
+    mh = ch + margins_.top_ + margins_.bottom_ + 2 * bw_ ;
 }
 
 
@@ -56,37 +68,11 @@ void OverlayContainer::setSize(const Length &w, const Length &h) {
         else
             h_ = vh * h.value() / 100.0 ;
     }
-
 }
 
-std::pair<float, float> OverlayContainer::measure(float w, MeasureMode m_horz, float h, MeasureMode m_vert) {
-    float mw, mh ;
-
-    switch ( m_horz ) {
-    case MeasureModeExact:
-        mw = w ;
-        break ;
-    case MeasureModeUndefined:
-         mh = ( max_width_ ) ? max_width_.value() : 0 ;
-        break ;
-    case MeasureModeAtMost:
-        mw = ( max_width_ ) ? std::min(max_width_.value(), w) : w ;
-        break ;
-    }
-
-    switch ( m_vert ) {
-    case MeasureModeExact:
-        mh = h ;
-        break ;
-    case MeasureModeUndefined:
-        mh = ( max_height_ ) ? max_height_.value() : 0 ;
-        break ;
-    case MeasureModeAtMost:
-        mh = ( max_height_ ) ? std::min(max_height_.value(), h) : h ;
-        break ;
-    }
-
-    return std::make_pair(mw, mh) ;
+void OverlayContainer::updateLayout() {
+    if ( parent_ ) parent_->updateLayout() ;
+    else layout() ;
 }
 
 Frame::Frame(OverlayContainer *child) {

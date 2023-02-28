@@ -121,7 +121,7 @@ void OpenGLRect::render(float x, float y, float w, float h, const Eigen::Vector3
     glDisable(GL_DEPTH_TEST) ;
     glDisable(GL_CULL_FACE) ;
 
-    float bw = border_width/2.0 ;
+    float bw = border_width/2 ;
     float pos[] = { -bw, bw, w + bw, bw, w + bw, -h - bw, -bw, -h - bw };
     GLuint idx[] = { 0, 1, 2, 0, 2, 3 } ;
 

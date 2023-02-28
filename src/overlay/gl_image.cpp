@@ -77,11 +77,10 @@ static const char* fragment_shader_code = R"(
 
 in vec2 vUV;
 uniform sampler2D textureMap;
+out vec4 out_color;
 
-void main()
-{
-   gl_FragColor = texture(textureMap, vUV);
- //       gl_FragColor = vec4(vUV.s, vUV.t, 1, 1);
+void main() {
+   out_color = texture(textureMap, vUV);
 }
 )";
 static OpenGLShaderProgram::Ptr get_program() {

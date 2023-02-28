@@ -7,8 +7,13 @@ FlexBox::~FlexBox() {
 
 }
 
-void FlexBox::addChild(OverlayContainer *c) {
-    children_.emplace_back(c) ;
+void FlexBox::addChild(OverlayContainer *c, float grow, float shrink) {
+    Child ce ;
+    ce.container_.reset(c) ;
+    ce.grow_ = grow ;
+    ce.shrink_= shrink ;
+
+    children_.emplace_back(std::move(ce)) ;
     c->setParent(this) ;
 }
 
@@ -68,53 +73,39 @@ static YGWrap yg_wrap(FlexBox::Wrap mode) {
 static YGSize _measure(YGNode*node, float w, YGMeasureMode w_mode, float h, YGMeasureMode h_mode) {
     OverlayContainer *c = static_cast<OverlayContainer *>(node->getContext()) ;
 
-    auto sz = c->measure(w, yg_measure_mode(w_mode), h, yg_measure_mode(h_mode)) ;
-    return { sz.first, sz.second };
+    float mw, mh, pw, ph ;
+    c->measure(pw, ph) ;
+
+    switch ( w_mode ) {
+    case YGMeasureModeExactly:
+        mw = w ;
+        break ;
+    case YGMeasureModeAtMost:
+        mw = std::min(w, pw) ;
+        break ;
+    default:
+        mw = pw ;
+    }
+
+    switch ( h_mode ) {
+    case YGMeasureModeExactly:
+        mh = h ;
+        break ;
+    case YGMeasureModeAtMost:
+        mh = std::min(h, ph) ;
+        break ;
+    default:
+        mh = ph ;
+    }
+
+    return { mw, mh };
 }
 
 void FlexBox::layout() {
-    YGNode *root = YGNodeNew() ;
+    YGNode *root = makeTree() ;
 
     YGNodeStyleSetWidth(root, w_) ;
     YGNodeStyleSetHeight(root, h_) ;
-
-    switch ( dir_ ) {
-    case DirectionRow:
-        YGNodeStyleSetFlexDirection(root, YGFlexDirectionRow) ; break ;
-    case DirectionRowReverse:
-        YGNodeStyleSetFlexDirection(root, YGFlexDirectionRowReverse) ; break ;
-    case DirectionColumn:
-        YGNodeStyleSetFlexDirection(root, YGFlexDirectionColumn) ; break ;
-    case DirectionColumnReverse:
-        YGNodeStyleSetFlexDirection(root, YGFlexDirectionColumnReverse) ; break ;
-   }
-
-    YGNodeStyleSetAlignItems(root, yg_align_items(align_items_));
-    YGNodeStyleSetJustifyContent(root, yg_justify(justify_));
-    YGNodeStyleSetFlexWrap(root, yg_wrap(wrap_));
-
-    size_t count = 0 ;
-    for( const auto &c: children_ ) {
-        const YGNodeRef child = YGNodeNew();
-        child->setContext(c.get());
-        child->setMeasureFunc(_measure);
-
-        if ( c->minHeight() )
-            YGNodeStyleSetMinHeight(child, c->minHeight().value());
-        if ( c->maxHeight() )
-            YGNodeStyleSetMaxHeight(child, c->maxHeight().value());
-        if ( c->minWidth() )
-            YGNodeStyleSetMinWidth(child, c->minWidth().value());
-        if ( c->maxWidth() )
-            YGNodeStyleSetMaxWidth(child, c->maxWidth().value());
-
-        YGNodeStyleSetFlexGrow(child, c->stretch());
-
-        YGNodeStyleSetPositionType(child, YGPositionTypeRelative);
-        YGNodeStyleSetFlexShrink(child, 1);
-        YGNodeStyleSetFlexBasisAuto(child) ;
-        YGNodeInsertChild(root, child, count++);
-    }
 
 
     YGNodeCalculateLayout(root, w_, h_, YGDirectionLTR);
@@ -136,10 +127,66 @@ void FlexBox::layout() {
     YGNodeFreeRecursive(root);
 }
 
+YGNode *FlexBox::makeTree() {
+    YGNode *root = YGNodeNew() ;
+
+    switch ( dir_ ) {
+    case DirectionRow:
+        YGNodeStyleSetFlexDirection(root, YGFlexDirectionRow) ; break ;
+    case DirectionRowReverse:
+        YGNodeStyleSetFlexDirection(root, YGFlexDirectionRowReverse) ; break ;
+    case DirectionColumn:
+        YGNodeStyleSetFlexDirection(root, YGFlexDirectionColumn) ; break ;
+    case DirectionColumnReverse:
+        YGNodeStyleSetFlexDirection(root, YGFlexDirectionColumnReverse) ; break ;
+   }
+
+    YGNodeStyleSetAlignItems(root, yg_align_items(align_items_));
+    YGNodeStyleSetJustifyContent(root, yg_justify(justify_));
+    YGNodeStyleSetFlexWrap(root, yg_wrap(wrap_));
+
+    size_t count = 0 ;
+    for( const auto &c: children_ ) {
+        OverlayContainer *container = c.container_.get() ;
+        const YGNodeRef child = YGNodeNew();
+        child->setContext(container);
+        child->setMeasureFunc(_measure);
+
+        if ( container->minHeight() )
+            YGNodeStyleSetMinHeight(child, container->minHeight().value());
+        if ( container->maxHeight() )
+            YGNodeStyleSetMaxHeight(child, container->maxHeight().value());
+        if ( container->minWidth() )
+            YGNodeStyleSetMinWidth(child, container->minWidth().value());
+        if ( container->maxWidth() )
+            YGNodeStyleSetMaxWidth(child, container->maxWidth().value());
+
+        YGNodeStyleSetFlexGrow(child, c.grow_);
+
+        YGNodeStyleSetPositionType(child, YGPositionTypeRelative);
+        YGNodeStyleSetFlexShrink(child, c.shrink_);
+        YGNodeStyleSetFlexBasisAuto(child) ;
+        YGNodeInsertChild(root, child, count++);
+    }
+
+    return root ;
+
+}
+
 void FlexBox::draw()
 {
     for( const auto &c: children_ )
-        c->draw() ;
+        c.container_->draw() ;
+}
+
+void FlexBox::measure(float &mw, float &mh)
+{
+    YGNode *root = makeTree() ;
+    YGNodeCalculateLayout(root, YGUndefined, YGUndefined, YGDirectionLTR);
+    mw = YGNodeLayoutGetWidth(root);
+    mh = YGNodeLayoutGetHeight(root);
+
+    YGNodeFreeRecursive(root);
 }
 
 }

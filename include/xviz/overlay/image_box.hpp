@@ -20,10 +20,10 @@ class ImageBox: public OverlayContainer {
     void setScaling(Scaling scaling) { scaling_ = scaling ; }
     void setAlignment(Alignment align) { alignment_ = align ; }
 
-    void draw() override ;
-
     void layout() override ;
 
+    void draw() override ;
+    void measure(float &mw, float &mh) override ;
 private:
 
     std::unique_ptr<impl::OpenGLImage> image_ ;

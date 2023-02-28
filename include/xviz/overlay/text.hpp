@@ -29,10 +29,14 @@ public:
 
     void draw() override ;
 
+    void updateText(const std::string &text) ;
+
 private:
 
     std::unique_ptr<impl::OpenGLText> text_ ;
     Anchor anchor_ ;
+    Font font_ ;
+    Eigen::Vector3f clr_ ;
 };
 
 class TextBox: public OverlayContainer {
@@ -53,7 +57,11 @@ public:
     void layout() override ;
 
     void draw() override ;
+
 private:
+
+    void measure(float &mw, float &mh) override ;
+
     float line_spacing_ = 0;
     uint align_ = AlignLeft | AlignTop ;
 
@@ -64,7 +72,7 @@ private:
 
     std::vector<std::unique_ptr<Text>> items_ ;
     std::vector<Line> lines_ ;
-    Margins margins_ ;
+    float content_width_, content_height_ ;
 
 };
 

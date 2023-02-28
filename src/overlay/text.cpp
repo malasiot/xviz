@@ -4,7 +4,7 @@
 
 namespace xviz {
 
-Text::Text(const std::string &str, const Font &font, const Eigen::Vector3f &clr, Anchor a): anchor_(a) {
+Text::Text(const std::string &str, const Font &font, const Eigen::Vector3f &clr, Anchor a): font_(font), clr_(clr), anchor_(a) {
     text_.reset(new impl::OpenGLText(str, font, clr)) ;
 }
 
@@ -45,6 +45,11 @@ void Text::draw() {
     text_->render(x_ - offset, y_) ;
 }
 
+void Text::updateText(const std::string &text) {
+    text_.reset(new impl::OpenGLText(text, font_, clr_)) ;
+    if ( parent_ ) parent_->updateLayout();
+}
+
 
 TextBox::~TextBox()
 {
@@ -66,46 +71,16 @@ void TextBox::newLine() {
 }
 
 void TextBox::layout() {
-
-    if ( lines_.empty() ) return ;
-    // compute line metrics
-
-    for( auto &l: lines_ ) {
-        l.width_ = 0 ; l.height_ = 0 ; l.ascent_ = 0 ; l.descent_ = 0 ;
-        for( size_t i=0 ; i<l.spans_.size() ; i++ ) {
-            const auto &span = l.spans_[i] ;
-            float w = ( i < l.spans_.size() - 1 ) ? span->width() + span->advance() : span->width() ;
-            l.width_ += w ;
-            l.height_ = std::max(l.height_, span->height()) ;
-            l.ascent_ = std::max(l.ascent_, span->ascent()) ;
-            l.descent_ = std::min(l.descent_, span->descent()) ;
-            l.leading_ = std::max(l.leading_, span->leading()) ;
-        }
-    }
-
-    // get content height
-
-    float c_height = lines_[0].ascent_ + margins_.top_  ;
-
-    uint i ;
-    for( i=0 ; i<lines_.size() - 1; i++ ) {
-        const Line &l = lines_[i] ;
-        c_height += l.leading_ ;
-    }
-
-    c_height += -lines_[i].descent_ ;
-    c_height += margins_.bottom_ ;
-
     double y = 0, tx = 0, ty = 0 ;
 
     if ( align_ & AlignVCenter )
-        ty = ( h_ - c_height)/2;
+        ty = ( h_ - content_height_)/2;
     else if ( align_ & AlignBottom )
-        ty = h_ - c_height  ;
+        ty = h_ - content_height_  ;
 
     bool is_first_line = true ;
 
-    y = ty ;
+    y = y_ + ty + margins_.top_ ;
 
     for (const Line &line: lines_ ) {
         if ( align_ & AlignHCenter )
@@ -128,10 +103,7 @@ void TextBox::layout() {
             if ( i < line.spans_.size() - 1 )
                 x += ts->advance() ;
         }
-
-
     }
-
 
 }
 
@@ -139,6 +111,46 @@ void TextBox::layout() {
 void TextBox::draw() {
     for( const auto &c: items_ )
         c->draw() ;
+}
+
+void TextBox::measure(float &mw, float &mh) {
+    if ( lines_.empty() ) return ;
+    // compute line metrics
+
+    for( auto &l: lines_ ) {
+        l.width_ = 0 ; l.height_ = 0 ; l.ascent_ = 0 ; l.descent_ = 0 ;
+        for( size_t i=0 ; i<l.spans_.size() ; i++ ) {
+            const auto &span = l.spans_[i] ;
+            float w = ( i < l.spans_.size() - 1 ) ? span->width() + span->advance() : span->width() ;
+            l.width_ += w ;
+            l.height_ = std::max(l.height_, span->height()) ;
+            l.ascent_ = std::max(l.ascent_, span->ascent()) ;
+            l.descent_ = std::min(l.descent_, span->descent()) ;
+            l.leading_ = std::max(l.leading_, span->leading()) ;
+        }
+    }
+
+    // get content height
+
+    content_height_ = lines_[0].ascent_ + margins_.top_  ;
+    content_width_ = 0;
+
+    uint i ;
+    for( i=0 ; i<lines_.size() - 1; i++ ) {
+        const Line &l = lines_[i] ;
+        content_height_ += l.leading_ ;
+        content_width_ = std::max(content_width_, l.width_) ;
+    }
+
+    content_height_ += -lines_[i].descent_ ;
+    content_height_ += margins_.bottom_ ;
+    content_width_ = std::max(content_width_, lines_[i].width_) ;
+
+    content_width_ += margins_.left_ ;
+    content_width_ += margins_.right_ ;
+
+    mw = content_width_ ;
+    mh = content_height_ ;
 }
 
 }

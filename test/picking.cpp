@@ -155,15 +155,15 @@ public:
 
         text->addTextSpan(new Text("Graphics", Font("Times", 32), {1, 0, 0})) ;
         text->newLine() ;
-        text->addTextSpan(new Text("Optimization", Font("Times", 32), {0, 1, 0})) ;
+        counter_ = new Text("", Font("Times", 32), {0, 1, 0}) ;
+        text->addTextSpan(counter_) ;
         text->setAlignment(TextBox::AlignBottom | TextBox::AlignLeft) ;
         text->setMargins(10, 10, 10, 10) ;
-        text->setSize(400, 200) ;
-        text->setPosition(20, 50) ;
+
    //     text->setBackgroundColor({0.7, 0.7, 0.7}) ;
    //     text->setBorderWidth(4);
    //     text->setOpacity(0.5) ;
-        text->layout() ;
+      //  text->layout() ;
      //   overlay_.addChild(text) ;
 
         ImageBox *image = new ImageBox(Image("/tmp/image.jpg")) ;
@@ -177,30 +177,37 @@ public:
 
         Frame *frame1 = new Frame(text) ;
        // frame->setPosition(0, 0) ;
-        frame1->setSize(200, 200) ;
+    //    frame1->setSize(200, 200) ;
      //   frame1->setMinHeight(100) ;
       //    frame1->setMaxHeight(200) ;
-          frame1->setMaxWidth(200) ;
+          frame1->setMaxWidth(600) ;
 
         frame1->setBackgroundColor({0.9, 0.9, 0.9}) ;
-        frame1->setBorderWidth(4);
-        frame1->setOpacity(0.5) ;
+        frame1->setBorderWidth(1);
+        frame1->setMargins(5, 0, 5, 0) ;
+
 
         Frame *frame2 = new Frame(image) ;
        // frame->setPosition(0, 0) ;
       //  frame2->setMinHeight(100);
      //   frame2->setMaxHeight(200) ;
-        frame2->setMaxWidth(200) ;
+        frame2->setMinWidth(200) ;
 
         frame2->setBackgroundColor({0.0, 0.9, 0.9}) ;
-        frame2->setBorderWidth(4);
-        frame2->setOpacity(0.5) ;
+        frame2->setBorderWidth(1);
 
-        box_ = new FlexBox() ;
-        box_->addChild(frame1) ;
-        box_->addChild(frame2) ;
+        box1_ = new FlexBox() ;
+        box1_->addChild(frame1) ;
+        box1_->addChild(frame2, 1) ;
 
-       // overlay_.addChild(box) ;
+        box2_ = new FlexBox() ;
+        box2_->setDirection(FlexBox::DirectionColumn);
+
+        Frame *frame3 = new Frame() ;
+        frame3->setMinHeight(100) ;
+
+        box2_->addChild(box1_) ;
+        box2_->addChild(frame3) ;
     }
 
 
@@ -278,12 +285,13 @@ public:
         dec_camera_->setAspectRatio(w/static_cast<float>(h));
 
         glViewport(0, 0, w, h) ;
-        box_->setSize(w, 20.0_perc) ;
-        box_->layout() ;
+        box2_->setSize(50.0_perc, 100.0_perc) ;
+        box2_->layout() ;
     }
 
     void paintGL() override {
 
+        static int counter = 0 ;
         SceneViewer::paintGL() ;
 
         decorator_.render(dec_scene_, dec_camera_, false) ;
@@ -291,7 +299,12 @@ public:
         //rdr_.renderText("Graphics & Ideas", 20, 50, Font("Times", 32), {1, 0, 0});
         overlay_.draw() ;
 
-        box_->draw() ;
+        stringstream strm ;
+        strm << "Forward " ;
+        strm << counter ++ ;
+        counter_->updateText(strm.str()) ;
+
+        box2_->draw() ;
 #if 0
         for( unsigned int i=0 ; i<10 ; i++ ) {
             stringstream strm ;
@@ -322,7 +335,8 @@ private:
     CameraPtr dec_camera_ ;
 
     OverlayGroup overlay_ ;
-    FlexBox *box_ ;
+    FlexBox *box1_, *box2_ ;
+    Text *counter_ ;
 
 };
 

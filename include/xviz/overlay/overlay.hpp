@@ -8,7 +8,7 @@ namespace xviz {
 
 struct Margins {
     Margins() = default ;
-    Margins(float l, float t, float r, float b): left_(l), top_(t), right_(t), bottom_(b) {}
+    Margins(float l, float t, float r, float b): left_(l), top_(t), right_(r), bottom_(b) {}
 
     float left_ = 0.f, top_ = 0.f, right_ = 0.f, bottom_ = 0.f;
 };
@@ -37,6 +37,7 @@ inline Length operator "" _px( long double v ) {
     return Length{ static_cast<float>(v), Length::Pixels };
 }
 
+class OverlayContainer ;
 
 class OverlayItem {
 public:
@@ -49,13 +50,24 @@ public:
 
     virtual void draw() =0 ;
 
+    void setParent(OverlayContainer *p) { parent_ = p ; }
+
+
 protected:
     float x_, y_ ;
+    OverlayContainer *parent_ = nullptr ;
 
 };
 
 enum MeasureMode {
     MeasureModeExact, MeasureModeAtMost, MeasureModeUndefined
+};
+
+struct MeasureSpec {
+    MeasureSpec(MeasureMode mode, float dim): mode_(mode), dim_(dim) {}
+
+    MeasureMode mode_ ;
+    float dim_ ;
 };
 
 class OverlayContainer: public OverlayItem {
@@ -64,10 +76,6 @@ public:
     void setMargins(float left, float top, float right, float bottom) ;
 
     virtual void setSize(const Length &w, const Length &h) ;
-
-    virtual std::pair<float, float> measure(float w, MeasureMode m_horz, float h, MeasureMode m_vert) ;
-
-    virtual void draw() {}
 
     virtual void layout() {}
 
@@ -89,7 +97,9 @@ public:
 
     float stretch() const { return stretch_ ; }
 
-    void setParent(OverlayContainer *p) { parent_ = p ; }
+    virtual void measure(float &mw, float &mh) = 0;
+    virtual void draw() {}
+    void updateLayout() ;
 
 protected:
 
@@ -98,7 +108,6 @@ protected:
     std::optional<float> min_width_, min_height_ ;
     std::optional<float> max_width_, max_height_ ;
     float stretch_ = 1.0 ;
-    OverlayContainer *parent_ = nullptr ;
 };
 
 class Frame: public OverlayContainer {
@@ -111,7 +120,11 @@ public:
     void setOpacity(float a) { opacity_ = a; }
 
     void layout() override ;
+
+
 protected:
+
+    void measure(float &mw, float &mh) override ;
 
     void draw() ;
 

@@ -9,7 +9,6 @@ namespace xviz {
 
 class Canvas {
 public:
-
     enum LineCap { LineCapButt, LineCapRound, LineCapSquare } ;
     enum LineJoin { LineJoinMiter, LineJoinRound, LineJoinBevel } ;
 
@@ -22,20 +21,9 @@ public:
     void setStrokeWidth(float w) ;
     void setMiterLimit(float limit);
     void setLineCap(LineCap lc) ;
-    void setLineJoint(LineJoin lj) ;
+    void setLineJoin(LineJoin lj) ;
 
-    // Sets the stroke width of the stroke style.
-    void nvgStrokeWidth(NVGcontext* ctx, float size);
-
-    // Sets how the end of the line (cap) is drawn,
-    // Can be one of: NVG_BUTT (default), NVG_ROUND, NVG_SQUARE.
-    void nvgLineCap(NVGcontext* ctx, int cap);
-
-    // Sets how sharp path corners are drawn.
-    // Can be one of NVG_MITER (default), NVG_ROUND, NVG_BEVEL.
-    void nvgLineJoin(NVGcontext* ctx, int join);
     void setPaint(float r, float g, float b, float a = 1.0) ;
-
 
     void stroke() ;
     void fill() ;
@@ -50,16 +38,8 @@ public:
 
     void rect(float x, float y, float w, float h) ;
     void roundedRect(float x, float y, float w, float h, float radius) ;
-
-/*
-    void newPath() ;
-    void moveTo(float x, float y) ;
-    void lineTo(float x, float y) ;
-
-    void closePath() ;
-  */
-    void draw() ;
-
+    void ellipse(float x, float y, float rx, float ry) ;
+    void circle(float x, float y, float rad) ;
 
 private:
     NVGcontext *vg_ ;

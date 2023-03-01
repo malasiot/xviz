@@ -38,11 +38,38 @@ void Canvas::setStrokeWidth(float w) {
     nvgStrokeWidth(vg_, w) ;
 }
 
+void Canvas::setMiterLimit(float limit) {
+    nvgMiterLimit(vg_, limit) ;
+}
+
 void Canvas::setLineCap(LineCap lc) {
     switch ( lc ) {
-
+    case LineCapButt:
+        nvgLineCap(vg_, NVG_BUTT) ;
+        break;
+    case LineCapRound:
+        nvgLineCap(vg_, NVG_ROUND) ;
+        break;
+    default:
+        nvgLineCap(vg_, NVG_SQUARE) ;
+        break;
     }
 }
+
+void Canvas::setLineJoin(LineJoin lj) {
+    switch ( lj ) {
+    case LineJoinMiter:
+        nvgLineJoin(vg_, NVG_MITER) ;
+        break;
+    case LineJoinRound:
+        nvgLineJoin(vg_, NVG_ROUND) ;
+        break;
+    default:
+        nvgLineJoin(vg_, NVG_BEVEL) ;
+        break;
+    }
+}
+
 
 void Canvas::setPaint(float r, float g, float b, float a) {
     nvgFillColor(vg_, nvgRGBAf(r, g, b, a));
@@ -82,6 +109,14 @@ void Canvas::closePath() {
 
 void Canvas::roundedRect(float x, float y, float w, float h, float radius) {
     nvgRoundedRect(vg_, x, y, w, h, radius) ;
+}
+
+void Canvas::ellipse(float x, float y, float rx, float ry) {
+    nvgEllipse(vg_, x, y, rx, ry) ;
+}
+
+void Canvas::circle(float x, float y, float rad) {
+    nvgCircle(vg_, x, y, rad) ;
 }
 
 void Canvas::stroke() {

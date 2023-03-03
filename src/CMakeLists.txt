@@ -39,6 +39,7 @@ set(LIB_SOURCES
     overlay/text.cpp
     overlay/image_box.cpp
     overlay/flex_box.cpp
+    overlay/frame.cpp
     overlay/canvas.cpp
 
     scene/node.cpp

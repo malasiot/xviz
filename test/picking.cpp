@@ -9,6 +9,7 @@
 #include <xviz/overlay/image_box.hpp>
 #include <xviz/overlay/flex_box.hpp>
 #include <xviz/overlay/canvas.hpp>
+#include <xviz/overlay/frame.hpp>
 
 #include <random>
 #include <iostream>
@@ -307,7 +308,6 @@ public:
         strm << counter ++ ;
         counter_->updateText(strm.str()) ;
 
-        box2_->draw() ;
 
         Canvas canvas ;
         canvas.save() ;
@@ -325,6 +325,7 @@ public:
         canvas.setStrokeWidth(4) ;
         canvas.stroke() ;
 
+        box2_->draw() ;
 
 #if 0
         for( unsigned int i=0 ; i<10 ; i++ ) {

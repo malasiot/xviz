@@ -92,7 +92,7 @@ endif()
 if (msvc)
 target_link_libraries(xviz assimp::assimp ${OPENGL_LIBRARIES}  ${PNG_LIBRARIES} Qt5::Core Qt5::Widgets)
 else ()
-target_link_libraries(xviz  assimp ${OPENGL_LIBRARIES} ${PNG_LIBRARIES} Freetype::Freetype Fontconfig::Fontconfig Qt5::Core Qt5::Widgets)
+target_link_libraries(xviz  assimp ${OPENGL_LIBRARIES} ${PNG_LIBRARIES} ${FREETYPE_LIBRARIES} ${Fontconfig_LIBRARIES} Qt5::Core Qt5::Widgets)
 endif ()
 
 # Install library

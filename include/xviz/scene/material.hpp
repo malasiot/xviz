@@ -9,6 +9,11 @@
 
 namespace xviz {
 
+namespace impl {
+class MaterialProgram ;
+struct MaterialProgramParams ;
+using MaterialProgramPtr = std::shared_ptr<MaterialProgram> ;
+}
 
 class Sampler2D {
 public:
@@ -62,6 +67,7 @@ public:
     Eigen::Affine2f transform() const { return transform_ ; }
 
 private:
+
     std::shared_ptr<Image> image_ ;
     Sampler2D sampler_ ;
     Eigen::Affine2f transform_ = Eigen::Affine2f::Identity() ;
@@ -81,7 +87,14 @@ public:
     void enableDepthTest(bool e) { enable_depth_test_ = e ; }
     bool hasDepthTest() const { return enable_depth_test_ ; }
 
+    virtual bool hasTexture() const { return false ; }
+
+    virtual impl::MaterialProgramPtr instantiate(const impl::MaterialProgramParams &) const = 0 ;
+
 private:
+    friend class Renderer ;
+
+
     Side side_ = Side::Front ;
     bool enable_depth_test_ = true ;
 };
@@ -92,6 +105,8 @@ public:
 
     PhongMaterial() = default ;
     PhongMaterial(const Eigen::Vector3f &diffuse, float opacity = 1.0): diffuse_clr_(diffuse), opacity_(opacity) {}
+
+
     PhongMaterial(const Eigen::Vector4f &diffuse): diffuse_clr_(diffuse.block<3, 1>(0, 0)), opacity_(diffuse[3]) {}
 
     void setAmbientColor(const Eigen::Vector3f &a) { ambient_ = a ; }
@@ -112,8 +127,12 @@ public:
     const Texture2D *diffuseTexture() const { return diffuse_map_.get() ; }
     const Texture2D *specularTexture() const { return specular_map_.get() ; }
 
+    bool hasTexture() const override { return diffuse_map_ != nullptr ;  }
+
     ~PhongMaterial() = default ;
 private:
+    impl::MaterialProgramPtr instantiate(const impl::MaterialProgramParams &) const override ;
+
     Eigen::Vector3f ambient_ = { 0, 0, 0 } ;
     Eigen::Vector3f diffuse_clr_{ 0.5, 0.5, 0.5 };
     Eigen::Vector3f specular_clr_{ 0, 0, 0 };
@@ -136,7 +155,12 @@ public:
 
     const Texture2D *texture() const { return texture_.get() ; }
 
+    bool hasTexture() const override { return texture_ != nullptr ;  }
+
 private:
+
+    impl::MaterialProgramPtr instantiate(const impl::MaterialProgramParams &) const override ;
+
     Eigen::Vector4f clr_ ;
     std::unique_ptr<Texture2D> texture_ ;
 };
@@ -148,6 +172,8 @@ public:
     float opacity() const { return opacity_ ; }
 
 private:
+    impl::MaterialProgramPtr instantiate(const impl::MaterialProgramParams &) const override ;
+
     float opacity_ = 1.0;
 };
 
@@ -160,6 +186,9 @@ public:
     const Eigen::Vector4f &fillColor() const { return fill_clr_ ; }
 
 private:
+
+    impl::MaterialProgramPtr instantiate(const impl::MaterialProgramParams &) const override ;
+
     float line_width_ ;
     Eigen::Vector4f line_clr_, fill_clr_ ;
 };

@@ -12,8 +12,7 @@ using namespace Eigen ;
 
 namespace xviz { namespace impl {
 
-PhongMaterialProgram::PhongMaterialProgram(const Params &params): params_(params)
-{
+PhongMaterialProgram::PhongMaterialProgram(const MaterialProgramParams &params): params_(params) {
     OpenGLShaderPreproc vs_preproc ;
 
     vs_preproc.appendDefinition("HAS_SHADOWS", params.enable_shadows_) ;
@@ -24,14 +23,14 @@ PhongMaterialProgram::PhongMaterialProgram(const Params &params): params_(params
     vs_preproc.appendConstant("NUM_SPOT_LIGHTS_WITH_SHADOW", std::to_string(params.num_spot_lights_shadow_), params.enable_shadows_) ;
     vs_preproc.appendConstant("NUM_POINT_LIGHTS", std::to_string(params.num_point_lights_)) ;
     vs_preproc.appendConstant("NUM_POINT_LIGHTS_WITH_SHADOW", std::to_string(params.num_point_lights_shadow_), params.enable_shadows_) ;
-    vs_preproc.appendDefinition("HAS_UVs", params.has_diffuse_map_) ;
+    vs_preproc.appendDefinition("HAS_UVs", params.has_texture_map_) ;
     vs_preproc.appendDefinition("USE_SKINNING", params.enable_skinning_);
 
     addShaderFromFile(VERTEX_SHADER, "@vertex_shader", vs_preproc) ;
 
     OpenGLShaderPreproc fs_preproc ;
 
-    fs_preproc.appendDefinition("HAS_DIFFUSE_MAP", params.has_diffuse_map_) ;
+    fs_preproc.appendDefinition("HAS_DIFFUSE_MAP", params.has_texture_map_) ;
     fs_preproc.appendDefinition("HAS_SHADOWS", params.enable_shadows_) ;
     fs_preproc.appendConstant("NUM_DIRECTIONAL_LIGHTS", std::to_string(params.num_dir_lights_)) ;
     fs_preproc.appendConstant("NUM_DIRECTIONAL_LIGHTS_WITH_SHADOW", std::to_string(params.num_dir_lights_shadow_), params.enable_shadows_) ;
@@ -55,10 +54,12 @@ void PhongMaterialProgram::applyParams(const MaterialPtr &mat) {
     setUniform("g_material.diffuse", material->diffuseColor());
     setUniform("g_material.opacity", material->opacity());
 
-    if ( params_.has_diffuse_map_ & HAS_DIFFUSE_TEXTURE ) {
+    if ( params_.has_texture_map_ & HAS_DIFFUSE_TEXTURE ) {
         setUniform("diffuseMap", 0) ;
     }
 }
+
+
 
 void MaterialProgram::bindTexture(const Texture2D *texture, TextureLoader loader, int slot) {
     if ( !texture ) return ;
@@ -236,7 +237,7 @@ void MaterialProgram::applyDefaultLights(const std::vector<LightData *> &lights)
 
 }
 
-ConstantMaterialProgram::ConstantMaterialProgram(const Params &params): params_(params) {
+ConstantMaterialProgram::ConstantMaterialProgram(const MaterialProgramParams &params): params_(params) {
     OpenGLShaderPreproc preproc ;
 
     preproc.appendDefinition("USE_SKINNING", params.enable_skinning_);
@@ -268,7 +269,7 @@ void ConstantMaterialProgram::bindTextures(const MaterialPtr &mat, TextureLoader
     bindTexture(m->texture(), loader, 0) ;
 }
 
-PerVertexColorMaterialProgram::PerVertexColorMaterialProgram(const Params &params) {
+PerVertexColorMaterialProgram::PerVertexColorMaterialProgram(const MaterialProgramParams &params) {
 
     OpenGLShaderPreproc preproc ;
     preproc.appendDefinition("HAS_COLORS");
@@ -289,7 +290,7 @@ void PerVertexColorMaterialProgram::applyParams(const MaterialPtr &mat) {
 }
 
 
-WireFrameMaterialProgram::WireFrameMaterialProgram(const Params &params) {
+WireFrameMaterialProgram::WireFrameMaterialProgram(const MaterialProgramParams &params) {
 
     OpenGLShaderPreproc preproc ;
 
@@ -311,9 +312,9 @@ void WireFrameMaterialProgram::applyParams(const MaterialPtr &mat) {
     setUniform("fill", material->fillColor()) ;
 }
 
-string PhongMaterialProgram::Params::key() const {
+
+string MaterialProgramParams::key() const {
     std::stringstream strm ;
-    strm << "phong:" ;
     strm << num_dir_lights_ << ',' ;
     strm << num_dir_lights_shadow_ << ',' ;
     strm << num_point_lights_ << ',' ;
@@ -322,29 +323,34 @@ string PhongMaterialProgram::Params::key() const {
     strm << num_spot_lights_shadow_ << ',' ;
     strm << (int)enable_shadows_ << ',' ;
     strm << (int)enable_skinning_ << ',' ;
-    strm << (int)has_diffuse_map_ << ',' ;
+    strm << (int)has_texture_map_ << ',' ;
 
     return strm.str() ;
 }
 
-string ConstantMaterialProgram::Params::key() const {
-    std::stringstream strm ;
-    strm << "constant:" ;
-    strm << (int)enable_skinning_ ;
-    return strm.str() ;
+} // impl
+
+impl::MaterialProgramPtr PhongMaterial::instantiate(const impl::MaterialProgramParams &params) const {
+    using namespace impl ;
+    static MaterialProgramFactory<PhongMaterialProgram> s_fact ;
+    return s_fact.instance(params) ;
 }
 
-string PerVertexColorMaterialProgram::Params::key() const {
-    std::stringstream strm ;
-    strm << "per_vertex:" ;
-    strm << (int)enable_skinning_ ;
-    return strm.str() ;
+impl::MaterialProgramPtr PerVertexColorMaterial::instantiate(const impl::MaterialProgramParams &params) const {
+    using namespace impl ;
+    static MaterialProgramFactory<PerVertexColorMaterialProgram> s_fact ;
+    return s_fact.instance(params) ;
 }
 
-string WireFrameMaterialProgram::Params::key() const {
-    std::stringstream strm ;
-    strm << "wireframe:" ;
-    strm << (int)enable_skinning_ ;
-    return strm.str() ;
+impl::MaterialProgramPtr ConstantMaterial::instantiate(const impl::MaterialProgramParams &params) const {
+    using namespace impl ;
+    static MaterialProgramFactory<ConstantMaterialProgram> s_fact ;
+    return s_fact.instance(params) ;
 }
-}}
+
+impl::MaterialProgramPtr WireFrameMaterial::instantiate(const impl::MaterialProgramParams &params) const {
+    using namespace impl ;
+    static MaterialProgramFactory<WireFrameMaterialProgram> s_fact ;
+    return s_fact.instance(params) ;
+}
+}

@@ -24,17 +24,32 @@ using MaterialProgramPtr = std::shared_ptr<MaterialProgram> ;
 // Therefore each program is instantiated with a set of params. From the parameters a unique key is extracted
 // and then its unique program is associated with these key
 
-class MaterialProgramManager {
+struct MaterialProgramParams {
+    GLuint num_dir_lights_ = 0 ;
+    GLuint num_dir_lights_shadow_ = 0 ;
+    GLuint num_point_lights_ = 0 ;
+    GLuint num_point_lights_shadow_ = 0 ;
+    GLuint num_spot_lights_ = 0 ;
+    GLuint num_spot_lights_shadow_ = 0 ;
+
+    bool enable_shadows_ = false ;
+    bool enable_skinning_ = false ;
+    bool has_texture_map_ = false ;
+
+    std::string key() const ;
+};
+
+template<class T>
+class MaterialProgramFactory {
 public:
 
-    MaterialProgramManager() = default;
+    MaterialProgramFactory() = default;
 
-    template<class T, class P, typename ...Args>
-    MaterialProgramPtr instance(const P &params, Args... args) {
+     MaterialProgramPtr instance(const MaterialProgramParams &params) {
         const auto key = params.key() ;
         auto it = instances_.find(key) ;
         if ( it == instances_.end() ) {
-            std::shared_ptr<T> instance(new T(params, args...)) ;
+            std::shared_ptr<T> instance(new T(params)) ;
             instances_.emplace(key, instance) ;
             return instance ;
         } else {
@@ -44,6 +59,7 @@ public:
 
 private:
     std::map<std::string, MaterialProgramPtr> instances_ ;
+
 };
 
 using TextureLoader = std::function<impl::TextureData *(const Texture2D *)> ;
@@ -85,12 +101,14 @@ public:
 
         bool enable_shadows_ = false ;
         bool enable_skinning_ = false ;
-        bool has_diffuse_map_ = false ;
+        bool has_texture_map_ = false ;
 
         std::string key() const ;
     };
 
-    PhongMaterialProgram(const Params &flags) ;
+    static std::string name() { return "phong" ; }
+
+    PhongMaterialProgram(const MaterialProgramParams &flags) ;
 
     void applyParams(const MaterialPtr &mat) override ;
 
@@ -107,20 +125,14 @@ public:
 
 private:
 
-    Params params_ ;
+    MaterialProgramParams params_ ;
 };
 
 
 class ConstantMaterialProgram: public MaterialProgram {
 public:
-    struct Params {
-        bool enable_skinning_ = false ;
-        bool has_texture_map_ = false ;
 
-        std::string key() const ;
-    };
-
-    ConstantMaterialProgram(const Params &p) ;
+    ConstantMaterialProgram(const MaterialProgramParams &p) ;
 
     void applyParams(const MaterialPtr &mat) override ;
 
@@ -129,41 +141,34 @@ public:
     }
 
     void bindTextures(const MaterialPtr &mat, TextureLoader loader) override ;
+
+     static std::string name() { return "constant" ; }
 private:
 
-    Params params_;
+    MaterialProgramParams params_ ;
 };
 
 
 class PerVertexColorMaterialProgram: public MaterialProgram {
 public:
 
-    struct Params {
-        bool enable_skinning_ = false ;
-
-        std::string key() const ;
-    };
-
-    PerVertexColorMaterialProgram(const Params &params) ;
+    PerVertexColorMaterialProgram(const MaterialProgramParams &params) ;
 
     void applyParams(const MaterialPtr &mat) override ;
 
     void applyTransform(const Eigen::Matrix4f &cam, const Eigen::Matrix4f &view, const Eigen::Matrix4f &model) override {
         applyDefaultPerspective(cam, view, model) ;
     }
+
+     static std::string name() { return "per_vertex" ; }
 
 };
 
 class WireFrameMaterialProgram: public MaterialProgram {
 public:
 
-    struct Params {
-        bool enable_skinning_ = false ;
 
-        std::string key() const ;
-    };
-
-    WireFrameMaterialProgram(const Params &flags) ;
+    WireFrameMaterialProgram(const MaterialProgramParams &flags) ;
 
     void applyParams(const MaterialPtr &mat) override ;
 
@@ -172,6 +177,7 @@ public:
     }
 
 
+     static std::string name() { return "wire_frame" ; }
 };
 
 }}

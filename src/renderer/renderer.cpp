@@ -48,52 +48,31 @@ impl::TextureData *Renderer::fetchTextureData(const Texture2D *texture) {
 
 MaterialProgramPtr Renderer::instantiateMaterial(const Material *mat, const std::vector<LightData *> &lights, bool has_skeleton) {
 
-    if ( const PhongMaterial *material = dynamic_cast<const PhongMaterial *>(mat)) {
-        PhongMaterialProgram::Params params ;
+    MaterialProgramParams params ;
 
-        bool has_shadows = false ;
+    bool has_shadows = false ;
 
-        for( const auto &ld: lights ) {
-            const LightPtr &light = ld->light_ ;
-            if ( light->castsShadows() ) has_shadows = true ;
-            if ( dynamic_cast<const DirectionalLight *>(light.get()) ) {
-                if ( light->castsShadows() ) params.num_dir_lights_shadow_ ++ ;
-                else params.num_dir_lights_ ++ ;
-            } else if ( dynamic_cast<const SpotLight *>(light.get()) ) {
-                if ( light->castsShadows() ) params.num_spot_lights_shadow_ ++ ;
-                else params.num_spot_lights_ ++ ;
-            } else if ( dynamic_cast<const PointLight *>(light.get()) ) {
-                if ( light->castsShadows() ) params.num_point_lights_shadow_ ++ ;
-                else params.num_point_lights_ ++ ;
-            }
+    for( const auto &ld: lights ) {
+        const LightPtr &light = ld->light_ ;
+        if ( light->castsShadows() ) has_shadows = true ;
+        if ( dynamic_cast<const DirectionalLight *>(light.get()) ) {
+            if ( light->castsShadows() ) params.num_dir_lights_shadow_ ++ ;
+            else params.num_dir_lights_ ++ ;
+        } else if ( dynamic_cast<const SpotLight *>(light.get()) ) {
+            if ( light->castsShadows() ) params.num_spot_lights_shadow_ ++ ;
+            else params.num_spot_lights_ ++ ;
+        } else if ( dynamic_cast<const PointLight *>(light.get()) ) {
+            if ( light->castsShadows() ) params.num_point_lights_shadow_ ++ ;
+            else params.num_point_lights_ ++ ;
         }
-
-         params.enable_shadows_ = has_shadows ;
-         params.enable_skinning_ = has_skeleton ;
-
-        if ( material->diffuseTexture()  ) {
-            params.has_diffuse_map_ = true ;
-        }
-
-        return material_manager_.instance<PhongMaterialProgram>(params) ;
-    } else if ( const ConstantMaterial *material = dynamic_cast<const ConstantMaterial *>(mat)) {
-        ConstantMaterialProgram::Params params ;
-        params.enable_skinning_ = has_skeleton ;
-        if ( material->texture()  ) {
-            params.has_texture_map_ = true ;
-        }
-        return material_manager_.instance<ConstantMaterialProgram>(params) ;
-     } else if ( const PerVertexColorMaterial *material = dynamic_cast<const PerVertexColorMaterial *>(mat)) {
-        PerVertexColorMaterialProgram::Params params ;
-        params.enable_skinning_ = has_skeleton ;
-        return material_manager_.instance<PerVertexColorMaterialProgram>(params) ;
-    } else if ( const WireFrameMaterial *material = dynamic_cast<const WireFrameMaterial *>(mat)) {
-        WireFrameMaterialProgram::Params params ;
-        params.enable_skinning_ = has_skeleton ;
-        return material_manager_.instance<WireFrameMaterialProgram>(params) ;
     }
 
-    return nullptr ;
+    params.enable_shadows_ = has_shadows ;
+    params.enable_skinning_ = has_skeleton ;
+
+    params.has_texture_map_ = mat->hasTexture() ;
+
+    return mat->instantiate(params) ;
 }
 
 void Renderer::init() {

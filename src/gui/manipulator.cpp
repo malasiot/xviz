@@ -1,14 +1,128 @@
 #include <xviz/gui/manipulator.hpp>
 #include <xviz/scene/node_helpers.hpp>
 #include "renderer/util.hpp"
+#include "renderer/material_program.hpp"
+#include "common/shader.hpp"
 #include <QMouseEvent>
 #include <QDebug>
 
 #include <iostream>
+
 using namespace Eigen ;
 using namespace std ;
 
 namespace xviz {
+
+class GizmoMaterial: public Material {
+public:
+    GizmoMaterial(const Eigen::Vector4f &clr): clr_(clr) {}
+
+    void setColor(const Eigen::Vector4f &clr) {
+        clr_ = clr ;
+    }
+
+    const Eigen::Vector4f &color() const { return clr_ ; }
+
+private:
+
+    impl::MaterialProgramPtr instantiate(const impl::MaterialProgramParams &) const override  ;
+
+
+    Eigen::Vector4f clr_ ;
+
+};
+
+namespace impl {
+class GizmoMaterialProgram: public impl::MaterialProgram {
+public:
+
+    GizmoMaterialProgram(const impl::MaterialProgramParams &params) ;
+
+    void applyParams(const MaterialPtr &mat) override ;
+
+    void applyTransform(const Eigen::Matrix4f &cam, const Eigen::Matrix4f &view, const Eigen::Matrix4f &model) override {
+        auto prj = OrthographicCamera(-1, 1, -1, 1).getProjectionMatrix() ;
+
+        Matrix4f mvp =  cam * view * model;
+        Matrix4f mv =   view * model;
+
+        Matrix3f wpi = mv.block<3, 3>(0, 0).transpose().eval() ;
+        Matrix3f wp(wpi.inverse().eval()) ;
+
+        setUniform("mvp", mvp) ;
+        setUniform("mv", mv) ;
+        setUniform("mvn", wp) ;
+        setUniform("model", model) ;
+        setUniform("eyePos", Vector4f(view.inverse() * Vector4f(0, 0, 0, 1)));
+    }
+};
+
+
+const char *vertex_shader = R"(
+#version 330
+
+layout (location = 0) in vec3 vposition;
+out vec3 position;
+out vec3 fpos ;
+
+#ifdef HAS_NORMALS
+layout (location = 1) in vec3 vnormal;
+out vec3 normal;
+#endif
+
+#ifdef HAS_COLORS
+layout (location = 2) in vec3 vcolor;
+out vec3 color ;
+#endif
+
+uniform mat4 model ;
+uniform mat4 mvp;
+uniform mat4 mv;
+uniform mat3 mvn ;
+
+void main()
+{
+    vec4 posl = vec4(vposition, 1.0);
+    gl_Position  = mvp * posl;
+
+#ifdef HAS_COLORS
+    color = vcolor ;
+#endif
+
+    position    = (mv * posl).xyz;
+    fpos = vec3(model * posl);
+}
+)";
+
+GizmoMaterialProgram::GizmoMaterialProgram(const MaterialProgramParams &params) {
+    impl::OpenGLShaderPreproc preproc ;
+
+    preproc.appendDefinition("USE_SKINNING", false);
+    preproc.appendDefinition("HAS_UVs", false) ;
+    preproc.appendDefinition("HAS_DIFFUSE_MAP", false) ;
+
+    addShaderFromCode(impl::VERTEX_SHADER, vertex_shader) ;
+    addShaderFromFile(impl::FRAGMENT_SHADER, "@constant_fragment_shader", preproc) ;
+
+    link() ;
+}
+
+void GizmoMaterialProgram::applyParams(const MaterialPtr &mat) {
+    const GizmoMaterial *material = dynamic_cast<const GizmoMaterial *>(mat.get());
+    assert( material ) ;
+
+    setUniform("color", material->color()) ;
+}
+
+}
+
+
+impl::MaterialProgramPtr GizmoMaterial::instantiate(const impl::MaterialProgramParams &params) const {
+    using namespace impl ;
+    static MaterialProgramFactory<GizmoMaterialProgram> s_fact ;
+    return s_fact.instance(params) ;
+}
+
 
 TransformGizmo::TransformGizmo(float radius) {
 

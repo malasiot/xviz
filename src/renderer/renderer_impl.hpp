@@ -70,10 +70,8 @@ private:
     const uint32_t shadow_map_height_ = 2048 ;
 
     std::map<LightPtr, LightData> light_data_ ;
-    MaterialProgramManager material_manager_ ;
 
 private:
-
 
     void drawMeshData(const impl::MeshData &data, GeometryPtr mesh, bool solid=false);
     void setLights(const impl::MaterialProgramPtr &material);

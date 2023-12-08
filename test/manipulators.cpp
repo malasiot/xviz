@@ -89,7 +89,7 @@ Gui::Gui() {
     TransformManipulator *gizmo = new TransformManipulator(getCamera(), 2.0) ;
     gizmo->gizmo()->setOrder(2) ;
     gizmo->attachTo(box_node.get()) ;
-    gizmo->setLocalTransform(true);
+    gizmo->setLocalTransform(false);
     gizmo_.reset(gizmo) ;
 
 

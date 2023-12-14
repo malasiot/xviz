@@ -12,3 +12,5 @@ find_package(PNG)
 FIND_PACKAGE(Freetype REQUIRED)
 FIND_PACKAGE(Fontconfig REQUIRED)
 FIND_PACKAGE(HarfBuzz REQUIRED)
+
+find_package(glfw3 REQUIRED)

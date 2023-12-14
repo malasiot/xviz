@@ -12,6 +12,7 @@ include_directories(
     ${FREETYPE_INCLUDE_DIRS}
     ${HARFBUZZ_INCLUDE_DIRS}
     ${FONTCONFIG_INCLUDE_DIR}
+    ${GLFW3_IMCLUDE_DIRS}
 )
 
 set(LIB_SOURCES
@@ -67,6 +68,8 @@ set(LIB_SOURCES
     gui/trackball.cpp
     gui/offscreen.cpp
     gui/manipulator.cpp
+
+#    gui/viewer_glfw.cpp
 #    gui/translation_manipulator.cpp
 #    gui/rotation_manipulator.cpp
 
@@ -92,7 +95,7 @@ endif()
 if (msvc)
 target_link_libraries(xviz assimp::assimp ${OPENGL_LIBRARIES}  ${PNG_LIBRARIES} Qt5::Core Qt5::Widgets)
 else ()
-target_link_libraries(xviz  assimp ${OPENGL_LIBRARIES} ${PNG_LIBRARIES} ${FREETYPE_LIBRARIES} ${Fontconfig_LIBRARIES} Qt5::Core Qt5::Widgets)
+target_link_libraries(xviz  assimp ${OPENGL_LIBRARIES} ${PNG_LIBRARIES} ${FREETYPE_LIBRARIES} ${Fontconfig_LIBRARIES} glfw Qt5::Core Qt5::Widgets)
 endif ()
 
 # Install library

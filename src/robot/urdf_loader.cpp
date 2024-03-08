@@ -13,12 +13,14 @@ using namespace Eigen ;
 
 namespace xviz {
 
-URDFRobot URDFLoader::parse(const string &urdf_file) {
+URDFRobot URDFLoader::parseFile(const string &urdf_file) {
     URDFRobot robot ;
 
     xml_document doc ;
 
     xml_parse_result result = doc.load_file(urdf_file.c_str()) ;
+
+
 
     if ( !result )
         throw URDFLoadException(result.description()) ;
@@ -34,6 +36,30 @@ URDFRobot URDFLoader::parse(const string &urdf_file) {
 
     return robot ;
 }
+
+URDFRobot URDFLoader::parseString(const string &urdf_desc) {
+    URDFRobot robot ;
+
+    xml_document doc ;
+
+    xml_parse_result result = doc.load_string(urdf_desc.c_str()) ;
+
+    if ( !result )
+        throw URDFLoadException(result.description()) ;
+
+    if ( xml_node root = doc.child("robot") ) { // URDF
+        robot.name_ = prefix_ + root.attribute("name").as_string() ;
+        parseRobot(root, robot, "") ;
+    } else
+        throw URDFLoadException("No URDF root element found") ;
+
+
+    buildTree(robot) ;
+
+    return robot ;
+}
+
+
 
 void URDFLoader::parseRobot(const xml_node &node, URDFRobot &rb, const string &path) {
 

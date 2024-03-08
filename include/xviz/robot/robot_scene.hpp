@@ -49,7 +49,9 @@ typedef std::shared_ptr<RobotScene> RobotScenePtr ;
 class RobotScene: public Scene {
 public:
 
-    static RobotScenePtr loadURDF(const std::string &filename, const std::string &name_prefix = {}, const std::map<std::string, std::string> &packages = {},  bool collision_geometries = false) ;
+    static RobotScenePtr loadURDFfromFile(const std::string &filename, const std::string &name_prefix = {}, const std::map<std::string, std::string> &packages = {},  bool collision_geometries = false) ;
+
+    static RobotScenePtr loadURDFfromString(const std::string &filename, const std::string &name_prefix = {}, const std::map<std::string, std::string> &packages = {},  bool collision_geometries = false) ;
 
     static RobotScenePtr fromURDF(const URDFRobot &r, bool collision_geometries = false) ;
 

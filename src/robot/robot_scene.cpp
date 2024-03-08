@@ -10,10 +10,17 @@ using namespace Eigen ;
 
 namespace xviz {
 
-RobotScenePtr RobotScene::loadURDF(const string &filename, const string &prefix, const map<string, string> &packages, bool load_collision_geometry) {
+RobotScenePtr RobotScene::loadURDFfromFile(const string &filename, const string &prefix, const map<string, string> &packages, bool load_collision_geometry) {
 
     URDFLoader loader(packages, prefix) ;
-    URDFRobot rb = loader.parse(filename) ;
+    URDFRobot rb = loader.parseFile(filename) ;
+    return parseRobotURDF(rb, load_collision_geometry) ;
+}
+
+RobotScenePtr RobotScene::loadURDFfromString(const string &desc, const string &prefix, const map<string, string> &packages, bool load_collision_geometry) {
+
+    URDFLoader loader(packages, prefix) ;
+    URDFRobot rb = loader.parseString(desc) ;
     return parseRobotURDF(rb, load_collision_geometry) ;
 }
 

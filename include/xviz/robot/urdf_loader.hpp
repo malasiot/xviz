@@ -16,7 +16,8 @@ public:
     URDFLoader(const std::map<std::string, std::string> package_map, const std::string &name_prefix):
         package_map_(package_map), prefix_(name_prefix) {}
 
-    URDFRobot parse(const std::string &urdf_file) ;
+    URDFRobot parseFile(const std::string &urdf_file) ;
+    URDFRobot parseString(const std::string &urdf_str) ;
 
 private:
     void parseRobot(const pugi::xml_node &node, URDFRobot &rb, const std::string &path) ;

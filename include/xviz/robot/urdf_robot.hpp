@@ -91,7 +91,8 @@ struct URDFLink {
 struct URDFRobot {
 
     // loads URDF models
-    static URDFRobot load(const std::string &fname, const std::string &name_prefix = {}, const std::map<std::string, std::string> package_map = {}) ;
+    static URDFRobot loadFile(const std::string &fname, const std::string &name_prefix = {}, const std::map<std::string, std::string> package_map = {}) ;
+    static URDFRobot loadString(const std::string &fname, const std::string &name_prefix = {}, const std::map<std::string, std::string> package_map = {}) ;
 
     const URDFLink *getLink(const std::string &name) const ;
     const URDFJoint *findJoint(const std::string &name) const ;

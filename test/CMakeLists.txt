@@ -14,8 +14,8 @@ target_link_libraries(test_offscreen xviz)
 add_executable(test_picking util.cpp picking.cpp )
 target_link_libraries(test_picking xviz)
 
-#add_executable(test_robot util.cpp robot.cpp )
-#target_link_libraries(test_robot xviz)
+add_executable(test_robot util.cpp robot.cpp )
+target_link_libraries(test_robot xviz)
 
 add_executable(test_skeleton util.cpp skeleton.cpp )
 target_link_libraries(test_skeleton xviz)

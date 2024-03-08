@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
 
   // string path = TestApplication::data() + "robots/pr2_gripper.urdf" ;
    string path ="/home/malasiot/source/xsim/data/robots/ur5/ur5_robotiq85_gripper.urdf";
-    auto robot = URDFRobot::load(path) ;
+    auto robot = URDFRobot::loadFile(path) ;
     robot.setJointPosition("elbow_joint", 0.5) ;
        robot.setJointPosition("shoulder_lift_joint", -.54) ;
     RobotScenePtr scene = RobotScene::fromURDF(robot) ;

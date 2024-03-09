@@ -98,17 +98,14 @@ bool TextureData::create(Image *image, const Sampler2D &sampler)
         std::string path = image->uri() ;
 
         int width, height, channels;
-        unsigned char *data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+        unsigned char *data = stbi_load(path.c_str(), &width, &height, &channels, 4);
 
         if ( !data ) return false ;
 
         glGenTextures(1, &id_);
         glBindTexture(GL_TEXTURE_2D, id_) ;
 
-        if ( channels == 3 )
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        else if ( channels == 4 )
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
         if ( sampler.generateMipMaps() )
             glGenerateMipmap(GL_TEXTURE_2D);

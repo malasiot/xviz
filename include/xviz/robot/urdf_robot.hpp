@@ -9,6 +9,8 @@
 
 namespace xviz {
 
+using URDFPackageResolver = std::function<std::string(const std::string &)> ;
+
 struct URDFJoint {
     std::string parent_, child_, type_, mimic_joint_, name_ ;
     Eigen::Vector3f axis_ ;
@@ -91,8 +93,8 @@ struct URDFLink {
 struct URDFRobot {
 
     // loads URDF models
-    static URDFRobot loadFile(const std::string &fname, const std::string &name_prefix = {}, const std::map<std::string, std::string> package_map = {}) ;
-    static URDFRobot loadString(const std::string &fname, const std::string &name_prefix = {}, const std::map<std::string, std::string> package_map = {}) ;
+    static URDFRobot loadFile(const std::string &fname, const std::string &name_prefix = {}, URDFPackageResolver resolver = nullptr) ;
+    static URDFRobot loadString(const std::string &fname, const std::string &name_prefix = {}, URDFPackageResolver resolver = nullptr) ;
 
     const URDFLink *getLink(const std::string &name) const ;
     const URDFJoint *findJoint(const std::string &name) const ;

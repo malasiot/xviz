@@ -396,15 +396,15 @@ string URDFLoader::resolveUri(const std::string &uri, const std::string &path) {
 
     string rpath ;
 
-    if ( uri.substr(0, 10) == "package://" ) {
+    if ( uri.substr(0, 10) == "package://" && package_map_ != nullptr ) {
         size_t pos = uri.find_first_of('/', 10) ;
         if ( pos == string::npos ) return rpath ;
         string package_str = uri.substr(10, pos-10) ;
         string package_subpath = uri.substr(pos+1) ;
 
-        auto it = package_map_.find(package_str) ;
-        if ( it == package_map_.end() ) return rpath ;
-        rpath = it->second + '/' + package_subpath ;
+        string package_resolved = package_map_(package_str) ;
+        if ( package_resolved.empty() ) return {} ;
+        else rpath = package_resolved + '/' + package_subpath ;
     } else {
         rpath = parentPath(path) + '/' + uri ;
     }

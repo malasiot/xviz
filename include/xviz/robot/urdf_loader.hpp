@@ -13,7 +13,7 @@ class URDFRobot ;
 
 class URDFLoader {
 public:
-    URDFLoader(const std::map<std::string, std::string> package_map, const std::string &name_prefix):
+    URDFLoader(URDFPackageResolver package_map, const std::string &name_prefix):
         package_map_(package_map), prefix_(name_prefix) {}
 
     URDFRobot parseFile(const std::string &urdf_file) ;
@@ -32,7 +32,7 @@ private:
     Eigen::Matrix3f parseInertia(const pugi::xml_node &node);
     Eigen::Isometry3f parsePose(const pugi::xml_node &node);
 
-    std::map<std::string, std::string> package_map_ ;
+    URDFPackageResolver package_map_ ;
 
     bool parse_collision_geometry_ ;
     std::string prefix_ ;

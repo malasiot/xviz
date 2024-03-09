@@ -244,7 +244,7 @@ void SceneViewer::drawText(const Vector3f &c, const QString &text, const QColor 
 
 void SceneViewer::paintGL()
 {
-    if ( !scene_ ) return ;
+    if ( !scene_ || !camera_ ) return ;
 
     rdr_.render(scene_, camera_) ;
 

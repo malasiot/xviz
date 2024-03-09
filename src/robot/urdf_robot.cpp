@@ -8,15 +8,15 @@ using namespace Eigen ;
 
 namespace xviz {
 
-URDFRobot URDFRobot::loadFile(const std::string &filename, const string &name_prefix, const std::map<std::string, std::string> packages) {
-    URDFLoader loader(packages, name_prefix) ;
+URDFRobot URDFRobot::loadFile(const std::string &filename, const string &name_prefix, URDFPackageResolver res) {
+    URDFLoader loader(res, name_prefix) ;
     URDFRobot rb = loader.parseFile(filename) ;
 
     return rb ;
 }
 
-URDFRobot URDFRobot::loadString(const std::string &desc, const string &name_prefix, const std::map<std::string, std::string> packages) {
-    URDFLoader loader(packages, name_prefix) ;
+URDFRobot URDFRobot::loadString(const std::string &desc, const string &name_prefix, URDFPackageResolver res) {
+    URDFLoader loader(res, name_prefix) ;
     URDFRobot rb = loader.parseString(desc) ;
 
     return rb ;

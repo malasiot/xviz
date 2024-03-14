@@ -86,6 +86,7 @@ class PerspectiveCamera: public Camera {
 public:
     PerspectiveCamera(float aspect, float yfov, float znear = 0.01, float zfar = 10.0):
         yfov_(yfov), znear_(znear), zfar_(zfar) {
+        setAspectRatio(aspect);
     }
 
     Eigen::Matrix4f getProjectionMatrix() const override {

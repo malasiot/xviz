@@ -39,6 +39,8 @@ public:
             return width_ * height_ * 1 ;
         case ImageFormat::gray16:
             return width_ * height_ * 2 ;
+        case ImageFormat::float32:
+            return width_ * height_ * 4 ;
         case ImageFormat::encoded:
             return width_ ;
         }

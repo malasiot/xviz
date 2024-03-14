@@ -9,7 +9,7 @@ namespace xviz {
 
 enum class ImageType { Raw, Uri, NoImage } ;
 
-enum class ImageFormat { rgb24, rgba32, gray8, gray16, encoded };
+enum class ImageFormat { rgb24, rgba32, gray8, gray16, float32, encoded };
 /* encoded means an encoded image payload  e.g. PNG.
  * In this case width is the data size and height is 0 */
 

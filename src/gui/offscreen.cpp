@@ -161,6 +161,37 @@ Image OffscreenSurface::getDepthBuffer(float znear, float zfar) const {
     return Image((uchar *)dst, ImageFormat::gray16, size_.width(), size_.height()) ;
 }
 
+Image OffscreenSurface::getDepthBufferFloat(float znear, float zfar) const {
+
+    glReadBuffer(GL_DEPTH_ATTACHMENT);
+
+    float *data = new float[size_.width() * size_.height() * sizeof(float)];
+
+    glReadPixels(0, 0, size_.width(), size_.height(), GL_DEPTH_COMPONENT, GL_FLOAT, data);
+
+    float max_allowed_z = zfar * 0.99;
+
+    float *ptr = data ;
+
+    for (int i = 0; i < size_.height() ; ++i) {
+
+        for (int j = 0; j < size_.width(); ++j )
+        {
+            //need to undo the depth buffer mapping
+            //http://olivers.posterous.com/linear-depth-in-glsl-for-real
+            float z  = 2 * zfar * znear / (zfar + znear - (zfar - znear) * (2 * (*ptr) - 1));
+
+            float val = ( z > max_allowed_z ) ? 0 : z ;
+
+            *ptr++ = val ;
+
+        }
+
+    }
+
+    return Image((uchar *)data, ImageFormat::float32, size_.width(), size_.height()) ;
+}
+
 GLuint OffscreenSurface::fboId() const {
     return fbo_->handle() ;
 }

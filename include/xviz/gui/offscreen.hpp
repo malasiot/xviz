@@ -22,11 +22,13 @@ public:
 
     Image getImage(bool alpha = true) const ;
     Image getDepthBuffer(float znear, float zfar) const ;
+    Image getDepthBufferFloat(float znear, float zfar) const;
 
     GLuint fboId() const ;
 
     void use() ;
     void release() ;
+
 
 private:
     QOpenGLFramebufferObject *fbo_ = nullptr;

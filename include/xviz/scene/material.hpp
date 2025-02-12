@@ -83,9 +83,11 @@ public:
 
     void setSide(Side s) { side_ = s ; }
     Side side() const { return side_ ; }
+    void setPointSize(int sz) { point_size_ = sz ; }
 
     void enableDepthTest(bool e) { enable_depth_test_ = e ; }
     bool hasDepthTest() const { return enable_depth_test_ ; }
+    int pointSize() const { return point_size_ ; }
 
     virtual bool hasTexture() const { return false ; }
 
@@ -97,6 +99,7 @@ private:
 
     Side side_ = Side::Front ;
     bool enable_depth_test_ = true ;
+    int point_size_ = 1 ;
 };
 
 

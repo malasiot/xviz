@@ -115,6 +115,8 @@ void Renderer::initState(const Material *mat) {
     else
         glDisable(GL_DEPTH_TEST) ;
 
+    glPointSize(mat->pointSize());
+
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
